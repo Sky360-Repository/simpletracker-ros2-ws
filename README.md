@@ -1,9 +1,11 @@
 #### The command below does not need to be run again, this was used by me to setup the project.
 `ros2 pkg create --build-type ament_python cv_basics --dependencies rclpy image_transport cv_bridge sensor_msgs std_msgs opencv2`
 
-### The command below should be used to get this ROS package in the container environment
+### The commands below should be used to get this ROS package up and running in VSCode and using the ROS dev container
 
 #### The following 2 ROS dependency commands should be included in the Dockerfile so that they don't have to be run manually, but I don't know hwo to do that yet
+
+Run all the following commands from the simpletracker-ros2-ws folder.
 
 Update ROS dependency repositories `rosdep update`
 Install ROS dependencies `rosdep install -i --from-path src --rosdistro humble -y`

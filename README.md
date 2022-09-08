@@ -10,7 +10,7 @@ Install ROS dependencies `rosdep install -i --from-path src --rosdistro humble -
 
 **NOTE:** Update line 37 of the webcam_pub.py file to supply either:
 * a camera index i.e. 0
-* or a uri e.g.: 'rtsp://[user]:[<password]@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
+* or a uri e.g.: 'rtsp://[user]:[password]@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
 
 Build the ROS package `colcon build`
 Source the built package `source install/setup.bash`

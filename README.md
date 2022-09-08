@@ -5,7 +5,7 @@
 
 #### The following 2 ROS dependency commands should be included in the Dockerfile so that they don't have to be run manually, but I don't know hwo to do that yet
 
-Run all the following commands from the simpletracker-ros2-ws folder.
+**NOTE:** Run all the following commands from the **simpletracker-ros2-ws** folder.
 
 Update ROS dependency repositories `rosdep update`
 Install ROS dependencies `rosdep install -i --from-path src --rosdistro humble -y`

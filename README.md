@@ -1,5 +1,5 @@
 #### The command below does not need to be run again, this was used by me to setup the project.
-`ros2 pkg create --build-type ament_python cv_basics --dependencies rclpy image_transport cv_bridge sensor_msgs std_msgs opencv2`
+`ros2 pkg create --build-type ament_python cv_basics --dependencies rclpy image_transport cv_bridge sensor_msgs std_msgs python3-opencv`
 
 ### The commands below should be used to get this ROS package up and running in VSCode and using the ROS dev container
 

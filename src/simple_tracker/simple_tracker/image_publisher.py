@@ -4,7 +4,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 
-from .setting_convertor import SettingConvertor
+from .config_entry_convertor import ConfigEntryConvertor
 from .configuration_client_async import ConfigurationClientAsync
 
 class ImagePublisherNode(Node):
@@ -18,7 +18,7 @@ class ImagePublisherNode(Node):
     # string
     response = configuration_client.send_request('camera_uri')
     self.get_logger().info(f'camera_uri --> type [{response.type}] value [{response.value}].')
-    camera_uri = SettingConvertor.Convert(response.type, response.value)
+    camera_uri = ConfigEntryConvertor.Convert(response.type, response.value)
     self.get_logger().info(f'Retrieved camera_uri from config {camera_uri}.')
 
     self.publisher_ = self.create_publisher(Image, 'video_frames', 10)

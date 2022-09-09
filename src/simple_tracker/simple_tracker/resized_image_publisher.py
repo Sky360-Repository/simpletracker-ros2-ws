@@ -18,19 +18,19 @@ class ResizedImagePublisherNode(Node):
     # string
     response = configuration_client.send_request('camera_uri')
     self.get_logger().info(f'camera_uri --> type [{response.type}] value [{response.value}].')
-    self.camera_uri = response.value #SettingConvertor.Convert(response.type, response.value)
+    self.camera_uri = SettingConvertor.Convert(response.type, response.value)
     self.get_logger().info(f'Retrieved camera_uri from config {self.camera_uri}.')
 
     # int
     response = configuration_client.send_request('resize_dimension')
     self.get_logger().info(f'resize_dimension --> type [{response.type}] value [{response.value}].')
-    self.resize_dimension = response.value #SettingConvertor.Convert(response.type, response.value)
+    self.resize_dimension = SettingConvertor.Convert(response.type, response.value)
     self.get_logger().info(f'Retrieved resize_dimension from config {self.resize_dimension}.')
 
     # bool
     response = configuration_client.send_request('resize_frame')
     self.get_logger().info(f'resize_frame --> type [{response.type}] value [{response.value}].')
-    self.resize_frame = response.value #SettingConvertor.Convert(response.type, response.value)
+    self.resize_frame = SettingConvertor.Convert(response.type, response.value)
     self.get_logger().info(f'Retrieved resize_frame from config {self.resize_frame}.')
 
     self.publisher_ = self.create_publisher(Image, 'video_frames_resize', 10)

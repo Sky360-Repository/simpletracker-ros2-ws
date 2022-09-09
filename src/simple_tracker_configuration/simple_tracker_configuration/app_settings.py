@@ -24,7 +24,7 @@ class AppSettings():
         app_settings['controller'] = 'camera'
 
         app_settings['camera_mode'] = 'rtsp'
-        app_settings['camera_uri'] = 'rtsp://admin:Admin2011Secure@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
+        app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
         app_settings['camera_iteration_interval'] = 10
 
         #Visualisers

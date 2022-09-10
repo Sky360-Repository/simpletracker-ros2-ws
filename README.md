@@ -7,7 +7,7 @@
 
 **NOTE:** Run all the following commands using the terminal in VSCode and from the **simpletracker-ros2-ws** folder. This terminal should be in the context of the container so should execute commands in the **development container** and not the local machine.
 
-## If you would like to, just run the `setup.bash` file and skip all the gubbins below. Only thing to do would be to "Update web cam details", see below
+## If you would like to, just run the `setup.sh` file and skip all the gubbins below. Only thing to do would be to "Update web cam details", see below
 
 ### Gubbins
 * Add the ROS2 apt repository to your system. `sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg`

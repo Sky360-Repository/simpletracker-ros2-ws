@@ -7,6 +7,12 @@
 
 **NOTE:** Run all the following commands using the terminal in VSCode and from the **simpletracker-ros2-ws** folder. This terminal should be in the context of the container so should execute commands in the **development container** and not the local machine.
 
+## If you would like to, just run the `setup.bash` file and skip all the gubbins below. Only thing to do would be to "Update web cam details", see below
+
+### Gubbins
+* Add the ROS2 apt repository to your system. `sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg`
+* Then add the repository to your sources list. `echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null`
+* Update your apt repository caches after setting up the repositories. `sudo apt update`
 * Update ROS dependency repositories `rosdep update`
 * Install ROS dependencies `rosdep install -i --from-path src --rosdistro humble -y`
 * Build the ROS package `colcon build`
@@ -15,6 +21,7 @@
   * `ros2 run cv_basics img_publisher` 
   * `ros2 run cv_basics img_subscriber`
 
+### Update web cam details
 **NOTE:** Update line 37 of the webcam_pub.py file in the cv_basics package to supply either:
 **NOTE:** Update line 27 of the app_settings.py file in the simple_tracker_configuration package to supply either:
 * a camera index i.e. 0

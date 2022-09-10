@@ -1,7 +1,6 @@
 import sys
-from simple_tracker_interfaces.srv import ConfigEntry
 
-class SettingConvertor():
+class ConfigEntryConvertor():
 
     # Method to populate a configuration dictionary for use throughout the simple tracker application
     @staticmethod

@@ -20,8 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'full_frame_publisher = simple_tracker.image_publisher:main',
-            'resized_frame_publisher = simple_tracker.resized_image_publisher:main',
+            'frame_publisher = simple_tracker.image_publisher:main',
         ],
     },
 )

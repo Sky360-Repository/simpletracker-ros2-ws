@@ -38,7 +38,7 @@ class AppSettings():
         app_settings['detection_sensitivity'] = 2
         app_settings['noise_reduction'] = True
         app_settings['resize_frame'] = False
-        app_settings['resize_dimension'] = 1024
+        app_settings['resize_dimension_h'] = 800
         app_settings['blur_radius'] = 3
         app_settings['calculate_optical_flow'] = False
         app_settings['max_active_trackers'] = 10

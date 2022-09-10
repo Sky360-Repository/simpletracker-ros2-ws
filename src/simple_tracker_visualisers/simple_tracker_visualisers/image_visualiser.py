@@ -8,7 +8,7 @@ class ImageVisualiserNode(Node):
 
   def __init__(self):
     super().__init__('image_subscriber')
-    self.subscription = self.create_subscription(Image, 'video_frames', self.listener_callback, 10)
+    self.subscription = self.create_subscription(Image, 'sky360/full_frame', self.listener_callback, 10)
     self.subscription
     self.br = CvBridge()
    

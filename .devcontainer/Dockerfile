@@ -4,7 +4,7 @@ FROM althack/ros2:humble-dev
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade \
    && apt-get -y install --no-install-recommends python3-numpy libboost-python-dev python3-opencv \
    # ROS2 build related stuff
    && pip3 install setuptools==58.2.0 \
@@ -13,7 +13,7 @@ RUN apt-get update \
    && apt-get clean -y
    #&& rm -rf /var/lib/apt/lists/*
 
-ENV DEBIAN_FRONTEND=dialogdocker 
+ENV DEBIAN_FRONTEND=dialog
 
 # Set up auto-source of workspace for ros user
 ARG WORKSPACE

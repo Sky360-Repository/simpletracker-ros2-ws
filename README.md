@@ -24,7 +24,9 @@
 
 * You can now run some additional packages
   * `ros2 run simple_tracker_configuration configuration_service` 
-  * `ros2 run simple_tracker resized_frame_publisher`
+  * `ros2 run simple_tracker frame_publisher`
   * `ros2 run simple_tracker_visualisers resized_frame_visualiser`
-  * `ros2 run simple_tracker full_frame_publisher`
   * `ros2 run simple_tracker_visualisers full_frame_visualiser`
+
+Alternatively you can run Simple Tracker using the launch facility
+* `ros2 launch simple_tracker_launch simple_tracker_launch.py` 

@@ -10,21 +10,15 @@ def generate_launch_description():
             name='configuration_service'
         ),
         Node(
-            package='simple_tracker',
+            package='camera_mock',
             #namespace='sky360',
-            executable='frame_publisher',
-            name='frame_publisher'
+            executable='camera',
+            name='camera'
         ),
         Node(
             package='simple_tracker_visualisers',
             #namespace='sky360',
-            executable='resized_frame_visualiser',
-            name='resized_frame_visualiser'
-        ),
-        Node(
-            package='simple_tracker_visualisers',
-            #namespace='sky360',
-            executable='full_frame_visualiser',
-            name='full_frame_visualiser'
+            executable='simple_visualiser',
+            name='simple_visualiser'
         ),        
     ])

@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'simple_tracker_visualisers'
+package_name = 'camera_mock'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'simple_visualiser = simple_tracker_visualisers.image_visualiser:main',
+            'camera = camera_mock.camera_node:main',
         ],
     },
 )

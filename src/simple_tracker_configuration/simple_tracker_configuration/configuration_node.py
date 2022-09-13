@@ -62,25 +62,45 @@ class SimpleTrackerConfigurationNode(Node):
 
         def get_config_update_callback(self, request, response):
 
-                self.get_logger().info(f'Updating config key [{request.key}].')
+                self.get_logger().info(f'Updating config.')
 
-                keys = [request.key]
-
-                previous_value = self.settings[request.key]
-                updated_value = ConfigEntryConvertor.Convert(request.type, request.value)
                 updated = False
+                validated = True
+                message = 'Success - '
+                keys = []
 
-                if previous_value is None:
-                        self.settings[request.key] = ConfigEntryConvertor.Convert(request.type, request.value)
-                        updated = True
+                for config_entry in request.entries:
+                        previous_value = self.settings[config_entry.key]
+                        updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
 
-                else:
-                        if previous_value != updated_value:
-                                self.settings[request.key] = ConfigEntryConvertor.Convert(request.type, request.value)
-                                updated = True
+                        if previous_value is not None:
+                                if type(previous_value).__name__ != type(updated_value).__name__:
+                                        validated = False
+                                        message += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+
+                if validated:
+                        for config_entry in request.entries:
+                                keys.append(config_entry.key)
+                                previous_value = self.settings[config_entry.key]
+                                updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+
+                                if previous_value is None:
+                                        self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                                        self.get_logger().info(f'Updating config {config_entry.key}.')
+                                        message += f'Updated: {config_entry.key},'
+                                        updated = True
+                                else:
+                                        if previous_value != updated_value:
+                                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                                                self.get_logger().info(f'Updating config {config_entry.key}.')
+                                                message += f'Updated: {config_entry.key},'
+                                                updated = True
 
                 if updated:
-                        self.config_change_publisher.publish(keys)
+                        msg = ConfigEntryUpdatedArray()
+                        msg.keys = keys
+                        self.config_change_publisher.publish(msg)
 
                 response.success = updated
+                response.message = message
                 return response

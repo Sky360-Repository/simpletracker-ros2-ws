@@ -17,28 +17,27 @@ Message end point to provide a notification event that the config entry has been
 
 ## Frames
 
-### sky360/frame/original/v1
+### sky360/camera/frame/original/v1
 Message end point for the publishing of the original frame received from OpenCV
-
-### sky360/frame/annotated/v1
-Message end point for the publishing of the annotated frame
-
-### sky360/frame/grey/v1
-Message end point for the publishing of the grey frame
-
-### sky360/frame/masked_background/v1
-Message end point for the publishing of the masked_background frame
-
-### sky360/frame/optical_flow/v1
-Message end point for the publishing of the optical_flow frame
-
-### sky360/frame/original/scaled/v1
-Message end point for the publishing of a scaled version of the original frame received from OpenCV **Note** This will be deleted as its a temporary test message end point. If resizing is done, it will be done at source level accross all frames.
-
 
 ## Tracker
 
 ### sky360/tracker
+
+### sky360/tracker/frame/masked/v1
+Message end point for the publishing of the original frame with a mask applied
+
+### sky360/tracker/frame/annotated/v1
+Message end point for the publishing of the annotated frame
+
+### sky360/tracker/frame/grey/v1
+Message end point for the publishing of the grey frame
+
+### sky360/tracker/frame/masked_background/v1
+Message end point for the publishing of the masked_background frame
+
+### sky360/tracker/frame/optical_flow/v1
+Message end point for the publishing of the optical_flow frame
 
 ## Tracks
 

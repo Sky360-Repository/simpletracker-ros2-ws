@@ -21,47 +21,48 @@ class AppSettings():
 
         app_settings = {}
 
-        app_settings['controller'] = 'camera'
+        # Controller section
+        app_settings['controller_type'] = 'camera'
 
+        # Camera section
         app_settings['camera_mode'] = 'rtsp'
         app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
         app_settings['camera_iteration_interval'] = 10
+        app_settings['camera_resize_frame'] = False
+        app_settings['camera_resize_dimension_h'] = 800
+        app_settings['camera_resize_dimension_w'] = 960
 
-        #Visualisers
-        app_settings['font_size'] = 0.75
-        app_settings['font_thickness'] = 2
+        # Visualiser section
+        app_settings['visualiser_font_size'] = 0.75
+        app_settings['visualiser_font_thickness'] = 2
 
         # Video Tracker section
-        app_settings['enable_stopwatch'] = False
-        app_settings['enable_cuda'] = False
-        app_settings['detection_mode'] = 'background_subtraction'
-        app_settings['detection_sensitivity'] = 2
-        app_settings['noise_reduction'] = True
-        app_settings['resize_frame'] = False
-        app_settings['resize_dimension_h'] = 800
-        app_settings['blur_radius'] = 3
-        app_settings['calculate_optical_flow'] = False
-        app_settings['max_active_trackers'] = 10
         app_settings['tracker_type'] = 'CSRT'
-        app_settings['background_subtractor_type'] = 'KNN'
-        app_settings['background_subtractor_learning_rate'] = 0.05
+        app_settings['tracker_stopwatch_enable'] = False
+        app_settings['tracker_cuda_enable'] = False
+        app_settings['tracker_detection_mode'] = 'background_subtraction'
+        app_settings['tracker_detection_sensitivity'] = 2
+        app_settings['tracker_noise_reduction'] = True
+        app_settings['tracker_blur_radius'] = 3
+        app_settings['tracker_calculate_optical_flow'] = False
+        app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0
 
-        # Tracker section
-        app_settings['enable_track_validation'] = True
-        app_settings['stationary_track_threshold'] = 5
-        app_settings['orphaned_track_threshold'] = 20
-
-        # BBox section
-        app_settings['bbox_fixed_size'] = True
-        app_settings['bbox_size'] = 64
+        # Background subtractor section
+        app_settings['background_subtractor_type'] = 'KNN'
+        app_settings['background_subtractor_learning_rate'] = 0.05
 
         # Track Plotting section
         app_settings['track_plotting_enabled'] = False
         app_settings['track_plotting_type'] = 'line'
-
-        # Track Prediction section
+        app_settings['track_validation_enable'] = True
+        app_settings['track_stationary_threshold'] = 5
+        app_settings['track_orphaned_threshold'] = 20
         app_settings['track_prediction_enabled'] = False
+
+        # BBox section
+        app_settings['bbox_fixed_size'] = True
+        app_settings['bbox_size'] = 64
 
         # Mask section
         app_settings['mask_type'] = 'fish_eye'

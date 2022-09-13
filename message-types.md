@@ -1,10 +1,10 @@
-##Message (msg)
+## Message (msg)
 
-###ConfigEntryUpdateArray.msg
-###ConfigItem.msg
+### ConfigEntryUpdateArray.msg
+### ConfigItem.msg
 
-##Service (srv)
+## Service (srv)
 
-###ConfigEntry.srv
-###ConfigEntryArray.srv
-###ConfigEntryUpdate.srv
+### ConfigEntry.srv
+### ConfigEntryArray.srv
+### ConfigEntryUpdate.srv

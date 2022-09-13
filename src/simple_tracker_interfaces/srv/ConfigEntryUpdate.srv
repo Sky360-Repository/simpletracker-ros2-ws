@@ -3,3 +3,4 @@ string type
 string value
 ---
 bool success
+string message # information, e.g. error message

@@ -6,36 +6,50 @@ import cv2
 
 from .config_entry_convertor import ConfigEntryConvertor
 from .configuration_client_async import ConfigurationClientAsync
+from .configurations_client_async import ConfigurationsClientAsync
 
 class ImagePublisherNode(Node):
 
-  def __init__(self, configuration_client):
+  def __init__(self, configuration_client, configurations_client):
 
     super().__init__('image_publisher')  
 
-    self.config = configuration_client
+    self.config_svc = configuration_client
+    self.configs_svc = configurations_client
 
     # config string example
+    self.get_logger().info(f'Testing single config request.')
+
     response = configuration_client.send_request('camera_uri')
-    self.get_logger().info(f'camera_uri --> type [{response.type}] value [{response.value}].')
-    self.camera_uri = ConfigEntryConvertor.Convert(response.type, response.value)
+    self.get_logger().info(f'camera_uri --> type [{response.entry.type}] value [{response.entry.value}].')
+    self.camera_uri = ConfigEntryConvertor.Convert(response.entry.type, response.entry.value)
     self.get_logger().info(f'Retrieved camera_uri from config {self.camera_uri}.')
 
     # config int example
     response = configuration_client.send_request('resize_dimension_h')
-    self.get_logger().info(f'resize_dimension --> type [{response.type}] value [{response.value}].')
-    self.resize_dimension_h = ConfigEntryConvertor.Convert(response.type, response.value)
+    self.get_logger().info(f'resize_dimension --> type [{response.entry.type}] value [{response.entry.value}].')
+    self.resize_dimension_h = ConfigEntryConvertor.Convert(response.entry.type, response.entry.value)
     self.get_logger().info(f'Retrieved resize_dimension from config {self.resize_dimension_h}.')
 
     # config bool example
     response = configuration_client.send_request('resize_frame')
-    self.get_logger().info(f'resize_frame --> type [{response.type}] value [{response.value}].')
-    self.resize_frame = ConfigEntryConvertor.Convert(response.type, response.value)
+    self.get_logger().info(f'resize_frame --> type [{response.entry.type}] value [{response.entry.value}].')
+    self.resize_frame = ConfigEntryConvertor.Convert(response.entry.type, response.entry.value)
     self.get_logger().info(f'Retrieved resize_frame from config {self.resize_frame}.')
 
+    
+    
+    # configs example
+    self.get_logger().info(f'Testing a config list request.')
+
+    configs = ['camera_uri', 'resize_dimension_h', 'resize_frame']
+    response = configurations_client.send_request(configs)
+    for config_item in response.entries:
+      self.get_logger().info(f'{config_item.key} --> type [{config_item.type}] value [{config_item.value}].')
+
     # setup publishers
-    self.pub_full_frame = self.create_publisher(Image, 'sky360/full_frame', 10)
-    self.pub_resized_frame = self.create_publisher(Image, 'sky360/resized_frame', 10)
+    self.pub_full_frame = self.create_publisher(Image, 'sky360/frames/original', 10)
+    self.pub_resized_frame = self.create_publisher(Image, 'sky360/frames/original/resized', 10)
 
     # setup timer and other helpers
     timer_period = 0.1  # seconds
@@ -55,7 +69,7 @@ class ImagePublisherNode(Node):
       self.pub_resized_frame.publish(self.br.cv2_to_imgmsg(resized_frame))
  
       # Display the message on the console
-      self.get_logger().info('Publishing video frame')
+      #self.get_logger().info('Publishing video frame')
 
   def frame_resize(frame, width=None, height=None, inter=cv2.INTER_AREA):
     # initialize the dimensions of the frame to be resized and
@@ -92,7 +106,8 @@ def main(args=None):
 
   rclpy.init(args=args)
   configuration_client = ConfigurationClientAsync()
-  image_publisher = ImagePublisherNode(configuration_client)
+  configurations_client = ConfigurationsClientAsync()
+  image_publisher = ImagePublisherNode(configuration_client, configurations_client)
   rclpy.spin(image_publisher)
   image_publisher.destroy_node()
   rclpy.rosshutdown()

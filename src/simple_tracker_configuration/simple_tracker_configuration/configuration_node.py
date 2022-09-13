@@ -1,8 +1,10 @@
 import rclpy
 from rclpy.node import Node
 from simple_tracker_interfaces.msg import ConfigChangeNotification
+from simple_tracker_interfaces.msg import ConfigItem
 from simple_tracker_interfaces.srv import ConfigEntryUpdate
 from simple_tracker_interfaces.srv import ConfigEntry
+from simple_tracker_interfaces.srv import ConfigEntryArray
 from .app_settings import AppSettings
 from .config_entry_convertor import ConfigEntryConvertor
 
@@ -16,6 +18,7 @@ class SimpleTrackerConfigurationNode(Node):
                 self.settings = AppSettings.Get()
 
                 self.config_service = self.create_service(ConfigEntry, 'sky360/config', self.get_config_callback)
+                self.config_service = self.create_service(ConfigEntryArray, 'sky360/config_array', self.get_config_array_callback)
                 self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/update', self.get_config_change_callback)
                 self.config_change_publisher = self.create_publisher(ConfigChangeNotification, 'sky360/config/update_notifier', 10)                
                 
@@ -26,8 +29,34 @@ class SimpleTrackerConfigurationNode(Node):
                 self.get_logger().info(f'Requesting config key: [{request.key}].')
 
                 value = self.settings[request.key]
-                response.type = type(value).__name__
-                response.value = str(value)
+
+                item = ConfigItem()
+
+                item.key = request.key
+                item.type = type(value).__name__
+                item.value = str(value)
+
+                response.entry = item
+
+                return response
+
+        def get_config_array_callback(self, request, response):
+
+                self.get_logger().info(f'Requesting config keys: [{request.keys}].')
+
+                config_items = []
+
+                for key in request.keys:
+                        value = self.settings[key]
+
+                        item = ConfigItem()
+                        item.key = key
+                        item.type = type(value).__name__
+                        item.value = str(value)                        
+
+                        config_items.append(item)
+
+                response.entries = config_items
 
                 return response
 

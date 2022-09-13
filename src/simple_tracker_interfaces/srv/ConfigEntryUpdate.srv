@@ -1,5 +1,4 @@
-string key
-string type
-string value
+ConfigItem[] entries
 ---
 bool success
+string message # information, e.g. error message

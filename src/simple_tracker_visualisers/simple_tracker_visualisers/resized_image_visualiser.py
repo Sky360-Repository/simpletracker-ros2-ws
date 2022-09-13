@@ -8,12 +8,12 @@ class ResizedImageVisualiserNode(Node):
 
   def __init__(self):
     super().__init__('resized_image_subscriber')
-    self.subscription = self.create_subscription(Image, 'sky360/resized_frame', self.listener_callback, 10)
+    self.subscription = self.create_subscription(Image, 'sky360/frame/original/scaled/v1', self.listener_callback, 10)
     self.subscription
     self.br = CvBridge()
    
   def listener_callback(self, data):
-    self.get_logger().info('Receiving resized video frame')
+    #self.get_logger().info('Receiving resized video frame')
     current_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("camera-resize", current_frame)
     cv2.waitKey(1)

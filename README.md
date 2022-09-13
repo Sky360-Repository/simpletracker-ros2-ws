@@ -37,3 +37,6 @@
 
 Alternatively you can run Simple Tracker using the launch facility
 * `ros2 launch simple_tracker_launch simple_tracker_launch.py` 
+
+Updating configuration from command line example:
+`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: camera_resize_dimension_w, type: int, value: 750}]}'`

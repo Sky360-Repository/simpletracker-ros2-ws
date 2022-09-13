@@ -7,7 +7,7 @@ class ConfigurationsClientAsync(Node):
 
     def __init__(self):
         super().__init__('configurations_client_async')
-        self.client = self.create_client(ConfigEntryArray, 'sky360/config_array')
+        self.client = self.create_client(ConfigEntryArray, 'sky360/config/entries/v1')
         self.get_logger().info('created config service client...')
 
         while not self.client.wait_for_service(timeout_sec = 1.0):

@@ -48,8 +48,8 @@ class ImagePublisherNode(Node):
       self.get_logger().info(f'{config_item.key} --> type [{config_item.type}] value [{config_item.value}].')
 
     # setup publishers
-    self.pub_full_frame = self.create_publisher(Image, 'sky360/frames/original', 10)
-    self.pub_resized_frame = self.create_publisher(Image, 'sky360/frames/original/resized', 10)
+    self.pub_full_frame = self.create_publisher(Image, 'sky360/frame/original/v1', 10)
+    self.pub_resized_frame = self.create_publisher(Image, 'sky360/frame/original/scaled/v1', 10)
 
     # setup timer and other helpers
     timer_period = 0.1  # seconds

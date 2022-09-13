@@ -8,7 +8,7 @@ class ResizedImageVisualiserNode(Node):
 
   def __init__(self):
     super().__init__('resized_image_subscriber')
-    self.subscription = self.create_subscription(Image, 'sky360/frames/original/resized', self.listener_callback, 10)
+    self.subscription = self.create_subscription(Image, 'sky360/frame/original/scaled/v1', self.listener_callback, 10)
     self.subscription
     self.br = CvBridge()
    

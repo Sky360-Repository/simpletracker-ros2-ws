@@ -27,8 +27,8 @@ endif()
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-  "msg/ConfigChangeNotification.msg"
-  "msg/ConfigChangeNotificationArray.msg"
+  #"msg/ConfigEntryUpdated.msg"
+  "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
   "srv/ConfigEntryUpdate.srv"
   "srv/ConfigEntry.srv"

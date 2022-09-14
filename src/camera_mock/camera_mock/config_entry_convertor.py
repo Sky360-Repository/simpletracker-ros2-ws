@@ -16,6 +16,6 @@ class ConfigEntryConvertor():
             return value            
 
         if type == 'bool':
-            return bool(value)
+            return True if value == 'True' else False
 
         raise Exception(f"Unknown type [{type}] value [{value}].")

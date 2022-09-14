@@ -28,15 +28,15 @@ class AppSettings():
         # Camera node section
         app_settings['camera_mode'] = 'rtsp'
         app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
-        app_settings['camera_resize_frame'] = False
+        app_settings['camera_resize_frame'] = True
         app_settings['camera_resize_dimension_h'] = 800
         app_settings['camera_resize_dimension_w'] = 960
 
         # Frame Provider node section
-        app_settings['frame_provider_resize_frame'] = False
+        app_settings['frame_provider_resize_frame'] = True
         app_settings['frame_provider_resize_dimension_h'] = 400
         app_settings['frame_provider_resize_dimension_w'] = 480
-        app_settings['frame_provider_noise_reduction'] = True
+        app_settings['frame_provider_blur'] = True
         app_settings['frame_provider_blur_radius'] = 3
 
         # Visualiser node section
@@ -72,7 +72,7 @@ class AppSettings():
         # Mask section
         #app_settings['mask_type'] = 'no_op'
         app_settings['mask_type'] = 'fish_eye'
-        app_settings['mask_pct'] = 20
+        app_settings['mask_pct'] = 10
         app_settings['mask_overlay_image_path'] = None
 
         # Dense optical flow

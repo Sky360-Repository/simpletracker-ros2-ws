@@ -16,10 +16,9 @@ class FrameProviderNode(Node):
     super().__init__('frame_provider_node')  
 
     self.configuration_list = ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
-      'frame_provider_noise_reduction', 'frame_provider_blur_radius', 'tracker_cuda_enable', 'mask_type', 'mask_pct']
+      'frame_provider_blur', 'frame_provider_blur_radius', 'tracker_cuda_enable', 'mask_type', 'mask_pct']
     self.app_configuration = {}
     self.configuration_loaded = False
-    self.mask_initialised = False
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
@@ -37,7 +36,6 @@ class FrameProviderNode(Node):
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
-      self._setup_mask()
       self.configuration_loaded = True
 
     frame = self.br.imgmsg_to_cv2(data)
@@ -46,17 +44,13 @@ class FrameProviderNode(Node):
       frame = cv2.resize(frame, (self.app_configuration['frame_provider_resize_dimension_w'],self.app_configuration['frame_provider_resize_dimension_h']), interpolation=cv2.INTER_AREA)
 
     # apply mask
-    if not self.mask_initialised:
-      self.mask.initialise(frame)
-      self.mask_initialised = True
-
     frame = self.mask.apply(frame)
 
     #grey
     frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
     # blur
-    if self.app_configuration['frame_provider_noise_reduction']:
+    if self.app_configuration['frame_provider_blur']:
       frame_grey = cv2.GaussianBlur(frame_grey, (self.app_configuration['frame_provider_blur_radius'], self.app_configuration['frame_provider_blur_radius']), 0)
 
     self.pub_original_frame.publish(self.br.cv2_to_imgmsg(frame))
@@ -67,13 +61,8 @@ class FrameProviderNode(Node):
     for key in msg.keys:
       if key in self.app_configuration.keys():
         self.configuration_loaded = False
-        self.mask_initialised = False
         self.get_logger().info('Receiving updated configuration notification, reload')
         break
-
-  def _setup_mask(self):
-    self.get_logger().info(f"Selecting Mask Type {self.app_configuration['mask_type']}")
-    self.mask = Mask.Select(self.app_configuration)
 
   def _load_and_validate_config(self):
 
@@ -84,6 +73,8 @@ class FrameProviderNode(Node):
         valid = self._validate_config()
         if valid == False:
           self.get_logger().error('Frame Provider configuration is invalid')
+
+        self.mask = Mask.Select(self.app_configuration)
 
         self.configuration_loaded = True
 
@@ -109,7 +100,7 @@ class FrameProviderNode(Node):
         self.get_logger().error('The frame_provider_resize_dimension_w config entry is null')
         valid = False
 
-    if self.app_configuration['frame_provider_noise_reduction']:
+    if self.app_configuration['frame_provider_blur']:
       if self.app_configuration['frame_provider_blur_radius'] == None:
         self.get_logger().error('The frame_provider_blur_radius config entry is null')
         valid = False

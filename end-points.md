@@ -20,10 +20,16 @@ Message end point for the publishing of the original frame received from OpenCV
 ## Frames
 
 ### sky360/frames/original/v1
-Message end point for the publishing of the original frame received from OpenCV
+Message end point for the publishing of the original frame after processing i.e. resize, blurred, masked etc
 
 ### sky360/frames/grey/v1
-Message end point for the publishing of the original frame received from OpenCV
+Message end point for the publishing of the grey frame after processing i.e. resize, blurred, masked etc
+
+### sky360/frames/dense_optical_flow/v1
+Message end point for the publishing the dense optical flow frame
+
+### sky360/frames/foreground_mask/v1
+Message end point for the publishing of the foreground masked frame
 
 ## Tracker
 

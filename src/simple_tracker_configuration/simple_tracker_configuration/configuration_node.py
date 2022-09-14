@@ -8,99 +8,107 @@ from simple_tracker_interfaces.srv import ConfigEntryArray
 from .app_settings import AppSettings
 from .config_entry_convertor import ConfigEntryConvertor
 
+
 class SimpleTrackerConfigurationNode(Node):
-        
-        def __init__(self):
 
-                super().__init__('simple_tracker_configuration')
+    def __init__(self):
 
-                # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
-                self.settings = AppSettings.Get()
+        super().__init__('simple_tracker_configuration')
 
-                self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
-                self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)
-                self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', self.get_config_update_callback)
-                self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
-                
-                self.get_logger().info(f'simple_tracker_configuration up and running.')
+        # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
+        self.settings = AppSettings.Get()
 
-        def get_config_callback(self, request, response):
+        self.config_service = self.create_service(
+            ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
+        self.config_service = self.create_service(
+            ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)
+        self.config_change_service = self.create_service(
+            ConfigEntryUpdate, 'sky360/config/entry/update/v1', self.get_config_update_callback)
+        self.config_change_publisher = self.create_publisher(
+            ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
 
-                self.get_logger().info(f'Requesting config key: [{request.key}].')
+        self.get_logger().info(f'simple_tracker_configuration up and running.')
 
-                value = self.settings[request.key]
+    def get_config_callback(self, request, response):
 
-                item = ConfigItem()
+        self.get_logger().info(f'Requesting config key: [{request.key}].')
 
-                item.key = request.key
-                item.type = type(value).__name__
-                item.value = str(value)
+        value = self.settings[request.key]
 
-                response.entry = item
+        item = ConfigItem()
 
-                return response
+        item.key = request.key
+        item.type = type(value).__name__
+        item.value = str(value)
 
-        def get_config_array_callback(self, request, response):
+        response.entry = item
 
-                self.get_logger().info(f'Requesting config keys: [{request.keys}].')
+        return response
 
-                config_items = []
+    def get_config_array_callback(self, request, response):
 
-                for key in request.keys:
-                        value = self.settings[key]
+        self.get_logger().info(f'Requesting config keys: [{request.keys}].')
 
-                        item = ConfigItem()
-                        item.key = key
-                        item.type = type(value).__name__
-                        item.value = str(value)                        
+        config_items = []
 
-                        config_items.append(item)
+        for key in request.keys:
+            value = self.settings[key]
 
-                response.entries = config_items
+            item = ConfigItem()
+            item.key = key
+            item.type = type(value).__name__
+            item.value = str(value)
 
-                return response
+            config_items.append(item)
 
-        def get_config_update_callback(self, request, response):
+        response.entries = config_items
 
-                self.get_logger().info(f'Updating config.')
+        return response
 
-                updated = False
-                validated = True
-                message = 'Success - '
-                keys = []
+    def get_config_update_callback(self, request, response):
 
-                for config_entry in request.entries:
-                        previous_value = self.settings[config_entry.key]
-                        updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+        self.get_logger().info(f'Updating config.')
 
-                        if previous_value is not None:
-                                if type(previous_value).__name__ != type(updated_value).__name__:
-                                        validated = False
-                                        message += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+        updated = False
+        validated = True
+        message = 'Success - '
+        keys = []
+
+        for config_entry in request.entries:
+            previous_value = self.settings[config_entry.key]
+            updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+
+            if previous_value is not None:
+                if type(previous_value).__name__ != type(updated_value).__name__:
+                    validated = False
+                    message += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
 
                 if validated:
-                        for config_entry in request.entries:
-                                keys.append(config_entry.key)
-                                previous_value = self.settings[config_entry.key]
-                                updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                    for config_entry in request.entries:
+                        keys.append(config_entry.key)
+                        previous_value = self.settings[config_entry.key]
+                        updated_value = ConfigEntryConvertor.Convert(
+                            config_entry.type, config_entry.value)
 
-                                if previous_value is None:
-                                        self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                                        self.get_logger().info(f'Updating config {config_entry.key}.')
-                                        message += f'Updated: {config_entry.key},'
-                                        updated = True
-                                else:
-                                        if previous_value != updated_value:
-                                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                                                self.get_logger().info(f'Updating config {config_entry.key}.')
-                                                message += f'Updated: {config_entry.key},'
-                                                updated = True
+                        if previous_value is None:
+                            self.settings[config_entry.key] = ConfigEntryConvertor.Convert(
+                                config_entry.type, config_entry.value)
+                            self.get_logger().info(f'Updating config {config_entry.key}.')
+                            message += f'Updated: {config_entry.key},'
+                            updated = True
+                        else:
+                            if previous_value != updated_value:
+                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(
+                                    config_entry.type, config_entry.value)
+                                self.get_logger().info(f'Updating config {config_entry.key}.')
+                                message += f'Updated: {config_entry.key},'
+                                updated = True
 
-                if updated:
-                        msg = ConfigEntryUpdatedArray()
-                        msg.keys = keys
-                        self.config_change_publisher.publish(msg)
+        if updated:
+            msg = ConfigEntryUpdatedArray()
+            msg.keys = keys
+            self.config_change_publisher.publish(msg)
 
-                response.success = updated
-                response.message = message
-                return response
+        response.success = updated
+        response.message = message
+        return response

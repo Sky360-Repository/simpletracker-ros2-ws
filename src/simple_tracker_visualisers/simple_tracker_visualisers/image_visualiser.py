@@ -8,15 +8,29 @@ class ImageVisualiserNode(Node):
 
   def __init__(self):
     super().__init__('image_visualiser')
-    self.subscription = self.create_subscription(Image, 'sky360/camera/frame/original/v1', self.listener_callback, 10)
-    self.subscription
+    self.camera_original_sub = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_original_callback, 10)
+    self.fp_original_sub = self.create_subscription(Image, 'sky360/frames/original/v1', self.fp_original_callback, 10)
+    self.fp_grey_sub = self.create_subscription(Image, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
+
     self.br = CvBridge()
    
-  def listener_callback(self, data):
+  def camera_original_callback(self, data):
     #self.get_logger().info('Receiving video frame')
     current_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("camera/original", current_frame)
     cv2.waitKey(1)
+
+  def fp_original_callback(self, data):
+    #self.get_logger().info('Receiving video frame')
+    current_frame = self.br.imgmsg_to_cv2(data)
+    cv2.imshow("fp/original", current_frame)
+    cv2.waitKey(1)
+
+  def fp_grey_callback(self, data):
+    #self.get_logger().info('Receiving video frame')
+    current_frame = self.br.imgmsg_to_cv2(data)
+    cv2.imshow("fp/grey", current_frame)
+    cv2.waitKey(1)        
 
 def main(args=None):
 

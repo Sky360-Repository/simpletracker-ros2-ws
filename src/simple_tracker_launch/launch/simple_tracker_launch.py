@@ -16,6 +16,12 @@ def generate_launch_description():
             name='camera'
         ),
         Node(
+            package='simple_tracker_frame_provider',
+            #namespace='sky360',
+            executable='frame_provider',
+            name='frame_provider'
+        ),        
+        Node(
             package='simple_tracker_visualisers',
             #namespace='sky360',
             executable='simple_visualiser',

@@ -3,9 +3,6 @@ These end points are very much work in progress and have not been finalised yet.
 
 ## Configuration
 
-### sky360/config/entry/v1
-Service end point for retrieval of a single config entry
-
 ### sky360/config/entries/v1
 Service end point for retrieval of an array of config entries
 
@@ -15,9 +12,17 @@ Service end point for the update of a single config entry
 ### sky360/config/updated/v1
 Message end point to provide a notification event that the config entry has been updated.
 
+## Camera
+
+### sky360/camera/original/v1
+Message end point for the publishing of the original frame received from OpenCV
+
 ## Frames
 
-### sky360/camera/frame/original/v1
+### sky360/frames/original/v1
+Message end point for the publishing of the original frame received from OpenCV
+
+### sky360/frames/grey/v1
 Message end point for the publishing of the original frame received from OpenCV
 
 ## Tracker

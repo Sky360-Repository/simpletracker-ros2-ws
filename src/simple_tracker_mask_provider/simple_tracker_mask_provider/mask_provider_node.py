@@ -12,38 +12,32 @@ class CameraNode(Node):
 
   def __init__(self):
 
-    super().__init__('camera_node')  
+    super().__init__('mask_provider_node')  
 
-    self.configuration_list = ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame']
+    self.configuration_list = ['mask_type', 'mask_pct', 'mask_overlay_image_path']
     self.app_configuration = {}
     self.configuration_loaded = False
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.pub_frame = self.create_publisher(Image, 'sky360/camera/original/v1', 10)    
+    self.mask_service = self.create_service(Image, 'sky360/mask/image/v1', self.get_mask_callback)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
-    # setup timer and other helpers
-    timer_period = 0.1  # seconds
-    self.timer = self.create_timer(timer_period, self.capture_timer_callback)
     self.br = CvBridge()
-    self.get_logger().info(f'Camera node is up and running.')
-   
-  def capture_timer_callback(self):
+    self.get_logger().info(f'Mask provider node is up and running.')
+  
+  def get_mask_callback(self, request, response):
+
+    self.get_logger().info(f'Requesting mask.')
 
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
-      self.capture = cv2.VideoCapture(self.app_configuration['camera_uri'])
       self.configuration_loaded = True
 
-    success, frame = self.capture.read()
-    if success == True:
+    ##response = self.br.cv2_to_imgmsg(mask_image)
 
-      if self.app_configuration['camera_resize_frame']:
-        frame = cv2.resize(frame, (self.app_configuration['camera_resize_dimension_w'],self.app_configuration['camera_resize_dimension_h']), interpolation=cv2.INTER_AREA)
-
-      self.pub_frame.publish(self.br.cv2_to_imgmsg(frame))
+    return response
 
   def config_updated_callback(self, msg):
 
@@ -61,7 +55,7 @@ class CameraNode(Node):
         # TODO: What is the best way of exiting out of a launch script when the configuration validation fails
         valid = self._validate_config()
         if valid == False:
-          self.get_logger().error('Camera configuration is invalid')
+          self.get_logger().error('Mask configuration is invalid')
 
   def _load_config(self):
 
@@ -76,16 +70,14 @@ class CameraNode(Node):
 
     valid = True
 
-    if self.app_configuration['camera_uri'] == None:
-      self.get_logger().error('The camera_uri config entry is null')
-      valid = False
-
-    if self.app_configuration['camera_resize_frame']:
-      if self.app_configuration['camera_resize_dimension_h'] == None:
-        self.get_logger().error('The camera_resize_dimension_h config entry is null')
+    # TODO: This has to be moved, we only provide the image here
+    if self.app_configuration['mask_type'] == 'fishey':
+      if self.app_configuration['mask_pct'] == None:
+        self.get_logger().error('The mask_pct config entry is null')
         valid = False
-      
-      if self.app_configuration['camera_resize_dimension_w'] == None:
+
+    if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['overlay_inverse'] == 'overlay':
+      if self.app_configuration['mask_overlay_image_path'] == None:
         self.get_logger().error('The camera_resize_dimension_w config entry is null')
         valid = False
 
@@ -94,9 +86,9 @@ class CameraNode(Node):
 def main(args=None):
 
   rclpy.init(args=args)
-  camera = CameraNode()
-  rclpy.spin(camera)
-  camera.destroy_node()
+  image_publisher = CameraNode()
+  rclpy.spin(image_publisher)
+  image_publisher.destroy_node()
   rclpy.rosshutdown()
 
 if __name__ == '__main__':

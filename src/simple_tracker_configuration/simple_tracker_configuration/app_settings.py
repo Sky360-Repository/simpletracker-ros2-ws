@@ -23,16 +23,23 @@ class AppSettings():
 
         # Controller section
         app_settings['controller_type'] = 'camera'
+        app_settings['controller_iteration_interval'] = 10
 
-        # Camera section
+        # Camera node section
         app_settings['camera_mode'] = 'rtsp'
         app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
-        app_settings['camera_iteration_interval'] = 10
         app_settings['camera_resize_frame'] = False
         app_settings['camera_resize_dimension_h'] = 800
         app_settings['camera_resize_dimension_w'] = 960
 
-        # Visualiser section
+        # Frame Provider node section
+        app_settings['frame_provider_resize_frame'] = False
+        app_settings['frame_provider_resize_dimension_h'] = 400
+        app_settings['frame_provider_resize_dimension_w'] = 480
+        app_settings['frame_provider_noise_reduction'] = True
+        app_settings['frame_provider_blur_radius'] = 3
+
+        # Visualiser node section
         app_settings['visualiser_font_size'] = 0.75
         app_settings['visualiser_font_thickness'] = 2
 
@@ -42,8 +49,6 @@ class AppSettings():
         app_settings['tracker_cuda_enable'] = False
         app_settings['tracker_detection_mode'] = 'background_subtraction'
         app_settings['tracker_detection_sensitivity'] = 2
-        app_settings['tracker_noise_reduction'] = True
-        app_settings['tracker_blur_radius'] = 3
         app_settings['tracker_calculate_optical_flow'] = False
         app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0
@@ -65,8 +70,9 @@ class AppSettings():
         app_settings['bbox_size'] = 64
 
         # Mask section
+        #app_settings['mask_type'] = 'no_op'
         app_settings['mask_type'] = 'fish_eye'
-        app_settings['mask_pct'] = 10
+        app_settings['mask_pct'] = 20
         app_settings['mask_overlay_image_path'] = None
 
         # Dense optical flow

@@ -31,30 +31,24 @@ Message end point for the publishing the dense optical flow frame
 ### sky360/frames/foreground_mask/v1
 Message end point for the publishing of the foreground masked frame
 
-## Tracker
+### sky360/frames/masked_background/v1
 
-### sky360/tracker
+## Detection
 
-### sky360/tracker/frame/masked/v1
-Message end point for the publishing of the original frame with a mask applied
+### sky360/detecting/key_points/v1 -- TODO
 
-### sky360/tracker/frame/annotated/v1
-Message end point for the publishing of the annotated frame
+### sky360/detecting/key_point/v1
 
-### sky360/tracker/frame/grey/v1
-Message end point for the publishing of the grey frame
+### sky360/detecting/bounding_boxes/v1 -- TODO
 
-### sky360/tracker/frame/masked_background/v1
-Message end point for the publishing of the masked_background frame
+### sky360/detecting/bounding_boxe/v1
 
-### sky360/tracker/frame/optical_flow/v1
-Message end point for the publishing of the optical_flow frame
+### sky360/detecting/bounding_boxes/sized/v1 -- TODO
 
-## Tracks
+### sky360/detecting/bounding_box/sized/v1
 
-### sky360/track
 
-### sky360/tracks/prediction
+### sky360/tracker -- TODO
 
-### sky360/target
+
 

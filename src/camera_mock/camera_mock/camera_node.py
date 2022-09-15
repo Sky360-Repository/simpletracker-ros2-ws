@@ -7,6 +7,7 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
+from.utils import frame_resize
 
 class CameraNode(Node):
 
@@ -14,7 +15,7 @@ class CameraNode(Node):
 
     super().__init__('camera_node')  
 
-    self.configuration_list = ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame']
+    self.configuration_list = ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame', 'camera_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -41,7 +42,8 @@ class CameraNode(Node):
     if success == True:
 
       if self.app_configuration['camera_resize_frame']:
-        frame = cv2.resize(frame, (self.app_configuration['camera_resize_dimension_w'],self.app_configuration['camera_resize_dimension_h']), interpolation=cv2.INTER_AREA)
+        frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'])
+        #frame = cv2.resize(frame, (self.app_configuration['camera_resize_dimension_w'],self.app_configuration['camera_resize_dimension_h']), interpolation=cv2.INTER_AREA)
 
       self.pub_frame.publish(self.br.cv2_to_imgmsg(frame))
 

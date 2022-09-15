@@ -15,7 +15,7 @@ class BackgroundSubtractionProviderNode(Node):
 
     super().__init__('foreground_mask_provider_node')  
 
-    self.configuration_list = ['tracker_detection_sensitivity', 'tracker_cuda_enable']
+    self.configuration_list = ['tracker_detection_sensitivity', 'background_subtractor_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -23,6 +23,7 @@ class BackgroundSubtractionProviderNode(Node):
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)
     self.pub_foreground_mask_frame = self.create_publisher(Image, 'sky360/frames/foreground_mask/v1', 10)
+    self.pub_masked_background_frame = self.create_publisher(Image, 'sky360/frames/masked_background/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
@@ -39,8 +40,10 @@ class BackgroundSubtractionProviderNode(Node):
     frame_grey = self.br.imgmsg_to_cv2(data)
 
     foreground_mask_frame = self.background_subtractor.apply(frame_grey) #, learningRate=self.background_subtractor_learning_rate)
+    frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
 
     self.pub_foreground_mask_frame.publish(self.br.cv2_to_imgmsg(foreground_mask_frame))
+    self.pub_masked_background_frame.publish(self.br.cv2_to_imgmsg(frame_masked_background))
 
   def config_updated_callback(self, msg):
 

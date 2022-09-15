@@ -9,6 +9,8 @@ from .mask import Mask
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
 
+from.utils import frame_resize
+
 class FrameProviderNode(Node):
 
   def __init__(self):
@@ -16,7 +18,7 @@ class FrameProviderNode(Node):
     super().__init__('frame_provider_node')  
 
     self.configuration_list = ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
-      'frame_provider_blur', 'frame_provider_blur_radius', 'tracker_cuda_enable', 'mask_type', 'mask_pct']
+      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -40,8 +42,9 @@ class FrameProviderNode(Node):
 
     frame = self.br.imgmsg_to_cv2(data)
 
-    if self.app_configuration['frame_provider_resize_frame']:      
-      frame = cv2.resize(frame, (self.app_configuration['frame_provider_resize_dimension_w'],self.app_configuration['frame_provider_resize_dimension_h']), interpolation=cv2.INTER_AREA)
+    if self.app_configuration['frame_provider_resize_frame']:
+      frame = frame_resize(frame, height=self.app_configuration['frame_provider_resize_dimension_h'])
+      #frame = cv2.resize(frame, (self.app_configuration['frame_provider_resize_dimension_w'],self.app_configuration['frame_provider_resize_dimension_h']), interpolation=cv2.INTER_AREA)
 
     # apply mask
     frame = self.mask.apply(frame)

@@ -8,6 +8,8 @@ from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
 from .dense_optical_flow import DenseOpticalFlow
+#from simple_tracker_shared.simple_tracker_shared import ConfigEntryConvertor
+#from simple_tracker_shared.simple_tracker_shared import ConfigurationsClientAsync
 
 class DenseOpticalFlowProviderNode(Node):
 
@@ -15,7 +17,7 @@ class DenseOpticalFlowProviderNode(Node):
 
     super().__init__('dense_optical_flow_provider_node')  
 
-    self.configuration_list = ['dense_optical_flow_height', 'dense_optical_flow_width', 'tracker_cuda_enable']
+    self.configuration_list = ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -39,6 +41,10 @@ class DenseOpticalFlowProviderNode(Node):
     frame_grey = self.br.imgmsg_to_cv2(data)
 
     optical_flow_frame = self.dense_optical_flow.process_grey_frame(frame_grey)
+
+    #gpu_frame_grey = cv2.cuda_GpuMat()
+    #gpu_frame_grey.upload(frame_grey, stream=None) 
+    #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
 
     self.pub_dense_optical_flow_frame.publish(self.br.cv2_to_imgmsg(optical_flow_frame))
 
@@ -77,12 +83,12 @@ class DenseOpticalFlowProviderNode(Node):
 
     valid = True
 
-    if self.app_configuration['dense_optical_flow_height'] == None:
-      self.get_logger().error('The dense_optical_flow_height config entry is null')
+    if self.app_configuration['dense_optical_flow_h'] == None:
+      self.get_logger().error('The dense_optical_flow_h config entry is null')
       valid = False
       
-    if self.app_configuration['dense_optical_flow_width'] == None:
-      self.get_logger().error('The dense_optical_flow_width config entry is null')
+    if self.app_configuration['dense_optical_flow_w'] == None:
+      self.get_logger().error('The dense_optical_flow_w config entry is null')
       valid = False
 
     return valid

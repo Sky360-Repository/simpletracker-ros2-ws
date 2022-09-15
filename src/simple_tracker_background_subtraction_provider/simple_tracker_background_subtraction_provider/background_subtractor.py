@@ -22,7 +22,7 @@ class BackgroundSubtractor():
     # We use KNN by default, unfortunately KNN has no CUDA implementation so for CUDA we deafult to MOG2
     @staticmethod
     def Select(settings):
-        enable_cuda = settings['tracker_cuda_enable']
+        enable_cuda = settings['background_subtractor_cuda_enable']
         if enable_cuda:
             return BackgroundSubtractor.create('MOG2_CUDA', settings)
 

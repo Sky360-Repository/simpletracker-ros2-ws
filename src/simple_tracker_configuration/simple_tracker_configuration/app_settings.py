@@ -75,7 +75,7 @@ class AppSettings():
         app_settings['bbox_size'] = 64
 
         # Mask section
-        app_settings['mask_type'] = 'no_op'
+        app_settings['mask_type'] = 'fish_eye'
         app_settings['mask_pct'] = 10
         app_settings['mask_overlay_image_path'] = None
         app_settings['mask_cuda_enable'] = False

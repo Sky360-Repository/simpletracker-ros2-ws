@@ -36,16 +36,19 @@ Message end point for the publishing of the masked background frame
 
 ## Detection
 
-### sky360/detections/key_points/v1
+### sky360/detector/key_points/v1
 Message end point for the publishing of key point detection array for a frame
 
-### sky360/detections/bounding_boxes/v1
+### sky360/detector/bounding_boxes/v1
 Message end point for the publishing of bounding box array for a frame
 
-### sky360/detections/bounding_boxes/sized/v1
+### sky360/detector/bounding_boxes/sized/v1
 Message end point for the publishing of fixed sized bounding box array for a frame
 
-### sky360/tracker -- TODO
+## Tracker
 
+### sky360/tracker/tracking_state/v1
+Message end point for the publishing whether the tracker is tracking
 
-
+### sky360/tracker/tracks/v1
+Message end point for the publishing of tracks

@@ -38,7 +38,13 @@ def generate_launch_description():
             #namespace='sky360',
             executable='detection_provider',
             name='detection_provider'
-        ),        
+        ),
+        Node(
+            package='simple_tracker_track_provider',
+            #namespace='sky360',
+            executable='track_provider',
+            name='track_provider'
+        ),
         Node(
             package='simple_tracker_visualisers',
             #namespace='sky360',

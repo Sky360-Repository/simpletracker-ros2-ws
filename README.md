@@ -17,9 +17,8 @@
 * Install ROS dependencies `rosdep install -i --from-path src --rosdistro humble -y`
 * Build the ROS package `colcon build`
 * Source the built package `source install/setup.bash`
-* Run both the image publisher and the image subscriber:
-  * `ros2 run cv_basics img_publisher` 
-  * `ros2 run cv_basics img_subscriber`
+* Launch the tracker:
+  * `ros2 launch simple_tracker_launch simple_tracker_launch.py` 
 
 ### Update web cam details
 **NOTE:** Update line 37 of the webcam_pub.py file in the cv_basics package to supply either:
@@ -42,3 +41,9 @@
 * This will update the "camera_resize_dimension_w" configuration entry to a value of 750
 
 `ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: camera_resize_dimension_w, type: int, value: 750}]}'`
+
+### Tracker status via command line
+
+* To keep an eye on the state of the tracker, using the following echo command
+
+`ros2 topic echo /sky360/tracker/tracking_state/v1`

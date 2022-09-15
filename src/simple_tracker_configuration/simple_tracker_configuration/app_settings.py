@@ -49,6 +49,7 @@ class AppSettings():
         # Video Tracker section
         app_settings['tracker_type'] = 'CSRT'
         app_settings['tracker_stopwatch_enable'] = False
+        app_settings['tracker_active_only'] = True
         app_settings['tracker_detection_mode'] = 'background_subtraction'
         app_settings['tracker_detection_sensitivity'] = 2
         app_settings['tracker_calculate_optical_flow'] = False
@@ -74,7 +75,7 @@ class AppSettings():
         app_settings['bbox_size'] = 64
 
         # Mask section
-        app_settings['mask_type'] = 'no_op'
+        app_settings['mask_type'] = 'fish_eye'
         app_settings['mask_pct'] = 10
         app_settings['mask_overlay_image_path'] = None
         app_settings['mask_cuda_enable'] = False

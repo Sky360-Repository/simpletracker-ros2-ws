@@ -34,6 +34,8 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/ConfigItem.msg"
   "msg/KeyPoint.msg"
   "msg/KeyPointArray.msg"
+  "msg/Track.msg"
+  "msg/TrackArray.msg"
   "srv/ConfigEntryUpdate.srv"
   "srv/ConfigEntry.srv"
   "srv/ConfigEntryArray.srv"

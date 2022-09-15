@@ -9,7 +9,7 @@ class ImageVisualiserNode(Node):
   def __init__(self):
     super().__init__('image_visualiser_node')
     #self.camera_original_sub = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_original_callback, 10)
-    self.fp_original_sub = self.create_subscription(Image, 'sky360/frames/original/v1', self.fp_original_callback, 10)
+    #self.fp_original_sub = self.create_subscription(Image, 'sky360/frames/original/v1', self.fp_original_callback, 10)
     #self.fp_grey_sub = self.create_subscription(Image, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
     #self.dof_sub = self.create_subscription(Image, 'sky360/frames/dense_optical_flow/v1', self.dof_callback, 10)
     #self.forground_sub = self.create_subscription(Image, 'sky360/frames/foreground_mask/v1', self.forground_callback, 10)

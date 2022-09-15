@@ -15,7 +15,7 @@ class FrameProviderNode(Node):
 
   def __init__(self):
 
-    super().__init__('frame_provider_node')  
+    super().__init__('sky360_frame_provider')  
 
     self.configuration_list = ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
       'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_cuda_enable']
@@ -31,7 +31,8 @@ class FrameProviderNode(Node):
 
     # setup timer and other helpers
     self.br = CvBridge()
-    self.get_logger().info(f'Frame Provider node is up and running.')
+
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, data):
 
@@ -43,8 +44,7 @@ class FrameProviderNode(Node):
     frame = self.br.imgmsg_to_cv2(data)
 
     if self.app_configuration['frame_provider_resize_frame']:
-      frame = frame_resize(frame, height=self.app_configuration['frame_provider_resize_dimension_h'])
-      #frame = cv2.resize(frame, (self.app_configuration['frame_provider_resize_dimension_w'],self.app_configuration['frame_provider_resize_dimension_h']), interpolation=cv2.INTER_AREA)
+      frame = frame_resize(frame, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
 
     # apply mask
     frame = self.mask.apply(frame)
@@ -82,27 +82,22 @@ class FrameProviderNode(Node):
         self.configuration_loaded = True
 
   def _load_config(self):
-
-    self.get_logger().info(f'Loading configuration list.')
+    #self.get_logger().info(f'Loading configuration list.')
 
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
   def _validate_config(self):
-    self.get_logger().info(f'Validating configuration.')
+    #self.get_logger().info(f'Validating configuration.')
 
     valid = True
 
     if self.app_configuration['frame_provider_resize_frame']:
-      if self.app_configuration['frame_provider_resize_dimension_h'] == None:
-        self.get_logger().error('The frame_provider_resize_dimension_h config entry is null')
+      if self.app_configuration['frame_provider_resize_dimension_h'] is None and self.app_configuration['frame_provider_resize_dimension_w'] is None:
+        self.get_logger().error('Both frame_provider_resize_dimension_h and frame_provider_resize_dimension_w config entries are null')
         valid = False
       
-      if self.app_configuration['frame_provider_resize_dimension_w'] == None:
-        self.get_logger().error('The frame_provider_resize_dimension_w config entry is null')
-        valid = False
-
     if self.app_configuration['frame_provider_blur']:
       if self.app_configuration['frame_provider_blur_radius'] == None:
         self.get_logger().error('The frame_provider_blur_radius config entry is null')

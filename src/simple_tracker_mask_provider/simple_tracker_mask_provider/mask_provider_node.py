@@ -12,7 +12,7 @@ class CameraNode(Node):
 
   def __init__(self):
 
-    super().__init__('mask_provider_node')  
+    super().__init__('sky360_mask_provider')  
 
     self.configuration_list = ['mask_type', 'mask_pct', 'mask_overlay_image_path']
     self.app_configuration = {}
@@ -24,7 +24,7 @@ class CameraNode(Node):
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     self.br = CvBridge()
-    self.get_logger().info(f'Mask provider node is up and running.')
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
   
   def get_mask_callback(self, request, response):
 
@@ -58,15 +58,14 @@ class CameraNode(Node):
           self.get_logger().error('Mask configuration is invalid')
 
   def _load_config(self):
-
-    self.get_logger().info(f'Loading configuration list.')
+    #self.get_logger().info(f'Loading configuration list.')
 
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
   def _validate_config(self):
-    self.get_logger().info(f'Validating configuration.')
+    #self.get_logger().info(f'Validating configuration.')
 
     valid = True
 

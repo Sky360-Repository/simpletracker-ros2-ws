@@ -7,7 +7,7 @@ import cv2 # OpenCV library
 class ImageVisualiserNode(Node):
 
   def __init__(self):
-    super().__init__('image_visualiser')
+    super().__init__('image_visualiser_node')
     #self.camera_original_sub = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_original_callback, 10)
     self.fp_original_sub = self.create_subscription(Image, 'sky360/frames/original/v1', self.fp_original_callback, 10)
     #self.fp_grey_sub = self.create_subscription(Image, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
@@ -16,6 +16,8 @@ class ImageVisualiserNode(Node):
     #self.masked_background_sub = self.create_subscription(Image, 'sky360/frames/masked_background/v1', self.masked_background_callback, 10)
 
     self.br = CvBridge()
+
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_original_callback(self, data):
     #self.get_logger().info('Receiving video frame')

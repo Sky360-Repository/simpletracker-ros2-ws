@@ -15,7 +15,7 @@ class DenseOpticalFlowProviderNode(Node):
 
   def __init__(self):
 
-    super().__init__('dense_optical_flow_provider_node')  
+    super().__init__('sky360_dense_optical_flow_provider')  
 
     self.configuration_list = ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']
     self.app_configuration = {}
@@ -29,7 +29,8 @@ class DenseOpticalFlowProviderNode(Node):
 
     # setup timer and other helpers
     self.br = CvBridge()
-    self.get_logger().info(f'Frame Provider node is up and running.')
+
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def grey_frame_callback(self, data):
 
@@ -71,15 +72,14 @@ class DenseOpticalFlowProviderNode(Node):
         self.configuration_loaded = True
 
   def _load_config(self):
-
-    self.get_logger().info(f'Loading configuration list.')
+    #self.get_logger().info(f'Loading configuration list.')
 
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
   def _validate_config(self):
-    self.get_logger().info(f'Validating configuration.')
+    #self.get_logger().info(f'Validating configuration.')
 
     valid = True
 

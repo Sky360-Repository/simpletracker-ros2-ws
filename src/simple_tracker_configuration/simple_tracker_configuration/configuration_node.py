@@ -13,7 +13,7 @@ class SimpleTrackerConfigurationNode(Node):
 
     def __init__(self):
 
-        super().__init__('simple_tracker_configuration')
+        super().__init__('sky360_configuration')
 
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get()
@@ -27,11 +27,11 @@ class SimpleTrackerConfigurationNode(Node):
         self.config_change_publisher = self.create_publisher(
             ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
 
-        self.get_logger().info(f'simple_tracker_configuration up and running.')
+        self.get_logger().info(f'{self.get_name()} node is up and running.')
 
     def get_config_callback(self, request, response):
 
-        self.get_logger().info(f'Requesting config key: [{request.key}].')
+        #self.get_logger().info(f'Requesting config key: [{request.key}].')
 
         value = self.settings[request.key]
 
@@ -47,7 +47,7 @@ class SimpleTrackerConfigurationNode(Node):
 
     def get_config_array_callback(self, request, response):
 
-        self.get_logger().info(f'Requesting config keys: [{request.keys}].')
+        #self.get_logger().info(f'Requesting config keys: [{request.keys}].')
 
         config_items = []
 
@@ -56,8 +56,12 @@ class SimpleTrackerConfigurationNode(Node):
 
             item = ConfigItem()
             item.key = key
-            item.type = type(value).__name__
-            item.value = str(value)
+            if value is not None:
+                item.type = type(value).__name__
+                item.value = str(value)
+            else:
+                item.type = 'null'
+                item.value = ''
 
             config_items.append(item)
 

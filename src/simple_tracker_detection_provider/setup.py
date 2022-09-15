@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'simple_tracker_blob_provider'
+package_name = 'simple_tracker_detection_provider'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'detection_provider = simple_tracker_blob_provider.blob_detector_node:main',
+            'detection_provider = simple_tracker_detection_provider.detector_node:main',
         ],
     },
 )

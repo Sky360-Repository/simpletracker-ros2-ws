@@ -34,7 +34,7 @@ def generate_launch_description():
             name='foreground_mask_provider'
         ),
         Node(
-            package='simple_tracker_blob_provider',
+            package='simple_tracker_detection_provider',
             #namespace='sky360',
             executable='detection_provider',
             name='detection_provider'

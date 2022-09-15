@@ -13,7 +13,7 @@ class BackgroundSubtractionProviderNode(Node):
 
   def __init__(self):
 
-    super().__init__('foreground_mask_provider_node')  
+    super().__init__('sky360_foreground_mask_provider')  
 
     self.configuration_list = ['tracker_detection_sensitivity', 'background_subtractor_cuda_enable']
     self.app_configuration = {}
@@ -28,7 +28,8 @@ class BackgroundSubtractionProviderNode(Node):
 
     # setup timer and other helpers
     self.br = CvBridge()
-    self.get_logger().info(f'Frame Provider node is up and running.')
+
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def grey_frame_callback(self, data):
 
@@ -68,15 +69,14 @@ class BackgroundSubtractionProviderNode(Node):
         self.configuration_loaded = True
 
   def _load_config(self):
-
-    self.get_logger().info(f'Loading configuration list.')
+    #self.get_logger().info(f'Loading configuration list.')
 
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
   def _validate_config(self):
-    self.get_logger().info(f'Validating configuration.')
+    #self.get_logger().info(f'Validating configuration.')
 
     valid = True
 

@@ -35,17 +35,13 @@ Message end point for the publishing of the foreground masked frame
 
 ## Detection
 
-### sky360/detecting/key_points/v1 -- TODO
+### sky360/detection/bounding_box/v1
 
-### sky360/detecting/key_point/v1
+### sky360/detection/bounding_boxes/v1 -- TODO
 
-### sky360/detecting/bounding_boxes/v1 -- TODO
+### sky360/detection/bounding_box/sized/v1
 
-### sky360/detecting/bounding_boxe/v1
-
-### sky360/detecting/bounding_boxes/sized/v1 -- TODO
-
-### sky360/detecting/bounding_box/sized/v1
+### sky360/detection/bounding_boxes/sized/v1 -- TODO
 
 
 ### sky360/tracker -- TODO

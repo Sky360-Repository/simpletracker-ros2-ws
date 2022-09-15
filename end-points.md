@@ -32,17 +32,18 @@ Message end point for the publishing the dense optical flow frame
 Message end point for the publishing of the foreground masked frame
 
 ### sky360/frames/masked_background/v1
+Message end point for the publishing of the masked background frame
 
 ## Detection
 
-### sky360/detection/bounding_box/v1
+### sky360/detections/key_points/v1
+Message end point for the publishing of key point detection array for a frame
 
-### sky360/detection/bounding_boxes/v1 -- TODO
+### sky360/detections/bounding_boxes/v1
+Message end point for the publishing of bounding box array for a frame
 
-### sky360/detection/bounding_box/sized/v1
-
-### sky360/detection/bounding_boxes/sized/v1 -- TODO
-
+### sky360/detections/bounding_boxes/sized/v1
+Message end point for the publishing of fixed sized bounding box array for a frame
 
 ### sky360/tracker -- TODO
 

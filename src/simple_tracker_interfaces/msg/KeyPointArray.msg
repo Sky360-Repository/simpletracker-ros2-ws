@@ -1,1 +1,1 @@
-KeyPoint[] key_points
+KeyPoint[] kps

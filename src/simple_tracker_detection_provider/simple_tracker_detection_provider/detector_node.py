@@ -5,13 +5,13 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-#from simple_tracker_interfaces.msg import KeyPoint
-#from simple_tracker_interfaces.msg import KeyPointArray
+from simple_tracker_interfaces.msg import KeyPoint
+from simple_tracker_interfaces.msg import KeyPointArray
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import BoundingBoxArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
-from.utils import perform_blob_detection, kp_to_bbox, get_sized_bbox
+from.utils import perform_blob_detection
 
 class DetectorNode(Node):
 
@@ -26,12 +26,9 @@ class DetectorNode(Node):
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
-    #self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detection/key_points/v1', 10)
-    #self.pub_key_point = self.create_publisher(KeyPoint, 'sky360/detection/key_point/v1', 10)
-    self.pub_bbox = self.create_publisher(BoundingBox, 'sky360/detection/bounding_box/v1', 10)
-    #self.pub_bboxes = self.create_publisher(BoundingBoxArray, 'sky360/detection/bounding_boxes/v1', 10)    
-    self.pub_sized_bbox = self.create_publisher(BoundingBox, 'sky360/detection/bounding_box/sized/v1', 10)
-    #self.pub_sized_bboxes = self.create_publisher(BoundingBox, 'sky360/detection/bounding_boxes/sized/v1', 10)
+    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detections/key_points/v1', 10)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detections/bounding_boxes/v1', 10)    
+    self.pub_sized_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detections/bounding_boxes/sized/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
@@ -52,36 +49,60 @@ class DetectorNode(Node):
 
     if len(key_points) > 0:
 
-      #self.get_logger().info('Found keypoints --> {key_points}')
-      #self.get_logger().info('Bboxes --> {bboxes}')
+      kp_array_msg = KeyPointArray()
+      kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
+      self.pub_key_points.publish(kp_array_msg)
 
-      #bboxes = [self._kp_to_bbox(x) for x in key_points]
-      #boxes = [self._bbox_to_msg(x) for x in bboxes]
+      bbox_array_msg = BoundingBoxArray()
+      bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
+      self.pub_bounding_boxes.publish(bbox_array_msg)
 
-      #bbox_array_msg = BoundingBoxArray()
-      #bbox_array_msg.boxes = boxes
-      #self.pub_bboxes.publish(bbox_array_msg)
+      sized_bbox_array_msg = BoundingBoxArray()
+      sized_bbox_array_msg.boxes = [self._kp_to_sized_bbox_msg(x) for x in key_points]
+      self.pub_sized_bounding_boxes.publish(sized_bbox_array_msg)
 
-      [self._publish_keypoint(x) for x in key_points]
+  def config_updated_callback(self, msg):
 
-  def _publish_keypoint(self, kp):
+    for key in msg.keys:
+      if key in self.app_configuration.keys():
+        self.configuration_loaded = False
+        self.get_logger().info('Receiving updated configuration notification, reload')
+        break
+
+  def _kp_to_msg(self, kp):
 
     (x, y) = kp.pt
-    kp_size = kp.size    
-    kp_scale = 6
 
-    #kp_msg = KeyPoint()
-    #kp_msg.x = x
-    #kp_msg.y = y
-    #kp_msg.size = kp_size
+    kp_msg = KeyPoint()
+    kp_msg.x = x
+    kp_msg.y = y
+    kp_msg.size = kp.size
 
-    x1, y1, w1, h1 = (int(x - kp_scale * kp_size / 2), int(y - kp_scale * kp_size / 2), int(kp_scale * kp_size), int(kp_scale * kp_size))
+    return kp_msg
+
+  def _kp_to_bbox_msg(self, kp):
+
+    (x, y) = kp.pt
+    size = kp.size    
+    scale = 6
+
+    x1, y1, w1, h1 = (int(x - scale * size / 2), int(y - scale * size / 2), int(scale * size), int(scale * size))
 
     bbox_msg = BoundingBox()
     bbox_msg.x = x1
     bbox_msg.y = y1
     bbox_msg.w = w1
     bbox_msg.h = h1
+
+    return bbox_msg
+
+  def _kp_to_sized_bbox_msg(self, kp):
+
+    (x, y) = kp.pt
+    size = kp.size    
+    scale = 6
+
+    x1, y1, w1, h1 = (int(x - scale * size / 2), int(y - scale * size / 2), int(scale * size), int(scale * size))
 
     bbox_size = self.app_configuration['bbox_size']
     x2 = int(x1+(w1/2)) - int(bbox_size/2)
@@ -95,41 +116,7 @@ class DetectorNode(Node):
     sized_bbox_msg.w = w2
     sized_bbox_msg.h = h2
 
-    #self.pub_key_point.publish(kp_msg)
-    self.pub_bbox.publish(bbox_msg)
-    self.pub_sized_bbox.publish(sized_bbox_msg)
-
-  def config_updated_callback(self, msg):
-
-    for key in msg.keys:
-      if key in self.app_configuration.keys():
-        self.configuration_loaded = False
-        self.get_logger().info('Receiving updated configuration notification, reload')
-        break
-
-  def _bbox_to_msg(self, bbox):
-    x, y, w, h = bbox
-    bbox_msg = BoundingBox()
-    bbox_msg.x = x
-    bbox_msg.y = y
-    bbox_msg.w = w
-    bbox_msg.h = h
-
-    return bbox_msg
-
-  def _kp_to_bbox(self, kp):
-
-    (x, y) = kp.pt
-    size = kp.size    
-    scale = 6
-
-    kp_msg = KeyPoint()
-    kp_msg.x = x
-    kp_msg.y = y
-    kp_msg.size = size
-
-    #print(f'kp_to_bbox x, y:{(x, y)}, size:{size}, scale:{scale}, new size:{scale * size}')
-    return (int(x - scale * size / 2), int(y - scale * size / 2), int(scale * size), int(scale * size))
+    return sized_bbox_msg
 
   def _load_and_validate_config(self):
 

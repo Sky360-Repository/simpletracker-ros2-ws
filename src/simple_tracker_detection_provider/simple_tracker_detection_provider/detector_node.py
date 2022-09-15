@@ -26,9 +26,9 @@ class DetectorNode(Node):
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
-    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detections/key_points/v1', 10)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detections/bounding_boxes/v1', 10)    
-    self.pub_sized_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detections/bounding_boxes/sized/v1', 10)
+    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/key_points/v1', 10)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)    
+    self.pub_sized_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/sized/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers

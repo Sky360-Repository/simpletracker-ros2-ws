@@ -7,6 +7,9 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import BoundingBoxArray
+from simple_tracker_interfaces.msg import TrackingState
+from simple_tracker_interfaces.msg import Track
+from simple_tracker_interfaces.msg import TrackArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
 from .video_tracker import VideoTracker
@@ -25,8 +28,10 @@ class TrackProviderNode(Node):
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/original/v1', self.frame_callback, 10)
-    self.sub_masked_background_frame = self.create_subscription(BoundingBoxArray, 'sky360/detections/bounding_boxes/v1', self.bboxes_callback, 10)
+    self.sub_masked_background_frame = self.create_subscription(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', self.bboxes_callback, 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
+    self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)
+    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)
 
     # setup timer and other helpers
     self.br = CvBridge()
@@ -43,11 +48,21 @@ class TrackProviderNode(Node):
 
     self.frame = self.br.imgmsg_to_cv2(data)
 
-    self.get_logger().info(f"Trackers: trackable:{sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))}, alive:{len(self.video_tracker.live_trackers)}, started:{self.video_tracker.total_trackers_started}, ended:{self.video_tracker.total_trackers_finished} (Sky360)")
+    track_array_msg = TrackArray()
+    track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+    self.pub_tracker_tracks.publish(track_array_msg)
+    
+    tracking_msg = TrackingState()
+    tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
+    tracking_msg.alive = len(self.video_tracker.live_trackers)
+    tracking_msg.started = self.video_tracker.total_trackers_started
+    tracking_msg.ended = self.video_tracker.total_trackers_finished
+    self.pub_tracker_tracking_state.publish(tracking_msg)
 
   def bboxes_callback(self, data):
 
     # TODO: This configuration update thing needs to happen in the background
+    # TODO: This whole thing might be better as a service
     if not self.configuration_loaded or self.frame is None:
         return
 
@@ -56,6 +71,22 @@ class TrackProviderNode(Node):
 
   def _msg_to_bbox(self, bbox_msg):
     return bbox_msg.x, bbox_msg.y, bbox_msg.w, bbox_msg.h
+
+  def _track_to_msg(self, tracker):
+
+    x, y, w, h = tracker.get_bbox()
+    bbox_msg = BoundingBox()
+    bbox_msg.x = x
+    bbox_msg.y = y
+    bbox_msg.w = w
+    bbox_msg.h = h
+
+    track_msg = Track()
+    track_msg.id = tracker.id
+    track_msg.state = tracker.tracking_state
+    track_msg.bbox = bbox_msg
+
+    return track_msg
 
   def config_updated_callback(self, msg):
 

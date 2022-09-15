@@ -42,3 +42,9 @@
 * This will update the "camera_resize_dimension_w" configuration entry to a value of 750
 
 `ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: camera_resize_dimension_w, type: int, value: 750}]}'`
+
+### Tracker status via command line
+
+* To keep an eye on the state of the tracker, using the following echo command
+
+`ros2 topic echo /sky360/tracker/tracking_state/v1`

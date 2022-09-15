@@ -1,3 +1,3 @@
 int32 id
-bool active
+int32 state
 BoundingBox bbox

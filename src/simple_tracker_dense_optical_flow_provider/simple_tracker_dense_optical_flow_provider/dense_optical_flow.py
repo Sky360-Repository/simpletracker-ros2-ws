@@ -27,9 +27,9 @@ class DenseOpticalFlow():
     @staticmethod
     def Select(settings):
 
-        width = settings['dense_optical_flow_width']
-        height = settings['dense_optical_flow_height']
-        if settings['tracker_cuda_enable']:
+        width = settings['dense_optical_flow_w']
+        height = settings['dense_optical_flow_h']
+        if settings['dense_optical_cuda_enable']:
             return DenseOpticalFlow.GPU(width, height)
 
         return DenseOpticalFlow.CPU(width, height)
@@ -71,6 +71,7 @@ class CpuDenseOpticalFlow(DenseOpticalFlow):
             # First time round, save frame and return blank image
             self.previous_frame = frame
             return np.zeros((self.height, self.width, 3), np.uint8)
+
         flow = cv2.calcOpticalFlowFarneback(
             self.previous_frame, frame, None, 0.5, 5, 15, 3, 5, 1.2, 0,
         )

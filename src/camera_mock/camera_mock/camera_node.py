@@ -7,14 +7,15 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
+from.utils import frame_resize
 
 class CameraNode(Node):
 
   def __init__(self):
 
-    super().__init__('camera_node')  
+    super().__init__('sky360_camera_mock')  
 
-    self.configuration_list = ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame']
+    self.configuration_list = ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame', 'camera_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -27,7 +28,8 @@ class CameraNode(Node):
     timer_period = 0.1  # seconds
     self.timer = self.create_timer(timer_period, self.capture_timer_callback)
     self.br = CvBridge()
-    self.get_logger().info(f'Camera node is up and running.')
+
+    self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def capture_timer_callback(self):
 
@@ -41,7 +43,7 @@ class CameraNode(Node):
     if success == True:
 
       if self.app_configuration['camera_resize_frame']:
-        frame = cv2.resize(frame, (self.app_configuration['camera_resize_dimension_w'],self.app_configuration['camera_resize_dimension_h']), interpolation=cv2.INTER_AREA)
+        frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
 
       self.pub_frame.publish(self.br.cv2_to_imgmsg(frame))
 
@@ -64,15 +66,14 @@ class CameraNode(Node):
           self.get_logger().error('Camera configuration is invalid')
 
   def _load_config(self):
-
-    self.get_logger().info(f'Loading configuration list.')
+    # self.get_logger().info(f'Loading configuration list.')
 
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
   def _validate_config(self):
-    self.get_logger().info(f'Validating configuration.')
+    #self.get_logger().info(f'Validating configuration.')
 
     valid = True
 
@@ -81,12 +82,8 @@ class CameraNode(Node):
       valid = False
 
     if self.app_configuration['camera_resize_frame']:
-      if self.app_configuration['camera_resize_dimension_h'] == None:
-        self.get_logger().error('The camera_resize_dimension_h config entry is null')
-        valid = False
-      
-      if self.app_configuration['camera_resize_dimension_w'] == None:
-        self.get_logger().error('The camera_resize_dimension_w config entry is null')
+      if self.app_configuration['camera_resize_dimension_h'] is None and self.app_configuration['camera_resize_dimension_w'] is None:
+        self.get_logger().error('Both camera_resize_dimension_h and camera_resize_dimension_w config entries are null')
         valid = False
 
     return valid

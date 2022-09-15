@@ -28,8 +28,12 @@ find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   #"msg/ConfigEntryUpdated.msg"
+  "msg/BoundingBox.msg"
+  "msg/BoundingBoxArray.msg"
   "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
+  "msg/KeyPoint.msg"
+  "msg/KeyPointArray.msg"
   "srv/ConfigEntryUpdate.srv"
   "srv/ConfigEntry.srv"
   "srv/ConfigEntryArray.srv"

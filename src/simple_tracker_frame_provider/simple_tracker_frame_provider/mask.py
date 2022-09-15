@@ -27,7 +27,7 @@ class Mask():
     def Select(settings):
 
         mask_type = settings['mask_type']
-        enable_cuda = settings['tracker_cuda_enable']
+        enable_cuda = settings['mask_cuda_enable']
 
         if mask_type == 'no_op':
             return Mask.NoOp(settings)

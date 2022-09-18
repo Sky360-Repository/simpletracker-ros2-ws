@@ -1,0 +1,2 @@
+uint64 frame_count
+sensor_msgs/Image frame

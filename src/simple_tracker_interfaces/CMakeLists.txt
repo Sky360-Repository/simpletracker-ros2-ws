@@ -23,7 +23,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-#find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
@@ -32,6 +32,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/BoundingBoxArray.msg"
   "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
+  "msg/Frame.msg"
   "msg/KeyPoint.msg"
   "msg/KeyPointArray.msg"
   "msg/Track.msg"
@@ -40,7 +41,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ConfigEntryUpdate.srv"
   "srv/ConfigEntry.srv"
   "srv/ConfigEntryArray.srv"
-  #DEPENDENCIES geometry_msgs # Add packages that above messages depend on, in this case geometry_msgs for Sphere.msg
+  DEPENDENCIES sensor_msgs
 )
 
 ament_package()

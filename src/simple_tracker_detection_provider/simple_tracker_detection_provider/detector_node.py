@@ -4,6 +4,7 @@ import cv2
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from simple_tracker_interfaces.msg import KeyPoint
 from simple_tracker_interfaces.msg import KeyPointArray
@@ -25,7 +26,7 @@ class DetectorNode(Node):
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
+    self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
     self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/key_points/v1', 10)
     self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)    
     self.pub_sized_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/sized/v1', 10)
@@ -36,32 +37,35 @@ class DetectorNode(Node):
     
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def masked_background_frame_callback(self, data):
+  def masked_background_frame_callback(self, data:Frame):
 
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    frame_foreground_mask = self.br.imgmsg_to_cv2(data)
+    frame_foreground_mask = self.br.imgmsg_to_cv2(data.frame)
 
     key_points = perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
-    if len(key_points) > 0:
+    #if len(key_points) > 0:
 
-      kp_array_msg = KeyPointArray()
-      kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
-      self.pub_key_points.publish(kp_array_msg)
+    kp_array_msg = KeyPointArray()
+    kp_array_msg.frame_count = data.frame_count
+    kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
+    self.pub_key_points.publish(kp_array_msg)
 
-      bbox_array_msg = BoundingBoxArray()
-      bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
-      self.pub_bounding_boxes.publish(bbox_array_msg)
+    bbox_array_msg = BoundingBoxArray()
+    kp_array_msg.frame_count = data.frame_count
+    bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
+    self.pub_bounding_boxes.publish(bbox_array_msg)
 
-      sized_bbox_array_msg = BoundingBoxArray()
-      sized_bbox_array_msg.boxes = [self._kp_to_sized_bbox_msg(x) for x in key_points]
-      self.pub_sized_bounding_boxes.publish(sized_bbox_array_msg)
+    sized_bbox_array_msg = BoundingBoxArray()
+    kp_array_msg.frame_count = data.frame_count
+    sized_bbox_array_msg.boxes = [self._kp_to_sized_bbox_msg(x) for x in key_points]
+    self.pub_sized_bounding_boxes.publish(sized_bbox_array_msg)
 
-  def config_updated_callback(self, msg):
+  def config_updated_callback(self, msg:ConfigEntryUpdatedArray):
 
     for key in msg.keys:
       if key in self.app_configuration.keys():

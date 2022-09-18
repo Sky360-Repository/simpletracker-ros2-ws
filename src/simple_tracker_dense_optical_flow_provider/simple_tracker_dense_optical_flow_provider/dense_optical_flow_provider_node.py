@@ -4,6 +4,7 @@ import cv2
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
@@ -23,8 +24,8 @@ class DenseOpticalFlowProviderNode(Node):
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)
-    self.pub_dense_optical_flow_frame = self.create_publisher(Image, 'sky360/frames/dense_optical_flow/v1', 10)
+    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)
+    self.pub_dense_optical_flow_frame = self.create_publisher(Frame, 'sky360/frames/dense_optical_flow/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
@@ -32,14 +33,14 @@ class DenseOpticalFlowProviderNode(Node):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def grey_frame_callback(self, data):
+  def grey_frame_callback(self, data:Frame):
 
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    frame_grey = self.br.imgmsg_to_cv2(data)
+    frame_grey = self.br.imgmsg_to_cv2(data.frame)
 
     optical_flow_frame = self.dense_optical_flow.process_grey_frame(frame_grey)
 
@@ -47,9 +48,12 @@ class DenseOpticalFlowProviderNode(Node):
     #gpu_frame_grey.upload(frame_grey, stream=None) 
     #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
 
-    self.pub_dense_optical_flow_frame.publish(self.br.cv2_to_imgmsg(optical_flow_frame))
+    frame_optical_flow_msg = Frame()
+    frame_optical_flow_msg.frame_count = data.frame_count
+    frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
+    self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
 
-  def config_updated_callback(self, msg):
+  def config_updated_callback(self, msg:ConfigEntryUpdatedArray):
 
     for key in msg.keys:
       if key in self.app_configuration.keys():

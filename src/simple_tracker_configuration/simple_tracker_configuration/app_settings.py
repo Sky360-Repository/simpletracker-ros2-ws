@@ -29,15 +29,15 @@ class AppSettings():
         app_settings['camera_mode'] = 'rtsp'
         app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
         app_settings['camera_resize_frame'] = True
-        #app_settings['camera_resize_dimension_h'] = 960
-        app_settings['camera_resize_dimension_h'] = 400
+        app_settings['camera_resize_dimension_h'] = 960
+        #app_settings['camera_resize_dimension_h'] = 400
         app_settings['camera_resize_dimension_w'] = None
         app_settings['camera_cuda_enable'] = False
 
         # Frame Provider node section
         app_settings['frame_provider_resize_frame'] = True
-        #app_settings['frame_provider_resize_dimension_h'] = 960
-        app_settings['frame_provider_resize_dimension_h'] = 400
+        app_settings['frame_provider_resize_dimension_h'] = 960
+        #app_settings['frame_provider_resize_dimension_h'] = 400
         app_settings['frame_provider_resize_dimension_w'] = None
         app_settings['frame_provider_blur'] = True
         app_settings['frame_provider_blur_radius'] = 3
@@ -45,7 +45,8 @@ class AppSettings():
 
         # Visualiser node section
         app_settings['visualiser_font_size'] = 0.75
-        app_settings['visualiser_font_thickness'] = 2
+        app_settings['visualiser_font_thickness'] = 1
+        app_settings['visualiser_bbox_line_thickness'] = 1
         app_settings['visualiser_cuda_enable'] = False
 
         # Video Tracker section
@@ -53,7 +54,7 @@ class AppSettings():
         app_settings['tracker_stopwatch_enable'] = False
         app_settings['tracker_active_only'] = True
         app_settings['tracker_detection_mode'] = 'background_subtraction'
-        app_settings['tracker_detection_sensitivity'] = 2
+        app_settings['tracker_detection_sensitivity'] = 1
         app_settings['tracker_calculate_optical_flow'] = False
         app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0

@@ -8,7 +8,6 @@ from simple_tracker_interfaces.srv import ConfigEntryArray
 from .app_settings import AppSettings
 from .config_entry_convertor import ConfigEntryConvertor
 
-
 class SimpleTrackerConfigurationNode(Node):
 
     def __init__(self):
@@ -18,14 +17,10 @@ class SimpleTrackerConfigurationNode(Node):
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get()
 
-        self.config_service = self.create_service(
-            ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
-        self.config_service = self.create_service(
-            ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)
-        self.config_change_service = self.create_service(
-            ConfigEntryUpdate, 'sky360/config/entry/update/v1', self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(
-            ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', self.get_config_update_callback)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -91,19 +86,16 @@ class SimpleTrackerConfigurationNode(Node):
                     for config_entry in request.entries:
                         keys.append(config_entry.key)
                         previous_value = self.settings[config_entry.key]
-                        updated_value = ConfigEntryConvertor.Convert(
-                            config_entry.type, config_entry.value)
+                        updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
 
                         if previous_value is None:
-                            self.settings[config_entry.key] = ConfigEntryConvertor.Convert(
-                                config_entry.type, config_entry.value)
+                            self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
                             self.get_logger().info(f'Updating config {config_entry.key}.')
                             message += f'Updated: {config_entry.key},'
                             updated = True
                         else:
                             if previous_value != updated_value:
-                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(
-                                    config_entry.type, config_entry.value)
+                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
                                 self.get_logger().info(f'Updating config {config_entry.key}.')
                                 message += f'Updated: {config_entry.key},'
                                 updated = True

@@ -45,11 +45,15 @@ class BackgroundSubtractionProviderNode(Node):
     frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
 
     frame_foreground_mask_msg = Frame()
+    frame_foreground_mask_msg.epoch = data.epoch
+    frame_foreground_mask_msg.fps = data.fps
     frame_foreground_mask_msg.frame_count = data.frame_count
     frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(foreground_mask_frame)
     self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
 
     frame_masked_background_msg = Frame()
+    frame_masked_background_msg.epoch = data.epoch
+    frame_masked_background_msg.fps = data.fps
     frame_masked_background_msg.frame_count = data.frame_count
     frame_masked_background_msg.frame = self.br.cv2_to_imgmsg(frame_masked_background)
     self.pub_masked_background_frame.publish(frame_masked_background_msg)

@@ -14,7 +14,7 @@ Message end point to provide a notification event that the config entry has been
 
 ## Camera
 
-### sky360/camera/original/v1 - Frame.msg
+### sky360/camera/original/v1 - CameraFrame.msg
 Message end point for the publishing of the original frame received from OpenCV
 
 ## Frames

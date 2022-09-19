@@ -1,9 +1,11 @@
 import datetime
 import rclpy
 import cv2
+import time
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
@@ -21,7 +23,7 @@ class CameraNode(Node):
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.pub_frame = self.create_publisher(Image, 'sky360/camera/original/v1', 10)    
+    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)    
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
@@ -39,13 +41,19 @@ class CameraNode(Node):
       self.capture = cv2.VideoCapture(self.app_configuration['camera_uri'])
       self.configuration_loaded = True
 
+    timer = cv2.getTickCount()
     success, frame = self.capture.read()
     if success == True:
 
       if self.app_configuration['camera_resize_frame']:
         frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
 
-      self.pub_frame.publish(self.br.cv2_to_imgmsg(frame))
+      camera_frame_msg = CameraFrame()
+      camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
+      camera_frame_msg.fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
+      camera_frame_msg.frame = self.br.cv2_to_imgmsg(frame)
+
+      self.pub_frame.publish(camera_frame_msg)
 
   def config_updated_callback(self, msg):
 

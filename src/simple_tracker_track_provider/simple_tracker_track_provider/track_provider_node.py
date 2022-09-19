@@ -51,11 +51,15 @@ class TrackProviderNode(Node):
     self.frame = self.br.imgmsg_to_cv2(data.frame)
 
     track_array_msg = TrackArray()
+    track_array_msg.epoch = data.epoch
+    track_array_msg.fps = data.fps
     track_array_msg.frame_count = data.frame_count
     track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
     self.pub_tracker_tracks.publish(track_array_msg)
     
     tracking_msg = TrackingState()
+    tracking_msg.epoch = data.epoch
+    tracking_msg.fps = data.fps
     tracking_msg.frame_count = data.frame_count
     tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
     tracking_msg.alive = len(self.video_tracker.live_trackers)

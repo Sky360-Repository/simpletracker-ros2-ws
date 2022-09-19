@@ -4,6 +4,7 @@ import cv2
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
+from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .mask import Mask
@@ -25,7 +26,7 @@ class FrameProviderNode(Node):
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_callback, 10)
+    self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, 10)
     self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)
     self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
@@ -43,7 +44,7 @@ class FrameProviderNode(Node):
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    frame = self.br.imgmsg_to_cv2(data)
+    frame = self.br.imgmsg_to_cv2(data.frame)
 
     self.counter += 1
 
@@ -61,6 +62,8 @@ class FrameProviderNode(Node):
       frame_grey = cv2.GaussianBlur(frame_grey, (self.app_configuration['frame_provider_blur_radius'], self.app_configuration['frame_provider_blur_radius']), 0)
 
     frame_original_msg = Frame()
+    frame_original_msg.epoch = data.epoch
+    frame_original_msg.fps = data.fps
     frame_original_msg.frame_count = self.counter
     frame_original_msg.frame = self.br.cv2_to_imgmsg(frame)
 

@@ -48,12 +48,14 @@ class DetectorNode(Node):
     key_points = perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
     kp_array_msg = KeyPointArray()
+    kp_array_msg.epoch = data.epoch
     kp_array_msg.frame_count = data.frame_count
     kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
     self.pub_key_points.publish(kp_array_msg)
 
     bbox_array_msg = BoundingBoxArray()
-    kp_array_msg.frame_count = data.frame_count
+    bbox_array_msg.epoch = data.epoch    
+    bbox_array_msg.frame_count = data.frame_count
     bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
     self.pub_bounding_boxes.publish(bbox_array_msg)
 

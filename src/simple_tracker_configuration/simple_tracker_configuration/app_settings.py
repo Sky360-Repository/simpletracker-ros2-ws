@@ -56,7 +56,7 @@ class AppSettings():
         app_settings['tracker_stopwatch_enable'] = False
         app_settings['tracker_active_only'] = True
         app_settings['tracker_detection_mode'] = 'background_subtraction'
-        app_settings['tracker_detection_sensitivity'] = 1
+        app_settings['tracker_detection_sensitivity'] = 2
         app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0
         app_settings['tracker_cuda_enable'] = False        

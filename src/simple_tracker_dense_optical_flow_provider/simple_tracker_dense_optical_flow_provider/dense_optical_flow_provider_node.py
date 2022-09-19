@@ -49,6 +49,8 @@ class DenseOpticalFlowProviderNode(Node):
     #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
 
     frame_optical_flow_msg = Frame()
+    frame_optical_flow_msg.epoch = data.epoch
+    frame_optical_flow_msg.fps = data.fps
     frame_optical_flow_msg.frame_count = data.frame_count
     frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
     self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)

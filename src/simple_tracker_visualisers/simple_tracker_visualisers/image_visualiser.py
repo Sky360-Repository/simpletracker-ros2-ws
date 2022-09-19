@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from simple_tracker_interfaces.msg import Frame
+from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
@@ -28,7 +29,7 @@ class ImageVisualiserNode(Node):
 
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
-    #self.camera_original_sub = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_original_callback, 10)
+    #self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_original_callback, 10)
     self.fp_original_sub = self.create_subscription(Frame, 'sky360/frames/original/v1', self.fp_original_callback, 10)
     #self.fp_grey_sub = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
     #self.dof_sub = self.create_subscription(Frame, 'sky360/frames/dense_optical_flow/v1', self.dof_callback, 10)
@@ -50,9 +51,9 @@ class ImageVisualiserNode(Node):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def camera_original_callback(self, data:Image):
+  def camera_original_callback(self, data:CameraFrame):
     #self.get_logger().info('Receiving video frame')
-    camera_original_frame = self.br.imgmsg_to_cv2(data)
+    camera_original_frame = self.br.imgmsg_to_cv2(data.frame)
     cv2.imshow("camera/original", camera_original_frame)
     cv2.waitKey(1)
 
@@ -94,7 +95,7 @@ class ImageVisualiserNode(Node):
     cv2.waitKey(1)
 
   def tracking_state_callback(self, data:TrackingState):
-    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}, frame count:{data.frame_count}"
+    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}, frame count:{data.frame_count}, frame epoch:{data.epoch}, fps:{data.fps} "
     self.status_message = msg
     if self.app_configuration['visualiser_log_status_to_console']:
       self.get_logger().info(msg)

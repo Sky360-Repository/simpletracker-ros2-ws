@@ -28,6 +28,7 @@ class FrameProviderNode(Node):
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, 10)
     self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)
+    self.pub_original_masked_frame = self.create_publisher(Frame, 'sky360/frames/original/masked/v1', 10)
     self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
@@ -44,18 +45,18 @@ class FrameProviderNode(Node):
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    frame = self.br.imgmsg_to_cv2(data.frame)
+    frame_original = self.br.imgmsg_to_cv2(data.frame)
 
     self.counter += 1
 
     if self.app_configuration['frame_provider_resize_frame']:
-      frame = frame_resize(frame, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
+      frame_original = frame_resize(frame_original, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
 
     # apply mask
-    frame = self.mask.apply(frame)
+    frame_masked_original = self.mask.apply(frame_original)
 
     #grey
-    frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame_grey = cv2.cvtColor(frame_masked_original, cv2.COLOR_BGR2GRAY)
 
     # blur
     if self.app_configuration['frame_provider_blur']:
@@ -65,11 +66,21 @@ class FrameProviderNode(Node):
     frame_original_msg.epoch = data.epoch
     frame_original_msg.fps = data.fps
     frame_original_msg.frame_count = self.counter
-    frame_original_msg.frame = self.br.cv2_to_imgmsg(frame)
+    frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
 
     self.pub_original_frame.publish(frame_original_msg)
 
+    frame_original_masked_msg = Frame()
+    frame_original_masked_msg.epoch = data.epoch
+    frame_original_masked_msg.fps = data.fps
+    frame_original_masked_msg.frame_count = self.counter
+    frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked_original)
+
+    self.pub_original_masked_frame.publish(frame_original_masked_msg)
+
     frame_grey_msg = Frame()
+    frame_grey_msg.epoch = data.epoch
+    frame_grey_msg.fps = data.fps
     frame_grey_msg.frame_count = self.counter
     frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
 

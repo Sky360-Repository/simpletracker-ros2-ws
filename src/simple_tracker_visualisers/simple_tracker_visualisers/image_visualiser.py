@@ -31,6 +31,7 @@ class ImageVisualiserNode(Node):
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
     #self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_original_callback, 10)
     self.fp_original_sub = self.create_subscription(Frame, 'sky360/frames/original/v1', self.fp_original_callback, 10)
+    #self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/frames/original/masked/v1', self.fp_original_masked_callback, 10)
     #self.fp_grey_sub = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
     #self.dof_sub = self.create_subscription(Frame, 'sky360/frames/dense_optical_flow/v1', self.dof_callback, 10)
     #self.forground_sub = self.create_subscription(Frame, 'sky360/frames/foreground_mask/v1', self.foreground_callback, 10)
@@ -69,6 +70,11 @@ class ImageVisualiserNode(Node):
     #original_frame = self.br.imgmsg_to_cv2(data.frame)
     #cv2.imshow("fp/original", original_frame)
     #cv2.waitKey(1)
+
+  def fp_original_masked_callback(self, data:Frame):
+    masked_frame = self.br.imgmsg_to_cv2(data.frame)
+    cv2.imshow("fp/masked", masked_frame)
+    cv2.waitKey(1)
 
   def fp_grey_callback(self, data:Frame):
     #self.get_logger().info('Receiving video frame')

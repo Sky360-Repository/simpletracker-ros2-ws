@@ -20,7 +20,10 @@ Message end point for the publishing of the original frame received from OpenCV
 ## Frames
 
 ### sky360/frames/original/v1 - Frame.msg
-Message end point for the publishing of the original frame after processing i.e. resize, blurred, masked etc
+Message end point for the publishing of the original frame after resizing
+
+### sky360/frames/original/masked/v1 - Frame.msg
+Message end point for the publishing of the original frame after processing i.e. resize, masked etc
 
 ### sky360/frames/grey/v1 - Frame.msg
 Message end point for the publishing of the grey frame after processing i.e. resize, blurred, masked etc

@@ -111,8 +111,8 @@ class Tracker():
 
             # Mike: If we have track plotting enabled, then we need to store the center points of the bboxes so that we can plo the 
             # entire track on the frame including the colour
-            if self.settings['track_plotting_enabled']:
-                self.center_points.append((self.get_center(), self.bbox_color()))
+            if self.settings['track_path_plotting_enabled']:
+                self.center_points.append((self.get_center(), self.tracking_state))
 
             if self.settings['track_prediction_enabled']:
                 self.predictor_center_points.append(self.track_predictor.update(bbox))
@@ -184,11 +184,3 @@ class Tracker():
     # Utility function to determine if there is containment of new bboxes
     def is_bbx_contained(self, bbox):
         return bbox1_contain_bbox2(self.bboxes[-1], bbox)
-
-    # Utility function to provide the colour of the bbox on the frame
-    def bbox_color(self):
-        return {
-            Tracker.PROVISIONARY_TARGET: (25, 175, 175),
-            Tracker.ACTIVE_TARGET: (50, 170, 50),
-            Tracker.LOST_TARGET: (50, 50, 225)
-        }[self.tracking_state]

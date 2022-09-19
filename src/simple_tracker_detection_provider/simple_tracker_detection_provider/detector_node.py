@@ -20,7 +20,7 @@ class DetectorNode(Node):
 
     super().__init__('sky360_detector')  
 
-    self.configuration_list = ['tracker_detection_sensitivity', 'bbox_size']
+    self.configuration_list = ['tracker_detection_sensitivity']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -29,7 +29,6 @@ class DetectorNode(Node):
     self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
     self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/key_points/v1', 10)
     self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)    
-    self.pub_sized_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/sized/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
@@ -48,8 +47,6 @@ class DetectorNode(Node):
 
     key_points = perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
-    #if len(key_points) > 0:
-
     kp_array_msg = KeyPointArray()
     kp_array_msg.frame_count = data.frame_count
     kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
@@ -59,11 +56,6 @@ class DetectorNode(Node):
     kp_array_msg.frame_count = data.frame_count
     bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
     self.pub_bounding_boxes.publish(bbox_array_msg)
-
-    sized_bbox_array_msg = BoundingBoxArray()
-    kp_array_msg.frame_count = data.frame_count
-    sized_bbox_array_msg.boxes = [self._kp_to_sized_bbox_msg(x) for x in key_points]
-    self.pub_sized_bounding_boxes.publish(sized_bbox_array_msg)
 
   def config_updated_callback(self, msg:ConfigEntryUpdatedArray):
 
@@ -99,28 +91,6 @@ class DetectorNode(Node):
     bbox_msg.h = h1
 
     return bbox_msg
-
-  def _kp_to_sized_bbox_msg(self, kp):
-
-    (x, y) = kp.pt
-    size = kp.size    
-    scale = 6
-
-    x1, y1, w1, h1 = (int(x - scale * size / 2), int(y - scale * size / 2), int(scale * size), int(scale * size))
-
-    bbox_size = self.app_configuration['bbox_size']
-    x2 = int(x1+(w1/2)) - int(bbox_size/2)
-    y2 = int(y1+(h1/2)) - int(bbox_size/2)
-    w2 = bbox_size
-    h2 = bbox_size
-
-    sized_bbox_msg = BoundingBox()
-    sized_bbox_msg.x = x2
-    sized_bbox_msg.y = y2
-    sized_bbox_msg.w = w2
-    sized_bbox_msg.h = h2
-
-    return sized_bbox_msg
 
   def _load_and_validate_config(self):
 

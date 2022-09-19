@@ -30,6 +30,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   #"msg/ConfigEntryUpdated.msg"
   "msg/BoundingBox.msg"
   "msg/BoundingBoxArray.msg"
+  "msg/CenterPoint.msg"
   "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
   "msg/Frame.msg"

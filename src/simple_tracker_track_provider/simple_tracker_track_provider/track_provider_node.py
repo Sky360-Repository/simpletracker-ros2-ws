@@ -11,6 +11,7 @@ from simple_tracker_interfaces.msg import BoundingBoxArray
 from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import TrackArray
+from simple_tracker_interfaces.msg import CenterPoint
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
 from .video_tracker import VideoTracker
@@ -22,7 +23,7 @@ class TrackProviderNode(Node):
     super().__init__('sky360_track_provider')  
 
     self.configuration_list = ['tracker_type', 'tracker_detection_sensitivity', 'tracker_active_only', 'tracker_max_active_trackers',
-      'track_plotting_enabled', 'track_prediction_enabled', 'track_validation_enable', 'track_stationary_threshold', 'track_orphaned_threshold']
+      'track_path_plotting_enabled', 'track_prediction_enabled', 'track_validation_enable', 'track_stationary_threshold', 'track_orphaned_threshold']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -88,6 +89,15 @@ class TrackProviderNode(Node):
     track_msg.id = tracker.id
     track_msg.state = tracker.tracking_state
     track_msg.bbox = bbox_msg
+
+    for center_point in tracker.center_points:
+      (x,y) = center_point[0]
+      state = center_point[1]
+      cpoint = CenterPoint()
+      cpoint.x = x
+      cpoint.y = y
+      cpoint.state = state
+      track_msg.path.append(cpoint)
 
     return track_msg
 

@@ -27,7 +27,7 @@ class AppSettings():
 
         # Camera node section
         app_settings['camera_mode'] = 'rtsp'
-        app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
+        app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2'
         app_settings['camera_resize_frame'] = True
         app_settings['camera_resize_dimension_h'] = 960
         #app_settings['camera_resize_dimension_h'] = 400
@@ -45,8 +45,10 @@ class AppSettings():
 
         # Visualiser node section
         app_settings['visualiser_font_size'] = 0.75
-        app_settings['visualiser_font_thickness'] = 1
-        app_settings['visualiser_bbox_line_thickness'] = 1
+        app_settings['visualiser_font_thickness'] = 2
+        app_settings['visualiser_bbox_line_thickness'] = 2
+        app_settings['visualiser_bbox_size'] = 64
+        app_settings['visualiser_log_status_to_console'] = False
         app_settings['visualiser_cuda_enable'] = False
 
         # Video Tracker section
@@ -55,7 +57,6 @@ class AppSettings():
         app_settings['tracker_active_only'] = True
         app_settings['tracker_detection_mode'] = 'background_subtraction'
         app_settings['tracker_detection_sensitivity'] = 1
-        app_settings['tracker_calculate_optical_flow'] = False
         app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0
         app_settings['tracker_cuda_enable'] = False        
@@ -66,16 +67,13 @@ class AppSettings():
         app_settings['background_subtractor_cuda_enable'] = False
 
         # Track Plotting section
-        app_settings['track_plotting_enabled'] = False
+        app_settings['track_path_plotting_enabled'] = True
         app_settings['track_plotting_type'] = 'line'
         app_settings['track_validation_enable'] = True
         app_settings['track_stationary_threshold'] = 5
         app_settings['track_orphaned_threshold'] = 20
-        app_settings['track_prediction_enabled'] = False
+        app_settings['track_prediction_enabled'] = True
         app_settings['track_cuda_enable'] = False
-
-        # BBox section
-        app_settings['bbox_size'] = 64
 
         # Mask section
         #app_settings['mask_type'] = 'fish_eye'

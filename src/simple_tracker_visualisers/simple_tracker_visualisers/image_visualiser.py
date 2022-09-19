@@ -21,7 +21,8 @@ class ImageVisualiserNode(Node):
   def __init__(self):
     super().__init__('image_visualiser_node')
 
-    self.configuration_list = ['visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness']
+    self.configuration_list = ['visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 
+      'visualiser_log_status_to_console']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -95,7 +96,8 @@ class ImageVisualiserNode(Node):
   def tracking_state_callback(self, data:TrackingState):
     msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}, frame count:{data.frame_count}"
     self.status_message = msg
-    #self.get_logger().info(msg)
+    if self.app_configuration['visualiser_log_status_to_console']:
+      self.get_logger().info(msg)
 
   def tracks_callback(self, data:TrackArray):
 
@@ -103,16 +105,14 @@ class ImageVisualiserNode(Node):
       pass
 
     for track in data.tracks:
-      bbox: BoundingBox = track.bbox
-      x = bbox.x
-      y = bbox.y
-      w = bbox.w
-      h = bbox.h
+      (x, y, w, h) = self._get_sized_bbox(track.bbox)
       p1 = (int(x), int(y))
       p2 = (int(x + w), int(y + h))
       color = self._color(track.state)
       cv2.rectangle(self.annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
       cv2.putText(self.annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+      self._add_tracked_path(track, self.annotated_frame)
+      self._add_predicted_point(track, self.annotated_frame)
 
     cv2.putText(self.annotated_frame, self.status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
     cv2.putText(self.annotated_frame, f'(Sky360) Frame count: {self.annotated_frame_count}, Tracked frame count: {data.frame_count}, In sync: {self.annotated_frame_count == data.frame_count}', (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
@@ -166,6 +166,39 @@ class ImageVisualiserNode(Node):
       valid = False
 
     return valid    
+
+  def _get_sized_bbox(self, bbox_msg: BoundingBox):
+    x = bbox_msg.x
+    y = bbox_msg.y
+    w = bbox_msg.w
+    h = bbox_msg.h
+    bbox = (x, y, w, h)
+    if self.app_configuration['visualiser_bbox_size'] is not None:
+        size = self.app_configuration['visualiser_bbox_size']
+        if w < size and h < size:
+          x1 = int(x+(w/2)) - int(size/2)
+          y1 = int(y+(h/2)) - int(size/2)
+          bbox = (x1, y1, size, size)
+    return bbox
+
+  def _add_tracked_path(self, track: Track, frame):
+    bbox = self._get_sized_bbox(track.bbox)
+    path_points = track.path
+    previous_point = None
+    for path_point in path_points:
+        if not previous_point is None:
+            if not self._is_point_contained_in_bbox(bbox, (path_point.x, path_point.y)):
+                cv2.line(frame, (previous_point.x, previous_point.y), (path_point.x, path_point.y), self._color(path_point.state), thickness=self.bbox_line_thickness)
+        previous_point = path_point
+
+  def _add_predicted_point(self, track: Track, frame):
+    predicted_center_point = track.predicted_point
+    cv2.circle(frame, (predicted_center_point.x, predicted_center_point.y), radius=1, color=(255, 0, 0), thickness=self.bbox_line_thickness)
+
+  def _is_point_contained_in_bbox(self, bbox, point):
+    x, y, w, h = bbox
+    x0, y0 = point
+    return x <= x0 < x + w and y <= y0 < y + h
 
   def _color(self, tracking_state):
     return {

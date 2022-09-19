@@ -42,9 +42,6 @@ Message end point for the publishing of key point detection array for a frame
 ### sky360/detector/bounding_boxes/v1 - BoundingBoxArray.msg
 Message end point for the publishing of bounding box array for a frame
 
-### sky360/detector/bounding_boxes/sized/v1 - BoundingBoxArray.msg
-Message end point for the publishing of fixed sized bounding box array for a frame
-
 ## Tracker
 
 ### sky360/tracker/tracking_state/v1 - TrackingState.msg

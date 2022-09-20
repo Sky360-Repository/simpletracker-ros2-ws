@@ -10,6 +10,7 @@ from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .mask import Mask
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
+from .mask_client_async import MaskClientAsync
 
 from.utils import frame_resize
 
@@ -20,14 +21,16 @@ class FrameProviderNode(Node):
     super().__init__('sky360_frame_provider')  
 
     self.configuration_list = ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
-      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_cuda_enable']
+      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_file_name', 'mask_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
+    self.mask_svc = MaskClientAsync()
     self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, 10)
     self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)
+    self.pub_original_masked_frame = self.create_publisher(Frame, 'sky360/frames/original/masked/v1', 10)
     self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
@@ -44,18 +47,18 @@ class FrameProviderNode(Node):
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    frame = self.br.imgmsg_to_cv2(data.frame)
+    frame_original = self.br.imgmsg_to_cv2(data.frame)
 
     self.counter += 1
 
     if self.app_configuration['frame_provider_resize_frame']:
-      frame = frame_resize(frame, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
+      frame_original = frame_resize(frame_original, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
 
     # apply mask
-    frame = self.mask.apply(frame)
+    frame_masked_original = self.mask.apply(frame_original)
 
     #grey
-    frame_grey = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    frame_grey = cv2.cvtColor(frame_masked_original, cv2.COLOR_BGR2GRAY)
 
     # blur
     if self.app_configuration['frame_provider_blur']:
@@ -65,11 +68,21 @@ class FrameProviderNode(Node):
     frame_original_msg.epoch = data.epoch
     frame_original_msg.fps = data.fps
     frame_original_msg.frame_count = self.counter
-    frame_original_msg.frame = self.br.cv2_to_imgmsg(frame)
+    frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
 
     self.pub_original_frame.publish(frame_original_msg)
 
+    frame_original_masked_msg = Frame()
+    frame_original_masked_msg.epoch = data.epoch
+    frame_original_masked_msg.fps = data.fps
+    frame_original_masked_msg.frame_count = self.counter
+    frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked_original)
+
+    self.pub_original_masked_frame.publish(frame_original_masked_msg)
+
     frame_grey_msg = Frame()
+    frame_grey_msg.epoch = data.epoch
+    frame_grey_msg.fps = data.fps
     frame_grey_msg.frame_count = self.counter
     frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
 
@@ -99,16 +112,23 @@ class FrameProviderNode(Node):
 
   def _load_config(self):
     #self.get_logger().info(f'Loading configuration list.')
-
     response = self.configuration_svc.send_request(self.configuration_list)
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 
+    image_masks = ['overlay', 'overlay_inverse']
+    if any(self.app_configuration['mask_type'] in s for s in image_masks):
+      self._load_mask()
+
+  def _load_mask(self):
+    self.get_logger().info(f'Loading mask.')
+    response = self.mask_svc.send_request(self.app_configuration['mask_overlay_image_file_name'])
+    self.app_configuration['mask_overlay_image'] = self.br.imgmsg_to_cv2(response.mask)
+
   def _validate_config(self):
     #self.get_logger().info(f'Validating configuration.')
-
     valid = True
-
+    
     if self.app_configuration['frame_provider_resize_frame']:
       if self.app_configuration['frame_provider_resize_dimension_h'] is None and self.app_configuration['frame_provider_resize_dimension_w'] is None:
         self.get_logger().error('Both frame_provider_resize_dimension_h and frame_provider_resize_dimension_w config entries are null')

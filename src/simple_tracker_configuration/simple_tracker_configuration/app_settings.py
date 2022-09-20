@@ -30,7 +30,6 @@ class AppSettings():
         app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2'
         app_settings['camera_resize_frame'] = True
         app_settings['camera_resize_dimension_h'] = 960
-        #app_settings['camera_resize_dimension_h'] = 400
         app_settings['camera_resize_dimension_w'] = None
         app_settings['camera_cuda_enable'] = False
 
@@ -77,9 +76,13 @@ class AppSettings():
 
         # Mask section
         #app_settings['mask_type'] = 'fish_eye'
-        app_settings['mask_type'] = 'no_op'
+        #app_settings['mask_type'] = 'no_op'
+        #app_settings['mask_type'] = 'overlay_inverse'
+        app_settings['mask_type'] = 'overlay'
         app_settings['mask_pct'] = 10
-        app_settings['mask_overlay_image_path'] = None
+        app_settings['mask_overlay_image_file_name'] = 'mikes-camera-mask-overlay.jpg'
+        #app_settings['mask_overlay_image_file_name'] = 'mask-shrubs-inverse-overlay.jpg'
+        app_settings['mask_overlay_image'] = None
         app_settings['mask_cuda_enable'] = False
 
         # Dense optical flow

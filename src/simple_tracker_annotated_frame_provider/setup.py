@@ -1,8 +1,6 @@
-import os
-from glob import glob
 from setuptools import setup
 
-package_name = 'simple_tracker_mask_provider'
+package_name = 'simple_tracker_annotated_frame_provider'
 
 setup(
     name=package_name,
@@ -12,7 +10,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'masks'), glob('masks/*.jpg')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -23,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mask_provider = simple_tracker_mask_provider.mask_provider_node:main',
+            'annotated_frame_provider = simple_tracker_annotated_frame_provider.annotated_frame_provider:main',
         ],
     },
 )

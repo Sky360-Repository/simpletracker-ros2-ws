@@ -158,7 +158,7 @@ class OverlayMask(Mask):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.overlay_image_path = settings['mask_overlay_image_path']
+        self.overlay_image = settings['mask_overlay_image']
 
     def initialise(self, init_frame, stream=None):
         super().initialise(init_frame, stream)
@@ -166,9 +166,6 @@ class OverlayMask(Mask):
         self.height = self.shape[0]
         self.width = self.shape[1]
 
-        # load the oimage we are going to use as a mask
-        self.overlay_image = cv2.imread(self.overlay_image_path, cv2.IMREAD_GRAYSCALE)
-        
         # resize this image to fit our input frame
         overlay_h = self.overlay_image.shape[:2][0]
         overlay_w = self.overlay_image.shape[:2][1]
@@ -194,7 +191,7 @@ class OverlayMaskGpu(Mask):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.overlay_image_path = settings['mask_overlay_image_path']
+        self.overlay_image = settings['mask_overlay_image']
 
     def initialise(self, init_frame, stream=None):
         super().initialise(init_frame, stream)
@@ -203,7 +200,7 @@ class OverlayMaskGpu(Mask):
         self.width = self.shape[1]
 
         # load the image we are going to use as a mask
-        overlay_image = cv2.imread(self.overlay_image_path, cv2.IMREAD_GRAYSCALE)
+        overlay_image = self.overlay_image
         
         # resize this image to fit our input frame
         overlay_h = overlay_image.shape[:2][0]

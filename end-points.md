@@ -37,6 +37,9 @@ Message end point for the publishing of the foreground masked frame
 ### sky360/frames/masked_background/v1 - Frame.msg
 Message end point for the publishing of the masked background frame
 
+### sky360/frames/annotated/v1 - Frame.msg
+Message end point for the publishing the annotated frame i.e. the frame with status and tracks etc
+
 ## Detection
 
 ### sky360/detector/key_points/v1 - KeyPointArray.msg

@@ -10,6 +10,12 @@ def generate_launch_description():
             name='configuration_service'
         ),
         Node(
+            package='simple_tracker_mask_provider',
+            ##namespace='sky360',
+            executable='mask_provider',
+            name='mask_provider'
+        ),        
+        Node(
             package='camera_mock',
             #namespace='sky360',
             executable='camera',
@@ -45,6 +51,12 @@ def generate_launch_description():
             executable='track_provider',
             name='track_provider'
         ),
+        Node(
+            package='simple_tracker_annotated_frame_provider',
+            #namespace='sky360',
+            executable='annotated_frame_provider',
+            name='annotated_frame_provider'
+        ),        
         Node(
             package='simple_tracker_visualisers',
             #namespace='sky360',

@@ -1,26 +1,26 @@
-import datetime
+import os
 import rclpy
 import cv2
 from rclpy.node import Node
-from sensor_msgs.msg import Image
+from simple_tracker_interfaces.srv import Mask
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from .config_entry_convertor import ConfigEntryConvertor
 from .configurations_client_async import ConfigurationsClientAsync
 
-class CameraNode(Node):
+class MaskProviderNode(Node):
 
   def __init__(self):
 
     super().__init__('sky360_mask_provider')  
 
-    self.configuration_list = ['mask_type', 'mask_pct', 'mask_overlay_image_path']
+    self.configuration_list = ['mask_overlay_image_path', 'mask_type']
     self.app_configuration = {}
     self.configuration_loaded = False
 
     # setup services, publishers and subscribers
     self.configuration_svc = ConfigurationsClientAsync()
-    self.mask_service = self.create_service(Image, 'sky360/mask/image/v1', self.get_mask_callback)
+    self.mask_service = self.create_service(Mask, 'sky360/mask/image/v1', self.get_mask_callback)
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     self.br = CvBridge()
@@ -28,14 +28,21 @@ class CameraNode(Node):
   
   def get_mask_callback(self, request, response):
 
-    self.get_logger().info(f'Requesting mask.')
+    #https://towardsdatascience.com/simple-trick-to-work-with-relative-paths-in-python-c072cdc9acb9
+    self.get_logger().info(f'Requesting mask {request.path}.')
+    #self.get_logger().info(f'We are running from {os.getcwd()}.')
+    self.get_logger().info(f'File path {os.path.dirname(os.path.realpath(__file__))}.')
 
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    ##response = self.br.cv2_to_imgmsg(mask_image)
+    if os.path.exists(self.app_configuration['mask_overlay_image_path']) == False:
+      self.get_logger().error(f'Mask path {request.path} does not exist.')
+
+    mask_image = cv2.imread(self.app_configuration['mask_overlay_image_path'], cv2.IMREAD_GRAYSCALE)
+    response.mask = self.br.cv2_to_imgmsg(mask_image)
 
     return response
 
@@ -68,16 +75,10 @@ class CameraNode(Node):
     #self.get_logger().info(f'Validating configuration.')
 
     valid = True
-
     # TODO: This has to be moved, we only provide the image here
-    if self.app_configuration['mask_type'] == 'fishey':
-      if self.app_configuration['mask_pct'] == None:
-        self.get_logger().error('The mask_pct config entry is null')
-        valid = False
-
     if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['overlay_inverse'] == 'overlay':
       if self.app_configuration['mask_overlay_image_path'] == None:
-        self.get_logger().error('The camera_resize_dimension_w config entry is null')
+        self.get_logger().error('The mask_overlay_image_path config entry is null')
         valid = False
 
     return valid
@@ -85,9 +86,9 @@ class CameraNode(Node):
 def main(args=None):
 
   rclpy.init(args=args)
-  image_publisher = CameraNode()
-  rclpy.spin(image_publisher)
-  image_publisher.destroy_node()
+  mask_provider = MaskProviderNode()
+  rclpy.spin(mask_provider)
+  mask_provider.destroy_node()
   rclpy.rosshutdown()
 
 if __name__ == '__main__':

@@ -38,9 +38,9 @@
 
 ### Updating configuration from command line example:
 
-* This will update the "camera_resize_dimension_w" configuration entry to a value of 750
+* This will update the "frame_provider_resize_dimension_h" configuration entry to a value of 400
 
-`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: camera_resize_dimension_w, type: int, value: 750}]}'`
+`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: frame_provider_resize_dimension_h, type: int, value: 400}]}'`
 
 ### Tracker status via command line
 

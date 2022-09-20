@@ -14,8 +14,8 @@ class MaskClientAsync(Node):
             self.get_logger().info('mask service not available, waiting again...')
         self.request = Mask.Request()
 
-    def send_request(self, path):
-        self.request.path = path
+    def send_request(self, file_name):
+        self.request.file_name = file_name
         self.future = self.client.call_async(self.request)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()

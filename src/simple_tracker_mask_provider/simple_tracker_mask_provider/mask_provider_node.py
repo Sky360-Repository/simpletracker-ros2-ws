@@ -14,7 +14,7 @@ class MaskProviderNode(Node):
 
     super().__init__('sky360_mask_provider')  
 
-    self.configuration_list = ['mask_overlay_image_path', 'mask_type']
+    self.configuration_list = ['mask_type', 'mask_overlay_image_file_name']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -28,20 +28,19 @@ class MaskProviderNode(Node):
   
   def get_mask_callback(self, request, response):
 
-    #https://towardsdatascience.com/simple-trick-to-work-with-relative-paths-in-python-c072cdc9acb9
-    self.get_logger().info(f'Requesting mask {request.path}.')
-    #self.get_logger().info(f'We are running from {os.getcwd()}.')
-    self.get_logger().info(f'File path {os.path.dirname(os.path.realpath(__file__))}.')
+    #self.get_logger().info(f'Requesting mask {request.file_name}.')
+    masks_folder = os.path.join(os.getcwd(), 'install/simple_tracker_mask_provider/share/simple_tracker_mask_provider/masks')
+    mask_file_path = os.path.join(masks_folder, request.file_name)
 
     # TODO: This configuration update thing needs to happen in the background
     if not self.configuration_loaded:
       self._load_and_validate_config()
       self.configuration_loaded = True
 
-    if os.path.exists(self.app_configuration['mask_overlay_image_path']) == False:
-      self.get_logger().error(f'Mask path {request.path} does not exist.')
+    if os.path.exists(mask_file_path) == False:
+      self.get_logger().error(f'Mask path {request.file_name} does not exist.')
 
-    mask_image = cv2.imread(self.app_configuration['mask_overlay_image_path'], cv2.IMREAD_GRAYSCALE)
+    mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
     response.mask = self.br.cv2_to_imgmsg(mask_image)
 
     return response
@@ -76,9 +75,9 @@ class MaskProviderNode(Node):
 
     valid = True
     # TODO: This has to be moved, we only provide the image here
-    if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['overlay_inverse'] == 'overlay':
-      if self.app_configuration['mask_overlay_image_path'] == None:
-        self.get_logger().error('The mask_overlay_image_path config entry is null')
+    if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['mask_type'] == 'overlay_inverse':
+      if self.app_configuration['mask_overlay_image_file_name'] == None:
+        self.get_logger().error('The mask_overlay_image_file_name config entry is null')
         valid = False
 
     return valid

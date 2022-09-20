@@ -21,7 +21,7 @@ class FrameProviderNode(Node):
     super().__init__('sky360_frame_provider')  
 
     self.configuration_list = ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
-      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_path', 'mask_cuda_enable']
+      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_file_name', 'mask_cuda_enable']
     self.app_configuration = {}
     self.configuration_loaded = False
 
@@ -122,8 +122,8 @@ class FrameProviderNode(Node):
 
   def _load_mask(self):
     self.get_logger().info(f'Loading mask.')
-    response = self.mask_svc.send_request(self.app_configuration['mask_overlay_image_path'])
-    self.app_configuration['mask_overlay_image'] = self.br.imgmsg_to_cv2(response)
+    response = self.mask_svc.send_request(self.app_configuration['mask_overlay_image_file_name'])
+    self.app_configuration['mask_overlay_image'] = self.br.imgmsg_to_cv2(response.mask)
 
   def _validate_config(self):
     #self.get_logger().info(f'Validating configuration.')

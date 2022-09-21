@@ -15,12 +15,18 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),        
+        #Node(
+        #    package='simple_tracker_camera',
+        #    #namespace='sky360',
+        #    executable='camera',
+        #    name='camera'
+        #),
         Node(
-            package='camera_mock',
+            package='simple_tracker_video',
             #namespace='sky360',
-            executable='camera',
-            name='camera'
-        ),
+            executable='video',
+            name='video'
+        ),        
         Node(
             package='simple_tracker_frame_provider',
             #namespace='sky360',

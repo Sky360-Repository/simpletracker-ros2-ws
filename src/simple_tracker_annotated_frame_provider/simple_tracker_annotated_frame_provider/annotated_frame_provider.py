@@ -20,34 +20,37 @@ class AnnotatedFrameProviderNode(Node):
   def __init__(self):
     super().__init__('image_visualiser_node')
 
-    self.configuration_list = ['visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
+    self.configuration_list = ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
     self.app_configuration = {}
     self.configuration_loaded = False
 
+    #self.frame_buffer = {}
+    self.font_colour = (50, 170, 50)
+    self.font_size = 0.5
+    self.font_thickness = 1
+    self.bbox_line_thickness = 1
+    self.prediction_colour = (255, 0, 0)
+    self.prediction_radius = 1
+    self.frame_message = ''
+    self.status_message = ''
+    self.frame_type = 'original'
+
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
+
+    # TODO: This configuration update thing needs to happen in the background
+    if not self.configuration_loaded:
+      self._load_and_validate_config()
+      self.configuration_loaded = True
+
     self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)
-    self.fp_original_sub = self.create_subscription(Frame, 'sky360/frames/original/v1', self.fp_original_callback, 10)
+    self.fp_original_sub = self.create_subscription(Frame, f'sky360/frames/{self.frame_type}/v1', self.fp_original_callback, 10)
     self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
     self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
 
     self.br = CvBridge()
     self.annotated_frame = None
     self.annotated_frame_count = 0
-
-    #self.frame_buffer = {}
-    self.font_colour = (50, 170, 50)
-    self.font_size = 1
-    self.font_thickness = 1
-    self.bbox_line_thickness = 1
-    self.prediction_colour = (255, 0, 0)
-    self.prediction_radius = 1
-    self.status_message = ''
-
-    # TODO: This configuration update thing needs to happen in the background
-    if not self.configuration_loaded:
-      self._load_and_validate_config()
-      self.configuration_loaded = True
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -56,12 +59,15 @@ class AnnotatedFrameProviderNode(Node):
     self.annotated_frame_count = data.frame_count
 
   def tracking_state_callback(self, data:TrackingState):
-    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}, frame count:{data.frame_count}, frame epoch:{data.epoch}, fps:{data.fps} "
-    self.status_message = msg
+    self.status_message = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}"
+    self.frame_message = f"(Sky360) {self.frame_type} frame, count:{data.frame_count}, epoch:{data.epoch}, fps:{data.fps}"
 
   def tracks_callback(self, data:TrackArray):
 
     if self.configuration_loaded == False:
+      pass
+
+    if self.annotated_frame is None:
       pass
 
     for track in data.tracks:
@@ -76,7 +82,7 @@ class AnnotatedFrameProviderNode(Node):
 
     cv2.putText(self.annotated_frame, self.status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
     cv2.putText(self.annotated_frame, f'(Sky360) Frame count: {self.annotated_frame_count}, Tracked frame count: {data.frame_count}, In sync: {self.annotated_frame_count == data.frame_count}', (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-    cv2.putText(self.annotated_frame, '(Sky360) Original Frame', (25, 75), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+    cv2.putText(self.annotated_frame, self.frame_message, (25, 75), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
     frame_annotated_msg = Frame()
     frame_annotated_msg.epoch = data.epoch
@@ -107,6 +113,8 @@ class AnnotatedFrameProviderNode(Node):
         self.font_size = self.app_configuration['visualiser_font_size']
         self.font_thickness = self.app_configuration['visualiser_font_thickness']
         self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
+
+        self.frame_type = self.app_configuration['visualiser_frame_source']
 
         self.configuration_loaded = True
 

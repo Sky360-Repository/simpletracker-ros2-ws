@@ -33,6 +33,15 @@ class AppSettings():
         app_settings['camera_resize_dimension_w'] = None
         app_settings['camera_cuda_enable'] = False
 
+        # Video node section
+        #app_settings['video_file'] = 'plane_flying_past.mkv'
+        app_settings['video_file'] = 'plane_flying_past2.mkv'
+        app_settings['video_resize_frame'] = False
+        app_settings['video_resize_dimension_h'] = 960
+        app_settings['video_resize_dimension_w'] = None
+        app_settings['video_loop'] = True
+        app_settings['video_cuda_enable'] = False
+
         # Frame Provider node section
         app_settings['frame_provider_resize_frame'] = True
         app_settings['frame_provider_resize_dimension_h'] = 960
@@ -43,19 +52,21 @@ class AppSettings():
         app_settings['frame_provider_cuda_enable'] = False
 
         # Visualiser node section
-        app_settings['visualiser_font_size'] = 0.75
-        app_settings['visualiser_font_thickness'] = 2
-        app_settings['visualiser_bbox_line_thickness'] = 2
+        app_settings['visualiser_font_size'] = 0.5
+        app_settings['visualiser_font_thickness'] = 1
+        app_settings['visualiser_bbox_line_thickness'] = 1
         app_settings['visualiser_bbox_size'] = 64
         app_settings['visualiser_log_status_to_console'] = False
         app_settings['visualiser_cuda_enable'] = False
+        app_settings['visualiser_frame_source'] = 'original'
+        #app_settings['visualiser_frame_source'] = 'masked'
 
         # Video Tracker section
         app_settings['tracker_type'] = 'CSRT'
         app_settings['tracker_stopwatch_enable'] = False
         app_settings['tracker_active_only'] = True
         app_settings['tracker_detection_mode'] = 'background_subtraction'
-        app_settings['tracker_detection_sensitivity'] = 2
+        app_settings['tracker_detection_sensitivity'] = 1
         app_settings['tracker_max_active_trackers'] = 10        
         app_settings['tracker_wait_seconds_threshold'] = 0
         app_settings['tracker_cuda_enable'] = False        
@@ -77,11 +88,11 @@ class AppSettings():
         # Mask section
         #app_settings['mask_type'] = 'fish_eye'
         #app_settings['mask_type'] = 'no_op'
-        #app_settings['mask_type'] = 'overlay_inverse'
-        app_settings['mask_type'] = 'overlay'
+        app_settings['mask_type'] = 'overlay_inverse'
+        #app_settings['mask_type'] = 'overlay'
         app_settings['mask_pct'] = 10
-        app_settings['mask_overlay_image_file_name'] = 'mikes-camera-mask-overlay.jpg'
-        #app_settings['mask_overlay_image_file_name'] = 'mask-shrubs-inverse-overlay.jpg'
+        #app_settings['mask_overlay_image_file_name'] = 'mikes-camera-mask-overlay.jpg'
+        app_settings['mask_overlay_image_file_name'] = 'mask-shrubs-inverse-overlay.jpg'
         app_settings['mask_overlay_image'] = None
         app_settings['mask_cuda_enable'] = False
 

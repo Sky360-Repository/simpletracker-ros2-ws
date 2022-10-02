@@ -12,8 +12,8 @@ from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import CenterPoint
-from .config_entry_convertor import ConfigEntryConvertor
-from .configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
 from .video_tracker import VideoTracker
 
 class TrackProviderNode(Node):

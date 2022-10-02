@@ -6,8 +6,8 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from .config_entry_convertor import ConfigEntryConvertor
-from .configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
 from .background_subtractor import BackgroundSubtractor
 
 class BackgroundSubtractionProviderNode(Node):

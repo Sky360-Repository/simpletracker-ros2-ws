@@ -7,8 +7,8 @@ from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from .config_entry_convertor import ConfigEntryConvertor
-from .configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
 from cv_bridge import CvBridge
  
 class AnnotatedFrameProviderNode(Node):

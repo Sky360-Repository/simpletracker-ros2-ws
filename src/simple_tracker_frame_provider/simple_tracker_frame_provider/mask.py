@@ -13,7 +13,7 @@
 import cv2
 import os
 import numpy as np
-from .utils import clip_at_center
+from simple_tracker_shared.utils import clip_at_center
 
 ####################################################################################################################################
 # Base class for various masking implementations. The idea here is that we have a standardised masking processing interface        #

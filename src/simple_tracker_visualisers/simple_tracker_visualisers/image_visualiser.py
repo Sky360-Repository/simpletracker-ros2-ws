@@ -8,8 +8,8 @@ from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from .config_entry_convertor import ConfigEntryConvertor
-from .configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
 from cv_bridge import CvBridge
 import cv2
  
@@ -29,6 +29,7 @@ class ImageVisualiserNode(Node):
 
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
+    
     #self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_original_callback, 10)
     #self.fp_original_sub = self.create_subscription(Frame, 'sky360/frames/original/v1', self.fp_original_callback, 10)
     #self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/frames/original/masked/v1', self.fp_original_masked_callback, 10)
@@ -37,6 +38,7 @@ class ImageVisualiserNode(Node):
     #self.forground_sub = self.create_subscription(Frame, 'sky360/frames/foreground_mask/v1', self.foreground_callback, 10)
     #self.masked_background_sub = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_callback, 10)
     #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
+    
     self.fp_annotated_sub = self.create_subscription(Frame, 'sky360/frames/annotated/v1', self.fp_annotated_callback, 10)
 
     self.br = CvBridge()

@@ -10,9 +10,9 @@ from simple_tracker_interfaces.msg import KeyPoint
 from simple_tracker_interfaces.msg import KeyPointArray
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import BoundingBoxArray
-from .config_entry_convertor import ConfigEntryConvertor
-from .configurations_client_async import ConfigurationsClientAsync
-from.utils import perform_blob_detection
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.utils import perform_blob_detection
 
 class DetectorNode(Node):
 

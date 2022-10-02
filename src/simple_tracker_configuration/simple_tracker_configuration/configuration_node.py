@@ -5,8 +5,8 @@ from simple_tracker_interfaces.msg import ConfigItem
 from simple_tracker_interfaces.srv import ConfigEntryUpdate
 from simple_tracker_interfaces.srv import ConfigEntry
 from simple_tracker_interfaces.srv import ConfigEntryArray
+from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
 from .app_settings import AppSettings
-from .config_entry_convertor import ConfigEntryConvertor
 
 class SimpleTrackerConfigurationNode(Node):
 

@@ -13,7 +13,7 @@
 import cv2
 import time
 import math
-from .utils import bbox_overlap, bbox1_contain_bbox2, get_cv_version
+from simple_tracker_shared.utils import bbox_overlap, bbox1_contain_bbox2, get_cv_version
 from .track_prediction import TrackPrediction
 
 ########################################################################################################################

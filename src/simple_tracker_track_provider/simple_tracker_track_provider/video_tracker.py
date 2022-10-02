@@ -12,7 +12,7 @@
 
 import numpy as np
 from threading import Thread
-from .utils import kp_to_bbox, is_bbox_being_tracked, bbox_overlap, is_bbox_being_tracked, add_bbox_to_image, add_track_line_to_image, add_predicted_point_to_image
+from simple_tracker_shared.utils import is_bbox_being_tracked, bbox_overlap, is_bbox_being_tracked
 from .tracker import Tracker
 
 ################################################################################################

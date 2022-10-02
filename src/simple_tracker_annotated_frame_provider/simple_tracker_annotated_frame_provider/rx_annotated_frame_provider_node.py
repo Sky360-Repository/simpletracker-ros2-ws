@@ -9,14 +9,14 @@ from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
 from cv_bridge import CvBridge
  
-class RXAnnotatedFrameProviderNode(ConfiguredNode):
+class RxAnnotatedFrameProviderNode(ConfiguredNode):
 
   PROVISIONARY_TARGET = 1
   ACTIVE_TARGET = 2
   LOST_TARGET = 3
 
   def __init__(self):
-    super().__init__('rx_annotated_frame_provider_node')
+    super().__init__('rx_annotated_frame_provider')
 
     #self.frame_buffer = {}
     self.font_colour = (50, 170, 50)
@@ -137,7 +137,7 @@ class RXAnnotatedFrameProviderNode(ConfiguredNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  annotated_frame_provider_node = RXAnnotatedFrameProviderNode()
+  annotated_frame_provider_node = RxAnnotatedFrameProviderNode()
   rclpy.spin(annotated_frame_provider_node)
   annotated_frame_provider_node.destroy_node()
   rclpy.shutdown()

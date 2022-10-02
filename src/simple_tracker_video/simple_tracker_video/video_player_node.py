@@ -3,33 +3,26 @@ import rclpy
 import cv2
 import time
 import os
-from rclpy.node import Node
+from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
-from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
-from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
 from simple_tracker_shared.utils import frame_resize
+from simple_tracker_shared.configured_node import ConfiguredNode
 
-class VideoNode(Node):
+class VideoNode(ConfiguredNode):
 
   def __init__(self):
 
     super().__init__('sky360_video')  
 
-    self.configuration_list = ['video_file', 'video_loop', 'video_resize_frame', 'video_resize_dimension_h', 'video_resize_dimension_w', 'video_cuda_enable']
-    self.app_configuration = {}
-    self.configuration_loaded = False
-
     # setup services, publishers and subscribers
-    self.configuration_svc = ConfigurationsClientAsync()
     self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)    
-    self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
 
     # setup timer and other helpers
     timer_period = 0.1  # seconds
     self.timer = self.create_timer(timer_period, self.capture_timer_callback)
     self.br = CvBridge()
+    self.broad_casting = False
 
     self.videos_folder = os.path.join(os.getcwd(), 'install/simple_tracker_video/share/simple_tracker_video/videos')
 
@@ -37,15 +30,13 @@ class VideoNode(Node):
    
   def capture_timer_callback(self):
 
-    # TODO: This configuration update thing needs to happen in the background
-    if not self.configuration_loaded:
-      self._load_and_validate_config()
+    if not self.broad_casting:
       self.video_file_path = os.path.join(self.videos_folder, self.app_configuration['video_file'])
       self.capture = cv2.VideoCapture(self.video_file_path)
       if not self.capture.isOpened():
         print("Could not open video")
         self.get_logger().error(f'Could not open video {self.video_file_path}.')
-      self.configuration_loaded = True
+      self.broad_casting = True
 
     timer = cv2.getTickCount()
     success, frame = self.capture.read()
@@ -63,36 +54,12 @@ class VideoNode(Node):
 
     else:
       if self.app_configuration['video_loop']:      
-        self.configuration_loaded = False
+        self.broad_casting = False
 
-  def config_updated_callback(self, msg):
+  def config_list(self) -> List[str]:
+    return ['video_file', 'video_loop', 'video_resize_frame', 'video_resize_dimension_h', 'video_resize_dimension_w', 'video_cuda_enable']
 
-    for key in msg.keys:
-      if key in self.app_configuration.keys():
-        self.configuration_loaded = False
-        self.get_logger().info('Receiving updated configuration notification, reload')
-        break
-  
-  def _load_and_validate_config(self):
-
-      if not self.configuration_loaded:
-        self._load_config()
-        
-        # TODO: What is the best way of exiting out of a launch script when the configuration validation fails
-        valid = self._validate_config()
-        if valid == False:
-          self.get_logger().error('Video configuration is invalid')
-
-  def _load_config(self):
-    # self.get_logger().info(f'Loading configuration list.')
-
-    response = self.configuration_svc.send_request(self.configuration_list)
-    for config_item in response.entries:
-      self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
-
-  def _validate_config(self):
-    #self.get_logger().info(f'Validating configuration.')
-
+  def validate_config(self) -> bool:
     valid = True
 
     if self.app_configuration['video_file'] == None:
@@ -104,7 +71,7 @@ class VideoNode(Node):
         self.get_logger().error('Both video_resize_dimension_h and video_resize_dimension_w config entries are null')
         valid = False
 
-    return valid
+    return valid 
 
 def main(args=None):
 

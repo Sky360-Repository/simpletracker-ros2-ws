@@ -1,28 +1,22 @@
 import rclpy
 import cv2
-from rclpy.node import Node
+from typing import List
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import BoundingBox
-from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
-from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.configured_node import ConfiguredNode
 from cv_bridge import CvBridge
  
-class AnnotatedFrameProviderNode(Node):
+class RXAnnotatedFrameProviderNode(ConfiguredNode):
 
   PROVISIONARY_TARGET = 1
   ACTIVE_TARGET = 2
   LOST_TARGET = 3
 
   def __init__(self):
-    super().__init__('image_visualiser_node')
-
-    self.configuration_list = ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
-    self.app_configuration = {}
-    self.configuration_loaded = False
+    super().__init__('rx_annotated_frame_provider_node')
 
     #self.frame_buffer = {}
     self.font_colour = (50, 170, 50)
@@ -35,14 +29,6 @@ class AnnotatedFrameProviderNode(Node):
     self.status_message = ''
     self.frame_type = 'original'
 
-    self.configuration_svc = ConfigurationsClientAsync()
-    self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
-
-    # TODO: This configuration update thing needs to happen in the background
-    if not self.configuration_loaded:
-      self._load_and_validate_config()
-      self.configuration_loaded = True
-
     self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)
     self.fp_original_sub = self.create_subscription(Frame, f'sky360/frames/{self.frame_type}/v1', self.fp_original_callback, 10)
     self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
@@ -53,7 +39,22 @@ class AnnotatedFrameProviderNode(Node):
     self.annotated_frame_count = 0
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
-   
+
+  def config_list(self) -> List[str]:
+    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
+
+  def validate_config(self) -> bool:
+    valid = True
+    if self.app_configuration['visualiser_font_size'] == None:
+      self.get_logger().error('The visualiser_font_size config entry is null')
+      valid = False
+
+    if self.app_configuration['visualiser_font_thickness'] == None:
+      self.get_logger().error('The visualiser_font_thickness config entry is null')
+      valid = False
+
+    return valid          
+
   def fp_original_callback(self, data:Frame):
     self.annotated_frame = self.br.imgmsg_to_cv2(data.frame)
     self.annotated_frame_count = data.frame_count
@@ -91,54 +92,6 @@ class AnnotatedFrameProviderNode(Node):
     frame_annotated_msg.frame = self.br.cv2_to_imgmsg(self.annotated_frame)
 
     self.pub_annotated_frame.publish(frame_annotated_msg)
-
-  def config_updated_callback(self, msg:ConfigEntryUpdatedArray):
-
-    for key in msg.keys:
-      if key in self.app_configuration.keys():
-        self.configuration_loaded = False
-        self.get_logger().info('Receiving updated configuration notification, reload')
-        break
-
-  def _load_and_validate_config(self):
-
-      if not self.configuration_loaded:
-        self._load_config()
-        
-        # TODO: What is the best way of exiting out of a launch script when the configuration validation fails
-        valid = self._validate_config()
-        if valid == False:
-          self.get_logger().error('Detector Node configuration is invalid')
-
-        self.font_size = self.app_configuration['visualiser_font_size']
-        self.font_thickness = self.app_configuration['visualiser_font_thickness']
-        self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
-
-        self.frame_type = self.app_configuration['visualiser_frame_source']
-
-        self.configuration_loaded = True
-
-  def _load_config(self):
-    #self.get_logger().info(f'Loading configuration list.')
-
-    response = self.configuration_svc.send_request(self.configuration_list)
-    for config_item in response.entries:
-      self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
-
-  def _validate_config(self):
-    #self.get_logger().info(f'Validating configuration.')
-
-    valid = True
-
-    if self.app_configuration['visualiser_font_size'] == None:
-      self.get_logger().error('The visualiser_font_size config entry is null')
-      valid = False
-
-    if self.app_configuration['visualiser_font_thickness'] == None:
-      self.get_logger().error('The visualiser_font_thickness config entry is null')
-      valid = False
-
-    return valid    
 
   def _get_sized_bbox(self, bbox_msg: BoundingBox):
     x = bbox_msg.x
@@ -184,7 +137,7 @@ class AnnotatedFrameProviderNode(Node):
 def main(args=None):
 
   rclpy.init(args=args)
-  annotated_frame_provider_node = AnnotatedFrameProviderNode()
+  annotated_frame_provider_node = RXAnnotatedFrameProviderNode()
   rclpy.spin(annotated_frame_provider_node)
   annotated_frame_provider_node.destroy_node()
   rclpy.shutdown()

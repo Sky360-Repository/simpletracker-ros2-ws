@@ -20,6 +20,7 @@
   <test_depend>python3-pytest</test_depend>
 
   <exec_depend>simple_tracker_shared</exec_depend>
+  <exec_depend>rxros2_py</exec_depend>
 
   <export>
     <build_type>ament_python</build_type>

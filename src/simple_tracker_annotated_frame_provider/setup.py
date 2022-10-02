@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'annotated_frame_provider = simple_tracker_annotated_frame_provider.annotated_frame_provider:main',
+            'annotated_frame_provider = simple_tracker_annotated_frame_provider.annotated_frame_provider_node:main',
+            'rx_annotated_frame_provider = simple_tracker_annotated_frame_provider.rx_annotated_frame_provider_node:main',
         ],
     },
 )

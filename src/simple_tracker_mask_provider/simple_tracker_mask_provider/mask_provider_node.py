@@ -18,7 +18,6 @@ class MaskProviderNode(ConfiguredNode):
   
   def get_mask_callback(self, request, response):
 
-    #self.get_logger().info(f'Requesting mask {request.file_name}.')
     masks_folder = os.path.join(os.getcwd(), 'install/simple_tracker_mask_provider/share/simple_tracker_mask_provider/masks')
     mask_file_path = os.path.join(masks_folder, request.file_name)
 
@@ -34,6 +33,7 @@ class MaskProviderNode(ConfiguredNode):
     return ['mask_type', 'mask_overlay_image_file_name']
 
   def validate_config(self) -> bool:
+
     valid = True
     # TODO: This has to be moved, we only provide the image here
     if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['mask_type'] == 'overlay_inverse':

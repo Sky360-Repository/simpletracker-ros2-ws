@@ -49,10 +49,8 @@ class TrackProviderNode(ConfiguredNode):
 
   def bboxes_callback(self, data:BoundingBoxArray):
 
-    # TODO: This configuration update thing needs to happen in the background
-    # TODO: This whole thing might be better as a service
     if not self.configuration_loaded or self.frame is None:
-        return
+        pass
 
     bboxes = [self._msg_to_bbox(x) for x in data.boxes]
     self.video_tracker.update_trackers(bboxes, self.frame)

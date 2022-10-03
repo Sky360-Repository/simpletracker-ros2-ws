@@ -6,8 +6,8 @@ import os
 from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
-from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.utils import frame_resize
 
 class VideoNode(ConfiguredNode):
 

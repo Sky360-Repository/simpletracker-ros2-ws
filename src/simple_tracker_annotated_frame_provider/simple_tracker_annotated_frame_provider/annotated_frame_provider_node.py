@@ -69,6 +69,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
   def validate_config(self) -> bool:
     valid = True
+    
     if self.app_configuration['visualiser_font_size'] == None:
       self.get_logger().error('The visualiser_font_size config entry is null')
       valid = False

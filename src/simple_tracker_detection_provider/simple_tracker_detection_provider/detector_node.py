@@ -25,11 +25,6 @@ class DetectorNode(ConfiguredNode):
    
   def masked_background_frame_callback(self, data:Frame):
 
-    # TODO: This configuration update thing needs to happen in the background
-    if not self.configuration_loaded:
-      self._load_and_validate_config()
-      self.configuration_loaded = True
-
     frame_foreground_mask = self.br.imgmsg_to_cv2(data.frame)
 
     key_points = perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])

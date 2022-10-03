@@ -20,11 +20,6 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
    
   def grey_frame_callback(self, data:Frame):
 
-    # TODO: This configuration update thing needs to happen in the background
-    if not self.configuration_loaded:
-      self._load_and_validate_config()
-      self.configuration_loaded = True
-
     frame_grey = self.br.imgmsg_to_cv2(data.frame)
 
     optical_flow_frame = self.dense_optical_flow.process_grey_frame(frame_grey)

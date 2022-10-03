@@ -108,3 +108,14 @@ class SimpleTrackerConfigurationNode(Node):
         response.success = updated
         response.message = message
         return response
+
+
+def main(args=None):
+  rclpy.init(args=args)
+  configuration_service = SimpleTrackerConfigurationNode()  
+  rclpy.spin(configuration_service)
+  configuration_service.destroy_node()
+  rclpy.rosshutdown()
+
+if __name__ == '__main__':
+  main()

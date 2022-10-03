@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'configuration_service = simple_tracker_configuration.main:main',
+            'configuration_service = simple_tracker_configuration.configuration_node:main',
         ],
     },
 )

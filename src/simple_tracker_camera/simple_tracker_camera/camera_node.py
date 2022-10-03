@@ -13,20 +13,28 @@ from simple_tracker_shared.utils import frame_resize
 class CameraNode(ConfiguredNode):
 
   def __init__(self):
-
-    super().__init__('sky360_camera')  
+    super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)    
-
-    # setup timer and other helpers
-    timer_period = 0.1  # seconds
-    self.timer = self.create_timer(timer_period, self.capture_timer_callback)
-    self.br = CvBridge()
-
-    self.capture = cv2.VideoCapture(self.app_configuration['camera_uri'])
+    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
+
+  def capture_timer_callback(self):
+
+    timer = cv2.getTickCount()
+    success, frame = self.capture.read()
+    if success == True:
+
+      if self.app_configuration['camera_resize_frame']:
+        frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
+
+      camera_frame_msg = CameraFrame()
+      camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
+      camera_frame_msg.fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
+      camera_frame_msg.frame = self.br.cv2_to_imgmsg(frame)
+
+      self.pub_frame.publish(camera_frame_msg)
 
   def config_list(self) -> List[str]:
     return ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame', 'camera_cuda_enable']
@@ -45,21 +53,15 @@ class CameraNode(ConfiguredNode):
 
     return valid
 
-  def capture_timer_callback(self):
+  def on_config_loaded(self, init: bool):
+    if init:
+      self.br = CvBridge()
+      # setup timer and other helpers
+      timer_period = 0.1  # seconds
+      self.timer = self.create_timer(timer_period, self.capture_timer_callback)
+      
+    self.capture = cv2.VideoCapture(self.app_configuration['camera_uri'])
 
-    timer = cv2.getTickCount()
-    success, frame = self.capture.read()
-    if success == True:
-
-      if self.app_configuration['camera_resize_frame']:
-        frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
-
-      camera_frame_msg = CameraFrame()
-      camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
-      camera_frame_msg.fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
-      camera_frame_msg.frame = self.br.cv2_to_imgmsg(frame)
-
-      self.pub_frame.publish(camera_frame_msg)
 
 def main(args=None):
 

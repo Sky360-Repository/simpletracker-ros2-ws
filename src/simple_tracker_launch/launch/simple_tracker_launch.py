@@ -63,12 +63,6 @@ def generate_launch_description():
             executable='annotated_frame_provider',
             name='annotated_frame_provider'
         ),
-        #Node(
-        #    package='simple_tracker_annotated_frame_provider',
-        #    #namespace='sky360',
-        #    executable='rx_annotated_frame_provider',
-        #    name='rx_annotated_frame_provider'
-        #),
         Node(            
             package='simple_tracker_visualisers',
             #namespace='sky360',

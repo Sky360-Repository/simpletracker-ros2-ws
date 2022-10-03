@@ -1,39 +1,26 @@
 import datetime
 import rclpy
 import cv2
-from rclpy.node import Node
-from sensor_msgs.msg import Image
+from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
-from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from simple_tracker_interfaces.msg import KeyPoint
 from simple_tracker_interfaces.msg import KeyPointArray
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import BoundingBoxArray
-from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
-from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import perform_blob_detection
 
-class DetectorNode(Node):
+class DetectorNode(ConfiguredNode):
 
   def __init__(self):
-
-    super().__init__('sky360_detector')  
-
-    self.configuration_list = ['tracker_detection_sensitivity']
-    self.app_configuration = {}
-    self.configuration_loaded = False
+    super().__init__('sky360_detector')
 
     # setup services, publishers and subscribers
-    self.configuration_svc = ConfigurationsClientAsync()
     self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
     self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/key_points/v1', 10)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)    
-    self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', self.config_updated_callback, 10)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)   
 
-    # setup timer and other helpers
-    self.br = CvBridge()
-    
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def masked_background_frame_callback(self, data:Frame):
@@ -58,14 +45,6 @@ class DetectorNode(Node):
     bbox_array_msg.frame_count = data.frame_count
     bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
     self.pub_bounding_boxes.publish(bbox_array_msg)
-
-  def config_updated_callback(self, msg:ConfigEntryUpdatedArray):
-
-    for key in msg.keys:
-      if key in self.app_configuration.keys():
-        self.configuration_loaded = False
-        self.get_logger().info('Receiving updated configuration notification, reload')
-        break
 
   def _kp_to_msg(self, kp):
 
@@ -94,28 +73,10 @@ class DetectorNode(Node):
 
     return bbox_msg
 
-  def _load_and_validate_config(self):
+  def config_list(self) -> List[str]:
+    return ['tracker_detection_sensitivity']
 
-      if not self.configuration_loaded:
-        self._load_config()
-        
-        # TODO: What is the best way of exiting out of a launch script when the configuration validation fails
-        valid = self._validate_config()
-        if valid == False:
-          self.get_logger().error('Detector Node configuration is invalid')
-
-        self.configuration_loaded = True
-
-  def _load_config(self):
-    #self.get_logger().info(f'Loading configuration list.')
-
-    response = self.configuration_svc.send_request(self.configuration_list)
-    for config_item in response.entries:
-      self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
-
-  def _validate_config(self):
-    #self.get_logger().info(f'Validating configuration.')
-
+  def validate_config(self) -> bool:
     valid = True
 
     if self.app_configuration['tracker_detection_sensitivity'] == None:
@@ -123,6 +84,11 @@ class DetectorNode(Node):
       valid = False
       
     return valid
+
+  def on_config_loaded(self, init: bool):
+    if init:
+      self.br = CvBridge() 
+
 
 def main(args=None):
 

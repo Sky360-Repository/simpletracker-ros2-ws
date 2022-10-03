@@ -12,19 +12,10 @@ from simple_tracker_shared.configured_node import ConfiguredNode
 class VideoNode(ConfiguredNode):
 
   def __init__(self):
-
-    super().__init__('sky360_video')  
+    super().__init__('sky360_video')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)    
-
-    # setup timer and other helpers
-    timer_period = 0.1  # seconds
-    self.timer = self.create_timer(timer_period, self.capture_timer_callback)
-    self.br = CvBridge()
-    self.broad_casting = False
-
-    self.videos_folder = os.path.join(os.getcwd(), 'install/simple_tracker_video/share/simple_tracker_video/videos')
+    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -72,6 +63,16 @@ class VideoNode(ConfiguredNode):
         valid = False
 
     return valid 
+
+  def on_config_loaded(self, init: bool):
+    if init:
+      self.br = CvBridge()
+      self.broad_casting = False
+      # setup timer and other helpers
+      timer_period = 0.1  # seconds
+      self.timer = self.create_timer(timer_period, self.capture_timer_callback)
+      self.videos_folder = os.path.join(os.getcwd(), 'install/simple_tracker_video/share/simple_tracker_video/videos')    
+
 
 def main(args=None):
 

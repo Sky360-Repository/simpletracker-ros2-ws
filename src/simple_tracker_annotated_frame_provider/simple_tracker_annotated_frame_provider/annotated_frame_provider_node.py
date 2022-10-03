@@ -18,42 +18,13 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
   def __init__(self):
     super().__init__('annotated_frame_provider')
 
-    #self.frame_buffer = {}
-    self.font_colour = (50, 170, 50)
-    self.font_size = 0.5
-    self.font_thickness = 1
-    self.bbox_line_thickness = 1
-    self.prediction_colour = (255, 0, 0)
-    self.prediction_radius = 1
-    self.frame_message = ''
-    self.status_message = ''
-    self.frame_type = 'original'
-
+    # setup services, publishers and subscribers
     self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)
     self.fp_original_sub = self.create_subscription(Frame, f'sky360/frames/{self.frame_type}/v1', self.fp_original_callback, 10)
     self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
     self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
 
-    self.br = CvBridge()
-    self.annotated_frame = None
-    self.annotated_frame_count = 0
-
     self.get_logger().info(f'{self.get_name()} node is up and running.')
-
-  def config_list(self) -> List[str]:
-    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
-
-  def validate_config(self) -> bool:
-    valid = True
-    if self.app_configuration['visualiser_font_size'] == None:
-      self.get_logger().error('The visualiser_font_size config entry is null')
-      valid = False
-
-    if self.app_configuration['visualiser_font_thickness'] == None:
-      self.get_logger().error('The visualiser_font_thickness config entry is null')
-      valid = False
-
-    return valid          
 
   def fp_original_callback(self, data:Frame):
     self.annotated_frame = self.br.imgmsg_to_cv2(data.frame)
@@ -92,6 +63,37 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
     frame_annotated_msg.frame = self.br.cv2_to_imgmsg(self.annotated_frame)
 
     self.pub_annotated_frame.publish(frame_annotated_msg)
+
+  def config_list(self) -> List[str]:
+    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
+
+  def validate_config(self) -> bool:
+    valid = True
+    if self.app_configuration['visualiser_font_size'] == None:
+      self.get_logger().error('The visualiser_font_size config entry is null')
+      valid = False
+
+    if self.app_configuration['visualiser_font_thickness'] == None:
+      self.get_logger().error('The visualiser_font_thickness config entry is null')
+      valid = False
+
+    return valid          
+
+  def on_config_loaded(self, init: bool):
+    if init:
+      self.font_colour = (50, 170, 50)
+      self.prediction_colour = (255, 0, 0)
+      self.prediction_radius = 1
+      self.frame_message = ''
+      self.status_message = ''
+      self.annotated_frame = None
+      self.annotated_frame_count = 0
+      self.br = CvBridge()
+
+    self.font_size = self.app_configuration['visualiser_font_size']
+    self.font_thickness = self.app_configuration['visualiser_font_thickness']
+    self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
+    self.frame_type = self.app_configuration['visualiser_frame_source']
 
   def _get_sized_bbox(self, bbox_msg: BoundingBox):
     x = bbox_msg.x

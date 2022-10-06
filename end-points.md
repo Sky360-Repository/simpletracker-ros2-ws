@@ -42,10 +42,13 @@ Message end point for the publishing the annotated frame i.e. the frame with sta
 
 ## Detection
 
-### sky360/detector/key_points/v1 - KeyPointArray.msg
+### sky360/detector/bgs/key_points/v1 - KeyPointArray.msg
 Message end point for the publishing of key point detection array for a frame
 
-### sky360/detector/bounding_boxes/v1 - BoundingBoxArray.msg
+### sky360/detector/bgs/bounding_boxes/v1 - BoundingBoxArray.msg
+Message end point for the publishing of bounding box array for a frame
+
+### sky360/detector/canny/bounding_boxes/v1 - BoundingBoxArray.msg
 Message end point for the publishing of bounding box array for a frame
 
 ## Tracker

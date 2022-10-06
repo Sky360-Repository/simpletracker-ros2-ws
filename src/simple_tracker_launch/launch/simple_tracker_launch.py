@@ -7,6 +7,15 @@ def generate_launch_description():
             package='simple_tracker_configuration',
             ##namespace='sky360',
             executable='configuration_service',
+            parameters=[
+                {'video_file': 'Test_Trimmed.mp4'},
+                {'tracker_type': 'CSRT'},
+                {'background_subtractor_type': 'KNN'},                
+                {'mask_type': 'overlay_inverse'},
+                {'mask_pct': 5},
+                {'mask_overlay_image_file_name': 'mask-shrubs-inverse-overlay.jpg'},
+                {'visualiser_frame_source': 'original'},
+            ],
             name='configuration_service'
         ),
         Node(
@@ -48,7 +57,7 @@ def generate_launch_description():
         Node(
             package='simple_tracker_detection_provider',
             #namespace='sky360',
-            executable='detection_provider',
+            executable='bgs_detection_provider',
             name='detection_provider'
         ),
         Node(

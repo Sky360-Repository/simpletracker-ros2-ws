@@ -15,7 +15,7 @@ class SimpleTrackerConfigurationNode(Node):
         super().__init__('sky360_configuration')
 
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
-        self.settings = AppSettings.Get()
+        self.settings = AppSettings.Get(self)
 
         self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
         self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)

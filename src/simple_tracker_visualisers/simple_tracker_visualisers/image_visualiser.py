@@ -21,7 +21,7 @@ class ImageVisualiserNode(ConfiguredNode):
 
     #self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_original_callback, 10)
     #self.fp_original_sub = self.create_subscription(Frame, 'sky360/frames/original/v1', self.fp_original_callback, 10)
-    #self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/frames/original/masked/v1', self.fp_original_masked_callback, 10)
+    #self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.fp_original_masked_callback, 10)
     #self.fp_grey_sub = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.fp_grey_callback, 10)
     #self.dof_sub = self.create_subscription(Frame, 'sky360/frames/dense_optical_flow/v1', self.dof_callback, 10)
     #self.forground_sub = self.create_subscription(Frame, 'sky360/frames/foreground_mask/v1', self.foreground_callback, 10)

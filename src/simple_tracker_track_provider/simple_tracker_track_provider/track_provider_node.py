@@ -20,7 +20,7 @@ class TrackProviderNode(ConfiguredNode):
 
     # setup services, publishers and subscribers
     self.sub_original_frame = self.create_subscription(Frame, 'sky360/frames/original/v1', self.frame_callback, 10)
-    self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', self.bboxes_callback, 10)
+    self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', self.bboxes_callback, 10)
     self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)
 

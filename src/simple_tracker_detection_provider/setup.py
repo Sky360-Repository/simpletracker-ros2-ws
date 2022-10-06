@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'detection_provider = simple_tracker_detection_provider.detector_node:main',
+            'bgs_detection_provider = simple_tracker_detection_provider.bgs_detector_node:main',
         ],
     },
 )

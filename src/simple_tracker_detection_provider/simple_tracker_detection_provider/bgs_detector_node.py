@@ -11,15 +11,15 @@ from simple_tracker_interfaces.msg import BoundingBoxArray
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import perform_blob_detection
 
-class DetectorNode(ConfiguredNode):
+class BGSDetectorNode(ConfiguredNode):
 
   def __init__(self):
-    super().__init__('sky360_detector')
+    super().__init__('sky360_bgs_detector')
 
     # setup services, publishers and subscribers
     self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
-    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/key_points/v1', 10)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bounding_boxes/v1', 10)   
+    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', 10)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -88,7 +88,7 @@ class DetectorNode(ConfiguredNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  detector_node = DetectorNode()
+  detector_node = BGSDetectorNode()
   rclpy.spin(detector_node)
   detector_node.destroy_node()
   rclpy.rosshutdown()

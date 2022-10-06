@@ -27,6 +27,10 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
   def fp_original_callback(self, data:Frame):
+
+    if data.frame is None:
+      pass
+
     self.annotated_frame = self.br.imgmsg_to_cv2(data.frame)
     self.annotated_frame_count = data.frame_count
 

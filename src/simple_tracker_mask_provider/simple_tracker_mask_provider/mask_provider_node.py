@@ -2,6 +2,7 @@ import os
 import rclpy
 import cv2
 from typing import List
+from ament_index_python.packages import get_package_share_directory
 from simple_tracker_interfaces.srv import Mask
 from cv_bridge import CvBridge
 from simple_tracker_shared.configured_node import ConfiguredNode
@@ -18,7 +19,7 @@ class MaskProviderNode(ConfiguredNode):
   
   def get_mask_callback(self, request, response):
 
-    masks_folder = os.path.join(os.getcwd(), 'install/simple_tracker_mask_provider/share/simple_tracker_mask_provider/masks')
+    masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
     mask_file_path = os.path.join(masks_folder, request.file_name)
 
     if os.path.exists(mask_file_path) == False:

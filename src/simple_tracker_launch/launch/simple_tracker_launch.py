@@ -1,22 +1,28 @@
+import os
+import yaml
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
+
+    config = os.path.join(
+        get_package_share_directory('simple_tracker_launch'),
+        'config',
+        'params.yaml'
+    )
+
+    #with open(config, 'r') as f:
+    #    configuration = yaml.safe_load(f)
+    #    print(f'Loaded configuration: {configuration}')
+
     return LaunchDescription([
         Node(
             package='simple_tracker_configuration',
             ##namespace='sky360',
             executable='configuration_service',
-            parameters=[
-                {'video_file': 'Test_Trimmed.mp4'},
-                {'tracker_type': 'CSRT'},
-                {'background_subtractor_type': 'KNN'},                
-                {'mask_type': 'overlay_inverse'},
-                {'mask_pct': 5},
-                {'mask_overlay_image_file_name': 'mask-shrubs-inverse-overlay.jpg'},
-                {'visualiser_frame_source': 'original'},
-            ],
-            name='configuration_service'
+            parameters = [config],
+            name='configuration_service',
         ),
         Node(
             package='simple_tracker_mask_provider',
@@ -79,3 +85,6 @@ def generate_launch_description():
             name='simple_visualiser'
         ),        
     ])
+
+#def get_package_share_directory():
+#    return os.path.join(os.getcwd(), 'install/simple_tracker_launch/share/simple_tracker_launch/config')

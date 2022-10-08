@@ -4,6 +4,7 @@ import cv2
 import time
 import os
 from typing import List
+from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_shared.configured_node import ConfiguredNode
@@ -71,7 +72,7 @@ class VideoNode(ConfiguredNode):
       # setup timer and other helpers
       timer_period = 0.1  # seconds
       self.timer = self.create_timer(timer_period, self.capture_timer_callback)
-      self.videos_folder = os.path.join(os.getcwd(), 'install/simple_tracker_video/share/simple_tracker_video/videos')    
+      self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_video'), 'videos')    
 
 
 def main(args=None):

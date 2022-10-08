@@ -11,7 +11,8 @@ setup(
     data_files=[
         # ... Other data files
         # Include all launch files.
-        (os.path.join('share', package_name), glob('launch/*launch.[pxy][yma]*'))
+        (os.path.join('share', package_name), glob('launch/*launch.[pxy][yma]*')),
+        (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
     ],
     #install_requires=['setuptools'],
     #zip_safe=True,

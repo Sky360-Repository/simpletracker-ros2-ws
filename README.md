@@ -42,6 +42,8 @@
 
 `ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: frame_provider_resize_dimension_h, type: int, value: 400}]}'`
 
+`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: controller_type, type: str, value: video}]}'`
+
 ### Tracker status via command line
 
 * To keep an eye on the state of the tracker, using the following echo command

@@ -1,3 +1,5 @@
+import os
+from glob import glob
 from setuptools import setup
 
 package_name = 'simple_tracker_camera'
@@ -10,6 +12,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'videos'), glob('videos/*.*')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'camera = simple_tracker_camera.camera_node:main',
+            'controller = simple_tracker_camera.controller_node:main',
         ],
     },
 )

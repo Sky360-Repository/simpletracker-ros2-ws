@@ -26,7 +26,8 @@ class AppSettings():
         node.declare_parameters(
             namespace='',
             parameters=[
-                ('video_file', 'plane_flying_past2.mkv'),
+                ('controller_type', 'camera'),
+                ('camera_video_file', 'plane_flying_past2.mkv'),
                 ('tracker_type', 'CSRT'),
                 ('background_subtractor_type', 'KNN'),
                 ('mask_type', 'overlay_inverse'),
@@ -39,8 +40,7 @@ class AppSettings():
         app_settings = {}
 
         # Controller section
-        app_settings['controller_type'] = 'camera'
-        app_settings['controller_iteration_interval'] = 10
+        app_settings['controller_type'] = node.get_parameter('controller_type').value
 
         # Camera node section
         app_settings['camera_mode'] = 'rtsp'
@@ -49,15 +49,9 @@ class AppSettings():
         app_settings['camera_resize_dimension_h'] = 960
         app_settings['camera_resize_dimension_w'] = None
         app_settings['camera_cuda_enable'] = False
-
-        # Video node section
-        #app_settings['video_file'] = 'plane_flying_past.mkv'
-        app_settings['video_file'] = node.get_parameter('video_file').value
-        app_settings['video_resize_frame'] = False
-        app_settings['video_resize_dimension_h'] = 960
-        app_settings['video_resize_dimension_w'] = None
-        app_settings['video_loop'] = True
-        app_settings['video_cuda_enable'] = False
+        #app_settings['camera_video_file'] = 'plane_flying_past.mkv'        
+        app_settings['camera_video_file'] = node.get_parameter('camera_video_file').value
+        app_settings['camera_video_loop'] = True
 
         # Frame Provider node section
         app_settings['frame_provider_resize_frame'] = True

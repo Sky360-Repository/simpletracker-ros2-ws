@@ -30,18 +30,12 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),        
-        #Node(
-        #    package='simple_tracker_camera',
-        #    #namespace='sky360',
-        #    executable='camera',
-        #    name='camera'
-        #),
         Node(
-            package='simple_tracker_video',
+            package='simple_tracker_camera',
             #namespace='sky360',
-            executable='video',
-            name='video'
-        ),        
+            executable='controller',
+            name='controller'
+        ),
         Node(
             package='simple_tracker_frame_provider',
             #namespace='sky360',
@@ -85,6 +79,3 @@ def generate_launch_description():
             name='simple_visualiser'
         ),        
     ])
-
-#def get_package_share_directory():
-#    return os.path.join(os.getcwd(), 'install/simple_tracker_launch/share/simple_tracker_launch/config')

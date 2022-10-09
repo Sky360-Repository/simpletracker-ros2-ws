@@ -2,18 +2,19 @@ import datetime
 import rclpy
 import cv2
 import time
+import os
 from typing import List
-from rclpy.node import Node
-from sensor_msgs.msg import Image
+from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
+from .controller import Controller
 
-class CameraNode(ConfiguredNode):
+class ControllerNode(ConfiguredNode):
 
   def __init__(self):
-    super().__init__('sky360_camera')
+    super().__init__('sky360_camera_and_video')
 
     # setup services, publishers and subscribers
     self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)   
@@ -23,7 +24,7 @@ class CameraNode(ConfiguredNode):
   def capture_timer_callback(self):
 
     timer = cv2.getTickCount()
-    success, frame = self.capture.read()
+    success, frame = self.controller.read()
     if success == True:
 
       if self.app_configuration['camera_resize_frame']:
@@ -36,15 +37,36 @@ class CameraNode(ConfiguredNode):
 
       self.pub_frame.publish(camera_frame_msg)
 
+    else:
+      if self.app_configuration['camera_video_loop']:      
+        self.controller = Controller.Select(self, self.app_configuration)
+
   def config_list(self) -> List[str]:
-    return ['camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 'camera_resize_frame', 'camera_cuda_enable']
+    return ['controller_type', 'camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 
+    'camera_resize_frame', 'camera_cuda_enable', 'camera_video_file', 'camera_video_loop']
 
   def validate_config(self) -> bool:
     valid = True
 
-    if self.app_configuration['camera_uri'] == None:
-      self.get_logger().error('The camera_uri config entry is null')
-      valid = False
+    if self.app_configuration['controller_type'] == 'camera':
+      if self.app_configuration['camera_mode'] == None:
+        self.get_logger().error('The camera_mode config entry is null')
+        valid = False
+
+      if self.app_configuration['camera_uri'] == None:
+        self.get_logger().error('The camera_uri config entry is null')
+        valid = False
+
+    if self.app_configuration['controller_type'] == 'video':
+      if self.app_configuration['camera_video_file'] == None:
+        self.get_logger().error('The video_file config entry is null')
+        valid = False
+      else:
+        videos_folder = os.path.join(get_package_share_directory('simple_tracker_camera'), 'videos')
+        video_file_path = os.path.join(videos_folder, self.app_configuration['camera_video_file'])
+        if os.path.exists(video_file_path) == False:
+            self.get_logger().error(f'Could not open video {video_file_path}.')
+            valid = False
 
     if self.app_configuration['camera_resize_frame']:
       if self.app_configuration['camera_resize_dimension_h'] is None and self.app_configuration['camera_resize_dimension_w'] is None:
@@ -58,15 +80,14 @@ class CameraNode(ConfiguredNode):
       self.br = CvBridge()
       # setup timer and other helpers
       timer_period = 0.1  # seconds
-      self.timer = self.create_timer(timer_period, self.capture_timer_callback)
+      self.timer = self.create_timer(timer_period, self.capture_timer_callback)      
       
-    self.capture = cv2.VideoCapture(self.app_configuration['camera_uri'])
-
+    self.controller = Controller.Select(self, self.app_configuration)
 
 def main(args=None):
 
   rclpy.init(args=args)
-  camera = CameraNode()
+  camera = ControllerNode()
   rclpy.spin(camera)
   camera.destroy_node()
   rclpy.rosshutdown()

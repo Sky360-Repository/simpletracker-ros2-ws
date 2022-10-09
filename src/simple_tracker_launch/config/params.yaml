@@ -1,6 +1,7 @@
 configuration_service:
   ros__parameters:
-    video_file: "Test_Trimmed.mp4"
+    controller_type: "video"
+    camera_video_file: "Test_Trimmed.mp4"
     tracker_type: "CSRT"
     background_subtractor_type: "KNN"
     mask_type: "overlay_inverse"

@@ -23,7 +23,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'controller = simple_tracker_camera.controller_node:main',
+            'camera = simple_tracker_camera.camera_node:main',
         ],
     },
 )

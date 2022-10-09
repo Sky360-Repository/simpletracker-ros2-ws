@@ -33,8 +33,8 @@ def generate_launch_description():
         Node(
             package='simple_tracker_camera',
             #namespace='sky360',
-            executable='controller',
-            name='controller'
+            executable='camera',
+            name='camera'
         ),
         Node(
             package='simple_tracker_frame_provider',

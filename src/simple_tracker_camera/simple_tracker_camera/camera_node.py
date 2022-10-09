@@ -14,7 +14,7 @@ from .controller import Controller
 class ControllerNode(ConfiguredNode):
 
   def __init__(self):
-    super().__init__('sky360_camera_and_video')
+    super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
     self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)   
@@ -47,6 +47,11 @@ class ControllerNode(ConfiguredNode):
 
   def validate_config(self) -> bool:
     valid = True
+
+    known_controller_type = ['video', 'camera']
+    if any(self.app_configuration['controller_type'] in s for s in known_controller_type) == False:
+      self.get_logger().error(f'Unknown controller type ['+ self.app_configuration['controller_type']+']')
+      valid = False
 
     if self.app_configuration['controller_type'] == 'camera':
       if self.app_configuration['camera_mode'] == None:

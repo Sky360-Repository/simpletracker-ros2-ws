@@ -27,13 +27,59 @@ class AppSettings():
             namespace='',
             parameters=[
                 ('controller_type', 'camera'),
+                ('camera_mode', 'rtsp'),
+                ('camera_uri', 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2'),
+                ('camera_resize_frame', True),
+                ('camera_resize_dimension_h', 960),
+                ('camera_resize_dimension_w', 960),
+                ('camera_cuda_enable', False),
                 ('camera_video_file', 'plane_flying_past2.mkv'),
+                ('camera_video_loop', True),
+
+                ('frame_provider_resize_frame', True),
+                ('frame_provider_resize_dimension_h', 960),
+                ('frame_provider_resize_dimension_w', 960),
+                ('frame_provider_blur', True),
+                ('frame_provider_blur_radius', 3),
+                ('frame_provider_cuda_enable', False),
+
+                ('visualiser_font_size', 0.5),
+                ('visualiser_font_thickness', 1),
+                ('visualiser_bbox_line_thickness', 1),
+                ('visualiser_bbox_size', 64),
+                ('visualiser_log_status_to_console', False),
+                ('visualiser_cuda_enable', False),
+                ('visualiser_frame_source', 'original'),
+
                 ('tracker_type', 'CSRT'),
+                ('tracker_stopwatch_enable', False),
+                ('tracker_active_only', True),
+                ('tracker_detection_mode', 'background_subtraction'),
+                ('tracker_detection_sensitivity', 1),
+                ('tracker_max_active_trackers', 10),
+                ('tracker_wait_seconds_threshold', 0),
+                ('tracker_cuda_enable', False),
+
                 ('background_subtractor_type', 'KNN'),
+                ('background_subtractor_learning_rate', 0.05),
+                ('background_subtractor_cuda_enable', False),
+
+                ('track_path_plotting_enabled', True),
+                ('track_plotting_type', 'line'),
+                ('track_validation_enable', True),
+                ('track_stationary_threshold', 5),
+                ('track_orphaned_threshold', 20),
+                ('track_prediction_enabled', True),
+                ('track_cuda_enable', False),
+
                 ('mask_type', 'overlay_inverse'),
                 ('mask_pct', 10),
                 ('mask_overlay_image_file_name', 'mask-shrubs-inverse-overlay.jpg'),
-                ('visualiser_frame_source', 'original')
+                ('mask_cuda_enable', False),                
+                
+                ('dense_optical_flow_h', 400),
+                ('dense_optical_flow_w', 480),
+                ('dense_optical_cuda_enable', False)
             ]
         )
 
@@ -43,77 +89,66 @@ class AppSettings():
         app_settings['controller_type'] = node.get_parameter('controller_type').value
 
         # Camera node section
-        app_settings['camera_mode'] = 'rtsp'
-        app_settings['camera_uri'] = 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2'
-        app_settings['camera_resize_frame'] = True
-        app_settings['camera_resize_dimension_h'] = 960
-        app_settings['camera_resize_dimension_w'] = None
-        app_settings['camera_cuda_enable'] = False
-        #app_settings['camera_video_file'] = 'plane_flying_past.mkv'        
+        app_settings['camera_mode'] = node.get_parameter('camera_mode').value
+        app_settings['camera_uri'] = node.get_parameter('camera_uri').value
+        app_settings['camera_resize_frame'] = node.get_parameter('camera_resize_frame').value
+        app_settings['camera_resize_dimension_h'] = node.get_parameter('camera_resize_dimension_h').value
+        app_settings['camera_resize_dimension_w'] = node.get_parameter('camera_resize_dimension_w').value
+        app_settings['camera_cuda_enable'] = node.get_parameter('camera_cuda_enable').value
         app_settings['camera_video_file'] = node.get_parameter('camera_video_file').value
-        app_settings['camera_video_loop'] = True
+        app_settings['camera_video_loop'] = node.get_parameter('camera_video_loop').value
 
         # Frame Provider node section
-        app_settings['frame_provider_resize_frame'] = True
-        app_settings['frame_provider_resize_dimension_h'] = 960
-        #app_settings['frame_provider_resize_dimension_h'] = 400
-        app_settings['frame_provider_resize_dimension_w'] = None
-        app_settings['frame_provider_blur'] = True
-        app_settings['frame_provider_blur_radius'] = 3
-        app_settings['frame_provider_cuda_enable'] = False
+        app_settings['frame_provider_resize_frame'] = node.get_parameter('frame_provider_resize_frame').value
+        app_settings['frame_provider_resize_dimension_h'] = node.get_parameter('frame_provider_resize_dimension_h').value
+        app_settings['frame_provider_resize_dimension_w'] = node.get_parameter('frame_provider_resize_dimension_w').value
+        app_settings['frame_provider_blur'] = node.get_parameter('frame_provider_blur').value
+        app_settings['frame_provider_blur_radius'] = node.get_parameter('frame_provider_blur_radius').value
+        app_settings['frame_provider_cuda_enable'] = node.get_parameter('frame_provider_cuda_enable').value
 
         # Visualiser node section
-        app_settings['visualiser_font_size'] = 0.5
-        app_settings['visualiser_font_thickness'] = 1
-        app_settings['visualiser_bbox_line_thickness'] = 1
-        app_settings['visualiser_bbox_size'] = 64
-        app_settings['visualiser_log_status_to_console'] = False
-        app_settings['visualiser_cuda_enable'] = False
+        app_settings['visualiser_font_size'] = node.get_parameter('visualiser_font_size').value
+        app_settings['visualiser_font_thickness'] = node.get_parameter('visualiser_font_thickness').value
+        app_settings['visualiser_bbox_line_thickness'] = node.get_parameter('visualiser_bbox_line_thickness').value
+        app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
+        app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value
+        app_settings['visualiser_cuda_enable'] = node.get_parameter('visualiser_cuda_enable').value
         app_settings['visualiser_frame_source'] = node.get_parameter('visualiser_frame_source').value
 
         # Video Tracker section
         app_settings['tracker_type'] = node.get_parameter('tracker_type').value
-        app_settings['tracker_stopwatch_enable'] = False
-        app_settings['tracker_active_only'] = True
-        app_settings['tracker_detection_mode'] = 'background_subtraction'
-        app_settings['tracker_detection_sensitivity'] = 1
-        app_settings['tracker_max_active_trackers'] = 10        
-        app_settings['tracker_wait_seconds_threshold'] = 0
-        app_settings['tracker_cuda_enable'] = False        
+        app_settings['tracker_stopwatch_enable'] = node.get_parameter('tracker_stopwatch_enable').value
+        app_settings['tracker_active_only'] = node.get_parameter('tracker_active_only').value
+        app_settings['tracker_detection_mode'] = node.get_parameter('tracker_detection_mode').value
+        app_settings['tracker_detection_sensitivity'] = node.get_parameter('tracker_detection_sensitivity').value
+        app_settings['tracker_max_active_trackers'] = node.get_parameter('tracker_max_active_trackers').value
+        app_settings['tracker_wait_seconds_threshold'] = node.get_parameter('tracker_wait_seconds_threshold').value
+        app_settings['tracker_cuda_enable'] = node.get_parameter('tracker_cuda_enable').value
 
         # Background subtractor section
         app_settings['background_subtractor_type'] = node.get_parameter('background_subtractor_type').value
-        app_settings['background_subtractor_learning_rate'] = 0.05
-        app_settings['background_subtractor_cuda_enable'] = False
+        app_settings['background_subtractor_learning_rate'] = node.get_parameter('background_subtractor_learning_rate').value
+        app_settings['background_subtractor_cuda_enable'] = node.get_parameter('background_subtractor_cuda_enable').value
 
         # Track Plotting section
-        app_settings['track_path_plotting_enabled'] = True
-        app_settings['track_plotting_type'] = 'line'
-        app_settings['track_validation_enable'] = True
-        app_settings['track_stationary_threshold'] = 5
-        app_settings['track_orphaned_threshold'] = 20
-        app_settings['track_prediction_enabled'] = True
-        app_settings['track_cuda_enable'] = False
+        app_settings['track_path_plotting_enabled'] = node.get_parameter('track_path_plotting_enabled').value
+        app_settings['track_plotting_type'] = node.get_parameter('track_plotting_type').value
+        app_settings['track_validation_enable'] = node.get_parameter('track_validation_enable').value
+        app_settings['track_stationary_threshold'] = node.get_parameter('track_stationary_threshold').value
+        app_settings['track_orphaned_threshold'] = node.get_parameter('track_orphaned_threshold').value
+        app_settings['track_prediction_enabled'] = node.get_parameter('track_prediction_enabled').value
+        app_settings['track_cuda_enable'] = node.get_parameter('track_cuda_enable').value
 
         # Mask section
-        #app_settings['mask_type'] = 'fish_eye'
-        #app_settings['mask_type'] = 'no_op'
         app_settings['mask_type'] = node.get_parameter('mask_type').value
-        #app_settings['mask_type'] = 'overlay'
         app_settings['mask_pct'] = node.get_parameter('mask_pct').value
-        #app_settings['mask_overlay_image_file_name'] = 'mikes-camera-mask-overlay.jpg'
         app_settings['mask_overlay_image_file_name'] = node.get_parameter('mask_overlay_image_file_name').value
-        app_settings['mask_overlay_image'] = None
-        app_settings['mask_cuda_enable'] = False
+        app_settings['mask_cuda_enable'] = node.get_parameter('mask_cuda_enable').value
+        app_settings['mask_overlay_image'] = None # Don't configure this as it's used as temporary storage
 
         # Dense optical flow
-        app_settings['dense_optical_cuda_enable'] = False
-        app_settings['dense_optical_flow_h'] = 400
-        app_settings['dense_optical_flow_w'] = 480
-
-        # MOT_STF section
-        app_settings['motstf_write_original'] = True
-        app_settings['motstf_write_annotated'] = True
-        app_settings['motstf_write_images'] = False
+        app_settings['dense_optical_cuda_enable'] = node.get_parameter('dense_optical_cuda_enable').value
+        app_settings['dense_optical_flow_h'] = node.get_parameter('dense_optical_flow_h').value
+        app_settings['dense_optical_flow_w'] = node.get_parameter('dense_optical_flow_w').value
 
         return app_settings

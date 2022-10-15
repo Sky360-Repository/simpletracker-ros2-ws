@@ -9,7 +9,7 @@ class ControlLoopNode(ConfiguredNode):
     super().__init__(node_name)
     #self.myExecutor = ThreadPoolExecutor(max_workers=4)
     # setup timer and other helpers
-    self.timer = self.create_timer(self.timer_period(), self.control_loop)  
+    self.timer = self.create_timer(self.control_loop_timer_period(), self.control_loop)  
 
   #@abstractmethod
   #def run(self):
@@ -22,5 +22,5 @@ class ControlLoopNode(ConfiguredNode):
   #def start(self):
   #  self.myExecutor.submit(self.run())
 
-  def timer_period(self) -> int:
+  def control_loop_timer_period(self) -> int:
     return 0.1

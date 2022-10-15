@@ -7,11 +7,11 @@ from typing import List
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.utils import frame_resize
 from .controller import Controller
 
-class ControllerNode(ConfiguredNode):
+class ControllerNode(ControlLoopNode):
 
   def __init__(self):
     super().__init__('sky360_camera')
@@ -22,24 +22,26 @@ class ControllerNode(ConfiguredNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
   def capture_timer_callback(self):
-
     timer = cv2.getTickCount()
-    success, frame = self.controller.read()
-    if success == True:
+    self.success, self.frame = self.controller.read()
+    self.fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
+    if not self.success:
+      if self.app_configuration['camera_video_loop']:      
+        self.controller = Controller.Select(self, self.app_configuration)  
+
+  def control_loop(self):    
+    if self.success == True:
 
       if self.app_configuration['camera_resize_frame']:
-        frame = frame_resize(frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
+        self.frame = frame_resize(self.frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
 
       camera_frame_msg = CameraFrame()
       camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
-      camera_frame_msg.fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
-      camera_frame_msg.frame = self.br.cv2_to_imgmsg(frame)
+      camera_frame_msg.fps = self.fps
+      camera_frame_msg.frame = self.br.cv2_to_imgmsg(self.frame)
 
       self.pub_frame.publish(camera_frame_msg)
 
-    else:
-      if self.app_configuration['camera_video_loop']:      
-        self.controller = Controller.Select(self, self.app_configuration)
 
   def config_list(self) -> List[str]:
     return ['controller_type', 'camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 
@@ -85,7 +87,10 @@ class ControllerNode(ConfiguredNode):
       self.br = CvBridge()
       # setup timer and other helpers
       timer_period = 0.1  # seconds
-      self.timer = self.create_timer(timer_period, self.capture_timer_callback)      
+      self.timer = self.create_timer(timer_period, self.capture_timer_callback)
+      self.success = False
+      self.frame = None
+      self.fps = 0
       
     self.controller = Controller.Select(self, self.app_configuration)
 

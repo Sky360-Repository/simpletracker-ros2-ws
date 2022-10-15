@@ -6,10 +6,10 @@ from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import BoundingBox
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from cv_bridge import CvBridge
  
-class AnnotatedFrameProviderNode(ConfiguredNode):
+class AnnotatedFrameProviderNode(ControlLoopNode):
 
   PROVISIONARY_TARGET = 1
   ACTIVE_TARGET = 2
@@ -26,47 +26,47 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def fp_original_callback(self, data:Frame):
+  def fp_original_callback(self, msg_frame:Frame):
+    self.msg_frame = msg_frame
 
-    if data.frame is None:
-      pass
+  def tracking_state_callback(self, msg_tracking_state:TrackingState):
+    self.msg_tracking_state = msg_tracking_state
 
-    self.annotated_frame = self.br.imgmsg_to_cv2(data.frame)
-    self.annotated_frame_count = data.frame_count
+  def tracks_callback(self, msg_track_array:TrackArray):
+    self.msg_track_array = msg_track_array
 
-  def tracking_state_callback(self, data:TrackingState):
-    self.status_message = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}"
-    self.frame_message = f"(Sky360) {self.frame_type} frame, count:{data.frame_count}, epoch:{data.epoch}, fps:{data.fps}"
+  def control_loop(self):
 
-  def tracks_callback(self, data:TrackArray):
+    if self.msg_frame != None:
 
-    if self.configuration_loaded == False:
-      pass
+      annotated_frame = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-    if self.annotated_frame is None:
-      pass
+      if self.msg_tracking_state != None and self.msg_track_array != None:
 
-    for track in data.tracks:
-      (x, y, w, h) = self._get_sized_bbox(track.bbox)
-      p1 = (int(x), int(y))
-      p2 = (int(x + w), int(y + h))
-      color = self._color(track.state)
-      cv2.rectangle(self.annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
-      cv2.putText(self.annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
-      self._add_tracked_path(track, self.annotated_frame)
-      self._add_predicted_point(track, self.annotated_frame)
+        status_message = f"(Sky360) Tracker Status: trackable:{self.msg_tracking_state.trackable}, alive:{self.msg_tracking_state.alive}, started:{self.msg_tracking_state.started}, ended:{self.msg_tracking_state.ended}"
+        frame_message = f"(Sky360) {self.frame_type} frame, count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
 
-    cv2.putText(self.annotated_frame, self.status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-    cv2.putText(self.annotated_frame, f'(Sky360) Frame count: {self.annotated_frame_count}, Tracked frame count: {data.frame_count}, In sync: {self.annotated_frame_count == data.frame_count}', (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-    cv2.putText(self.annotated_frame, self.frame_message, (25, 75), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+        cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+        cv2.putText(annotated_frame, f'(Sky360) Frame count: {self.msg_frame.frame_count}, Tracked frame count: {self.msg_track_array.frame_count}, In sync: {self.msg_frame.frame_count == self.msg_track_array.frame_count}', (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+        cv2.putText(annotated_frame, frame_message, (25, 75), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
-    frame_annotated_msg = Frame()
-    frame_annotated_msg.epoch = data.epoch
-    frame_annotated_msg.fps = data.fps
-    frame_annotated_msg.frame_count = data.frame_count
-    frame_annotated_msg.frame = self.br.cv2_to_imgmsg(self.annotated_frame)
+        for track in self.msg_track_array.tracks:
+          (x, y, w, h) = self._get_sized_bbox(track.bbox)
+          p1 = (int(x), int(y))
+          p2 = (int(x + w), int(y + h))
+          color = self._color(track.state)
+          cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
+          cv2.putText(annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+          self._add_tracked_path(track, annotated_frame)
+          self._add_predicted_point(track, annotated_frame)
 
-    self.pub_annotated_frame.publish(frame_annotated_msg)
+      frame_annotated_msg = Frame()
+      frame_annotated_msg.epoch = self.msg_frame.epoch
+      frame_annotated_msg.fps = self.msg_frame.fps
+      frame_annotated_msg.frame_count = self.msg_frame.frame_count
+      frame_annotated_msg.frame = self.br.cv2_to_imgmsg(annotated_frame)
+
+      self.pub_annotated_frame.publish(frame_annotated_msg)
 
   def config_list(self) -> List[str]:
     return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
@@ -89,11 +89,10 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
       self.font_colour = (50, 170, 50)
       self.prediction_colour = (255, 0, 0)
       self.prediction_radius = 1
-      self.frame_message = ''
-      self.status_message = ''
-      self.annotated_frame = None
-      self.annotated_frame_count = 0
-      self.br = CvBridge()
+      self.msg_frame: Frame = None
+      self.msg_tracking_state: TrackingState = None
+      self.msg_track_array: TrackArray = None
+      self.br = CvBridge()      
 
     self.font_size = self.app_configuration['visualiser_font_size']
     self.font_thickness = self.app_configuration['visualiser_font_thickness']

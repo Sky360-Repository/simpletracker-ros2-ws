@@ -6,12 +6,12 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import Frame
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.utils import frame_resize
 from .mask import Mask
 from .mask_client_async import MaskClientAsync
 
-class FrameProviderNode(ConfiguredNode):
+class FrameProviderNode(ControlLoopNode):
 
   def __init__(self):
     super().__init__('sky360_frame_provider')
@@ -24,48 +24,53 @@ class FrameProviderNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def camera_callback(self, data:Image):
+  def camera_callback(self, msg_image:Image):
+    self.msg_image = msg_image
 
-    frame_original = self.br.imgmsg_to_cv2(data.frame)
+  def control_loop(self):
 
-    self.counter += 1
+    if self.msg_image != None:
 
-    if self.app_configuration['frame_provider_resize_frame']:
-      frame_original = frame_resize(frame_original, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
+      frame_original = self.br.imgmsg_to_cv2(self.msg_image.frame)
 
-    # apply mask
-    frame_masked = self.mask.apply(frame_original)
+      self.counter += 1
 
-    #grey
-    frame_grey = cv2.cvtColor(frame_masked, cv2.COLOR_BGR2GRAY)
+      if self.app_configuration['frame_provider_resize_frame']:
+        frame_original = frame_resize(frame_original, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
 
-    # blur
-    if self.app_configuration['frame_provider_blur']:
-      frame_grey = cv2.GaussianBlur(frame_grey, (self.app_configuration['frame_provider_blur_radius'], self.app_configuration['frame_provider_blur_radius']), 0)
+      # apply mask
+      frame_masked = self.mask.apply(frame_original)
 
-    frame_original_msg = Frame()
-    frame_original_msg.epoch = data.epoch
-    frame_original_msg.fps = data.fps
-    frame_original_msg.frame_count = self.counter
-    frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
+      #grey
+      frame_grey = cv2.cvtColor(frame_masked, cv2.COLOR_BGR2GRAY)
 
-    self.pub_original_frame.publish(frame_original_msg)
+      # blur
+      if self.app_configuration['frame_provider_blur']:
+        frame_grey = cv2.GaussianBlur(frame_grey, (self.app_configuration['frame_provider_blur_radius'], self.app_configuration['frame_provider_blur_radius']), 0)
 
-    frame_original_masked_msg = Frame()
-    frame_original_masked_msg.epoch = data.epoch
-    frame_original_masked_msg.fps = data.fps
-    frame_original_masked_msg.frame_count = self.counter
-    frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked)
+      frame_original_msg = Frame()
+      frame_original_msg.epoch = self.msg_image.epoch
+      frame_original_msg.fps = self.msg_image.fps
+      frame_original_msg.frame_count = self.counter
+      frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
 
-    self.pub_masked_frame.publish(frame_original_masked_msg)
+      self.pub_original_frame.publish(frame_original_msg)
 
-    frame_grey_msg = Frame()
-    frame_grey_msg.epoch = data.epoch
-    frame_grey_msg.fps = data.fps
-    frame_grey_msg.frame_count = self.counter
-    frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
+      frame_original_masked_msg = Frame()
+      frame_original_masked_msg.epoch = self.msg_image.epoch
+      frame_original_masked_msg.fps = self.msg_image.fps
+      frame_original_masked_msg.frame_count = self.counter
+      frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked)
 
-    self.pub_grey_frame.publish(frame_grey_msg)
+      self.pub_masked_frame.publish(frame_original_masked_msg)
+
+      frame_grey_msg = Frame()
+      frame_grey_msg.epoch = self.msg_image.epoch
+      frame_grey_msg.fps = self.msg_image.fps
+      frame_grey_msg.frame_count = self.counter
+      frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
+
+      self.pub_grey_frame.publish(frame_grey_msg)
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
@@ -89,6 +94,7 @@ class FrameProviderNode(ConfiguredNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.counter = 0
+      self.msg_image: Image = None
       self.br = CvBridge()
       self.mask_svc = MaskClientAsync()
 

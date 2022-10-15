@@ -4,10 +4,10 @@ import cv2
 from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from .dense_optical_flow import DenseOpticalFlow
 
-class DenseOpticalFlowProviderNode(ConfiguredNode):
+class DenseOpticalFlowProviderNode(ControlLoopNode):
 
   def __init__(self):
     super().__init__('sky360_dense_optical_flow_provider')
@@ -18,22 +18,27 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def grey_frame_callback(self, data:Frame):
+  def grey_frame_callback(self, msg_frame:Frame):
+    self.msg_frame = msg_frame
 
-    frame_grey = self.br.imgmsg_to_cv2(data.frame)
+  def control_loop(self):
 
-    optical_flow_frame = self.dense_optical_flow.process_grey_frame(frame_grey)
+    if self.msg_frame != None:
 
-    #gpu_frame_grey = cv2.cuda_GpuMat()
-    #gpu_frame_grey.upload(frame_grey, stream=None) 
-    #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
+      self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-    frame_optical_flow_msg = Frame()
-    frame_optical_flow_msg.epoch = data.epoch
-    frame_optical_flow_msg.fps = data.fps
-    frame_optical_flow_msg.frame_count = data.frame_count
-    frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
-    self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
+      optical_flow_frame = self.dense_optical_flow.process_grey_frame(self.frame_grey)
+
+      #gpu_frame_grey = cv2.cuda_GpuMat()
+      #gpu_frame_grey.upload(frame_grey, stream=None) 
+      #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
+
+      frame_optical_flow_msg = Frame()
+      frame_optical_flow_msg.epoch = self.msg_frame.epoch
+      frame_optical_flow_msg.fps = self.msg_frame.fps
+      frame_optical_flow_msg.frame_count = self.msg_frame.frame_count
+      frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
+      self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
 
   def config_list(self) -> List[str]:
     return ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']
@@ -54,6 +59,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.br = CvBridge()
+      self.msg_frame:Frame = None
 
     self.dense_optical_flow = DenseOpticalFlow.Select(self.app_configuration)
     

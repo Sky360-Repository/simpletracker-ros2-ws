@@ -4,23 +4,23 @@ configuration_service:
     # Options
     #  video = video playback
     #  camera = camera stream
-    controller_type: "video"
+    controller_type: "camera"
 
     # The Camera section
     #    This will eventually be replaced by a feed from the all sky cam, its just here at the moment as a mock
     camera_mode: "rtsp"
     camera_uri: "rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2"
     camera_resize_frame: True
-    camera_resize_dimension_h: 960
-    camera_resize_dimension_w: 960
+    camera_resize_dimension_h: 1440
+    camera_resize_dimension_w: 1440
     camera_cuda_enable: False
     camera_video_file: "plane_flying_past.mkv"
     camera_video_loop: True
 
     # Frame provider section
     frame_provider_resize_frame: True
-    frame_provider_resize_dimension_h: 960
-    frame_provider_resize_dimension_w: 960
+    frame_provider_resize_dimension_h: 1440
+    frame_provider_resize_dimension_w: 1440
     frame_provider_blur: True
     frame_provider_blur_radius: 3
     frame_provider_cuda_enable: False
@@ -32,7 +32,7 @@ configuration_service:
     visualiser_bbox_size: 64 # fix the size of the bounding box
     visualiser_log_status_to_console: False # log the status message to the console as well
     visualiser_cuda_enable: False
-    visualiser_frame_source: "original"
+    visualiser_frame_source: "masked"
 
     # Tracker Type
     #   currently only CSRT is supported

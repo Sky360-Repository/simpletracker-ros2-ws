@@ -4,10 +4,10 @@ import cv2
 from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from .background_subtractor import BackgroundSubtractor
 
-class BackgroundSubtractionProviderNode(ConfiguredNode):
+class BackgroundSubtractionProviderNode(ControlLoopNode):
 
   def __init__(self):
     super().__init__('sky360_foreground_mask_provider')
@@ -19,26 +19,31 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def grey_frame_callback(self, data:Frame):
+  def grey_frame_callback(self, msg_frame:Frame):
+    self.msg_frame = msg_frame
 
-    frame_grey = self.br.imgmsg_to_cv2(data.frame)
+  def control_loop(self):
 
-    foreground_mask_frame = self.background_subtractor.apply(frame_grey) #, learningRate=self.background_subtractor_learning_rate)
-    frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
+    if self.msg_frame != None:
 
-    frame_foreground_mask_msg = Frame()
-    frame_foreground_mask_msg.epoch = data.epoch
-    frame_foreground_mask_msg.fps = data.fps
-    frame_foreground_mask_msg.frame_count = data.frame_count
-    frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(foreground_mask_frame)
-    self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
+      frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-    frame_masked_background_msg = Frame()
-    frame_masked_background_msg.epoch = data.epoch
-    frame_masked_background_msg.fps = data.fps
-    frame_masked_background_msg.frame_count = data.frame_count
-    frame_masked_background_msg.frame = self.br.cv2_to_imgmsg(frame_masked_background)
-    self.pub_masked_background_frame.publish(frame_masked_background_msg)
+      foreground_mask_frame = self.background_subtractor.apply(frame_grey) #, learningRate=self.background_subtractor_learning_rate)
+      frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
+
+      frame_foreground_mask_msg = Frame()
+      frame_foreground_mask_msg.epoch = self.msg_frame.epoch
+      frame_foreground_mask_msg.fps = self.msg_frame.fps
+      frame_foreground_mask_msg.frame_count = self.msg_frame.frame_count
+      frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(foreground_mask_frame)
+      self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
+
+      frame_masked_background_msg = Frame()
+      frame_masked_background_msg.epoch = self.msg_frame.epoch
+      frame_masked_background_msg.fps = self.msg_frame.fps
+      frame_masked_background_msg.frame_count = self.msg_frame.frame_count
+      frame_masked_background_msg.frame = self.br.cv2_to_imgmsg(frame_masked_background)
+      self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
     return ['tracker_detection_sensitivity', 'background_subtractor_cuda_enable']
@@ -54,6 +59,7 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
+      self.msg_frame: Frame = None
       self.br = CvBridge()
 
     self.background_subtractor = BackgroundSubtractor.Select(self.app_configuration)

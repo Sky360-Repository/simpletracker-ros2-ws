@@ -10,10 +10,10 @@ from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import CenterPoint
-from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode
 from .video_tracker import VideoTracker
 
-class TrackProviderNode(ConfiguredNode):
+class TrackProviderNode(ControlLoopNode):
 
   def __init__(self):
     super().__init__('sky360_track_provider')
@@ -26,34 +26,39 @@ class TrackProviderNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def frame_callback(self, data:Frame):
+  def frame_callback(self, msg_frame:Frame):
+    self.msg_frame = msg_frame
 
-    self.frame = self.br.imgmsg_to_cv2(data.frame)
+  def bboxes_callback(self, msg_bounding_box_array:BoundingBoxArray):
+    self.msg_bounding_box_array = msg_bounding_box_array
 
-    track_array_msg = TrackArray()
-    track_array_msg.epoch = data.epoch
-    track_array_msg.fps = data.fps
-    track_array_msg.frame_count = data.frame_count
-    track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
-    self.pub_tracker_tracks.publish(track_array_msg)
-    
-    tracking_msg = TrackingState()
-    tracking_msg.epoch = data.epoch
-    tracking_msg.fps = data.fps
-    tracking_msg.frame_count = data.frame_count
-    tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
-    tracking_msg.alive = len(self.video_tracker.live_trackers)
-    tracking_msg.started = self.video_tracker.total_trackers_started
-    tracking_msg.ended = self.video_tracker.total_trackers_finished
-    self.pub_tracker_tracking_state.publish(tracking_msg)
+  def control_loop(self):  
 
-  def bboxes_callback(self, data:BoundingBoxArray):
+    if self.msg_frame != None:
 
-    if not self.configuration_loaded or self.frame is None:
-        pass
+      frame = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-    bboxes = [self._msg_to_bbox(x) for x in data.boxes]
-    self.video_tracker.update_trackers(bboxes, self.frame)
+      if self.msg_bounding_box_array != None:
+        bboxes = [self._msg_to_bbox(x) for x in self.msg_bounding_box_array.boxes]
+        self.video_tracker.update_trackers(bboxes, frame)
+
+      track_array_msg = TrackArray()
+      track_array_msg.epoch = self.msg_frame.epoch
+      track_array_msg.fps = self.msg_frame.fps
+      track_array_msg.frame_count = self.msg_frame.frame_count
+      track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+      self.pub_tracker_tracks.publish(track_array_msg)
+      
+      tracking_msg = TrackingState()
+      tracking_msg.epoch = self.msg_frame.epoch
+      tracking_msg.fps = self.msg_frame.fps
+      tracking_msg.frame_count = self.msg_frame.frame_count
+      tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
+      tracking_msg.alive = len(self.video_tracker.live_trackers)
+      tracking_msg.started = self.video_tracker.total_trackers_started
+      tracking_msg.ended = self.video_tracker.total_trackers_finished
+      self.pub_tracker_tracking_state.publish(tracking_msg)
+
 
   def _msg_to_bbox(self, bbox_msg):
     return bbox_msg.x, bbox_msg.y, bbox_msg.w, bbox_msg.h
@@ -99,6 +104,8 @@ class TrackProviderNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
+      self.msg_frame: Frame = None
+      self.msg_bounding_box_array: BoundingBoxArray = None
       self.br = CvBridge()
 
     self.video_tracker = VideoTracker(self.app_configuration)

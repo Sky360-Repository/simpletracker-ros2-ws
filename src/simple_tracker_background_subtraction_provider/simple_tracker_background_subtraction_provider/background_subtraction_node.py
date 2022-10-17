@@ -5,6 +5,7 @@ from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.frame_processor import FrameProcessor
 from .background_subtractor import BackgroundSubtractor
 
 class BackgroundSubtractionProviderNode(ControlLoopNode):
@@ -28,7 +29,8 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
 
       frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-      foreground_mask_frame = self.background_subtractor.apply(frame_grey) #, learningRate=self.background_subtractor_learning_rate)
+      foreground_mask_frame = self.frame_processor.process_bg_subtraction(self.background_subtractor, frame_grey, None)
+      
       frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
 
       frame_foreground_mask_msg = Frame()
@@ -46,7 +48,7 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
       self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
-    return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_cuda_enable']
+    return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_learning_rate', 'background_subtractor_cuda_enable']
 
   def validate_config(self) -> bool:
     valid = True
@@ -75,6 +77,7 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
       self.msg_frame: Frame = None
       self.br = CvBridge()
 
+    self.frame_processor = FrameProcessor.Select(self.app_configuration, 'background_subtractor_cuda_enable')
     self.background_subtractor = BackgroundSubtractor.Select(self.app_configuration)
 
 def main(args=None):

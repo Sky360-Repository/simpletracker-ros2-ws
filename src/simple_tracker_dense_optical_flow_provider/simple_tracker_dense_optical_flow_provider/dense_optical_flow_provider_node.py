@@ -5,6 +5,7 @@ from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.frame_processor import FrameProcessor
 from .dense_optical_flow import DenseOpticalFlow
 
 class DenseOpticalFlowProviderNode(ControlLoopNode):
@@ -27,11 +28,7 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
 
       self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-      optical_flow_frame = self.dense_optical_flow.process_grey_frame(self.frame_grey)
-
-      #gpu_frame_grey = cv2.cuda_GpuMat()
-      #gpu_frame_grey.upload(frame_grey, stream=None) 
-      #optical_flow_frame = self.dense_optical_flow.process_grey_frame(gpu_frame_grey)
+      optical_flow_frame = self.frame_processor.process_dense_optical_flow(self.dense_optical_flow, self.frame_grey, None)
 
       frame_optical_flow_msg = Frame()
       frame_optical_flow_msg.epoch = self.msg_frame.epoch
@@ -61,6 +58,7 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
       self.br = CvBridge()
       self.msg_frame:Frame = None
 
+    self.frame_processor = FrameProcessor.Select(self.app_configuration, 'dense_optical_cuda_enable')
     self.dense_optical_flow = DenseOpticalFlow.Select(self.app_configuration)
     
 

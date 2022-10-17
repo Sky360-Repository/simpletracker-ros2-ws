@@ -8,6 +8,10 @@
 	},
 	"remoteUser": "ros",
 	"runArgs": [
+		//"--runtime=nvidia",
+		//"--gpus",
+		//"all",
+		//"--privileged",
 		"--network=host",
 		"--cap-add=SYS_PTRACE",
 		"--security-opt=seccomp:unconfined",

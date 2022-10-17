@@ -76,6 +76,16 @@ def generate_launch_description():
             package='simple_tracker_visualisers',
             #namespace='sky360',
             executable='simple_visualiser',
-            name='simple_visualiser'
+            name='simple_visualiser',
+            remappings=[
+                ('sky360/visualiser/annotated_frame', 'sky360/frames/annotated/v1'),
+                #('sky360/visualiser/original_camera_frame', 'sky360/camera/original/v1'),
+                #('sky360/visualiser/original_frame', 'sky360/frames/original/v1'),
+                #('sky360/visualiser/masked_frame', 'sky360/frames/masked/v1'),
+                #('sky360/visualiser/grey_frame', 'sky360/frames/grey/v1'),
+                #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow/v1'),
+                #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background/v1'),
+                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask/v1'),                
+            ]
         ),        
     ])

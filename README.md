@@ -45,6 +45,4 @@
 
 ### View more windows
 
-* Uncomment some of the subscribers in "simple_tracker_visualisers/simple_tracker_visualisers/image_visualiser.py" if you want to some different windows like optical flow, forgroung mask etc
-* TODO: provide topic remap commands so that this can be configured at run time
-* 
+* Uncomment some of the remappings in the "simple_tracker_launch/launch/simple_tracker_launch.py" visualiser node to enable additional windows like optical flow etc

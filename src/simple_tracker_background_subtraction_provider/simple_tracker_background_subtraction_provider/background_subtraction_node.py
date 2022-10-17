@@ -46,13 +46,26 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
       self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
-    return ['tracker_detection_sensitivity', 'background_subtractor_cuda_enable']
+    return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_cuda_enable']
 
   def validate_config(self) -> bool:
     valid = True
 
-    if self.app_configuration['tracker_detection_sensitivity'] == None:
-      self.get_logger().error('The tracker_detection_sensitivity config entry is null')
+    background_subtractor_type = self.app_configuration['background_subtractor_type']
+    supported_bgsubtractors = {'KNN', 'MOG', 'MOG2', 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2', 'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'}
+    supported_cuda_bgsubtractors = {'MOG2_CUDA', 'MOG_CUDA'}
+    supported = False
+    if self.app_configuration['background_subtractor_cuda_enable']:
+        supported = background_subtractor_type in supported_cuda_bgsubtractors
+    else:
+        supported = background_subtractor_type in supported_bgsubtractors
+
+    if supported == False:
+      self.get_logger().error(f"Unknown background subtractor type ({background_subtractor_type}) when cuda-enabled: {self.app_configuration['background_subtractor_cuda_enable']}.")
+      valid = False
+
+    if self.app_configuration['background_subtractor_sensitivity'] == None:
+      self.get_logger().error('The background_subtractor_sensitivity config entry is null')
       valid = False
       
     return valid

@@ -1,11 +1,11 @@
-FROM althack/ros2:humble-dev 
+FROM sky360/ros2-humble-dev:opencv4.6.0
 
 # ** [Optional] Uncomment this section to install additional packages. **
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
-   && apt-get -y install --no-install-recommends python3-numpy libboost-python-dev python3-opencv \
+   && apt-get -y install --no-install-recommends python3-numpy libboost-python-dev \
    # ROS2 build related stuff
    && pip3 install setuptools==58.2.0 \
    && export PYTHONWARNINGS=ignore:::setuptools.command.install \

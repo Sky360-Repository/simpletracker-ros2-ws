@@ -61,6 +61,7 @@ class AppSettings():
                 ('tracker_cuda_enable', False),
 
                 ('background_subtractor_type', 'KNN'),
+                ('background_subtractor_sensitivity', 1),
                 ('background_subtractor_learning_rate', 0.05),
                 ('background_subtractor_cuda_enable', False),
 
@@ -127,6 +128,7 @@ class AppSettings():
 
         # Background subtractor section
         app_settings['background_subtractor_type'] = node.get_parameter('background_subtractor_type').value
+        app_settings['background_subtractor_sensitivity'] = node.get_parameter('background_subtractor_sensitivity').value
         app_settings['background_subtractor_learning_rate'] = node.get_parameter('background_subtractor_learning_rate').value
         app_settings['background_subtractor_cuda_enable'] = node.get_parameter('background_subtractor_cuda_enable').value
 

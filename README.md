@@ -21,19 +21,12 @@
   * `ros2 launch simple_tracker_launch simple_tracker_launch.py` 
 
 ### Update web cam details
-**NOTE:** Update line 37 of the webcam_pub.py file in the cv_basics package to supply either:
-**NOTE:** Update line 27 of the app_settings.py file in the simple_tracker_configuration package to supply either:
-* a camera index i.e. 0
-* or a uri e.g.: 'rtsp://[user]:[password]@192.168.0.43:554/cam/realmonitor?channel=1&subtype=0'
+
+**NOTE:** Update the params.yaml file in the sime_tracker_launch/config directory to change camera details
 
 ### I have made some more progress with regards to ROS2, follow steps above to ensure everything is working
 
-* You can now run some additional packages
-  * `ros2 run simple_tracker_configuration configuration_service` 
-  * `ros2 run camera_mock camera`
-  * `ros2 run simple_tracker_visualisers simple_visualiser`
-
-* Alternatively you can run Simple Tracker using the launch facility
+* You can run Simple Tracker using the launch facility
   * `ros2 launch simple_tracker_launch simple_tracker_launch.py` 
 
 ### Updating configuration from command line example:
@@ -49,3 +42,9 @@
 * To keep an eye on the state of the tracker, using the following echo command
 
 `ros2 topic echo /sky360/tracker/tracking_state/v1`
+
+### View more windows
+
+* Uncomment some of the subscribers in "simple_tracker_visualisers/simple_tracker_visualisers/image_visualiser.py" if you want to some different windows like optical flow, forgroung mask etc
+* TODO: provide topic remap commands so that this can be configured at run time
+* 

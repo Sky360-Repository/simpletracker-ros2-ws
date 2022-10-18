@@ -22,8 +22,8 @@ def generate_launch_description():
         get_package_share_directory('simple_tracker_launch'),
         'config',
         'params.yaml'
-        #'params-mike.yaml'
         #'params-cuda.yaml'
+        #'params-mike.yaml'
     )
 
     #with open(config, 'r') as f:

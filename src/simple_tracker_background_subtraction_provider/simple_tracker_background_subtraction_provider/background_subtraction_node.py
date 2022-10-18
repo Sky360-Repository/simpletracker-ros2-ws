@@ -41,15 +41,14 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
 
       frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-      foreground_mask_frame = self.frame_processor.process_bg_subtraction(self.background_subtractor, frame_grey, None)
-      
-      frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
+      frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
+        self.background_subtractor, frame_grey, None)
 
       frame_foreground_mask_msg = Frame()
       frame_foreground_mask_msg.epoch = self.msg_frame.epoch
       frame_foreground_mask_msg.fps = self.msg_frame.fps
       frame_foreground_mask_msg.frame_count = self.msg_frame.frame_count
-      frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(foreground_mask_frame)
+      frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(frame_foreground_mask)
       self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
 
       frame_masked_background_msg = Frame()

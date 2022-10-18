@@ -14,7 +14,10 @@ configuration_service:
     camera_resize_frame: True
     camera_resize_dimension_h: 960
     camera_resize_dimension_w: 960
-    camera_video_file: "plane_flying_past2.mkv"
+    #camera_video_file: "plane_flying_past2.mkv"
+    #camera_video_file: "Test_Trimmed.mp4"
+    #camera_video_file: "birds_and_plane.mp4"
+    camera_video_file: "brad_drone_1.mp4"
     camera_video_loop: True
 
     # Frame provider section

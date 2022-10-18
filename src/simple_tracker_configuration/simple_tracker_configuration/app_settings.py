@@ -29,9 +29,6 @@ class AppSettings():
                 ('controller_type', 'camera'),
                 ('camera_mode', 'rtsp'),
                 ('camera_uri', 'rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2'),
-                ('camera_resize_frame', True),
-                ('camera_resize_dimension_h', 960),
-                ('camera_resize_dimension_w', 960),
                 ('camera_video_file', 'plane_flying_past2.mkv'),
                 ('camera_video_loop', True),
 
@@ -48,6 +45,9 @@ class AppSettings():
                 ('visualiser_bbox_size', 64),
                 ('visualiser_log_status_to_console', False),
                 ('visualiser_frame_source', 'original'),
+                ('visualiser_resize_frame', True),
+                ('visualiser_resize_dimension_h', 960),
+                ('visualiser_resize_dimension_w', 960),
 
                 ('tracker_type', 'CSRT'),
                 ('tracker_stopwatch_enable', False),
@@ -87,9 +87,6 @@ class AppSettings():
         # Camera node section
         app_settings['camera_mode'] = node.get_parameter('camera_mode').value
         app_settings['camera_uri'] = node.get_parameter('camera_uri').value
-        app_settings['camera_resize_frame'] = node.get_parameter('camera_resize_frame').value
-        app_settings['camera_resize_dimension_h'] = node.get_parameter('camera_resize_dimension_h').value
-        app_settings['camera_resize_dimension_w'] = node.get_parameter('camera_resize_dimension_w').value
         app_settings['camera_video_file'] = node.get_parameter('camera_video_file').value
         app_settings['camera_video_loop'] = node.get_parameter('camera_video_loop').value
 
@@ -108,6 +105,10 @@ class AppSettings():
         app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
         app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value
         app_settings['visualiser_frame_source'] = node.get_parameter('visualiser_frame_source').value
+
+        app_settings['visualiser_resize_frame'] = node.get_parameter('visualiser_resize_frame').value
+        app_settings['visualiser_resize_dimension_h'] = node.get_parameter('visualiser_resize_dimension_h').value
+        app_settings['visualiser_resize_dimension_w'] = node.get_parameter('visualiser_resize_dimension_w').value
 
         # Video Tracker section
         app_settings['tracker_type'] = node.get_parameter('tracker_type').value

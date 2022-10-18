@@ -11,9 +11,6 @@ configuration_service:
     #camera_mode: "local"
     camera_mode: "rtsp"
     camera_uri: "rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2"
-    camera_resize_frame: True
-    camera_resize_dimension_h: 960
-    camera_resize_dimension_w: 960    
     #camera_video_file: "plane_flying_past2.mkv"
     #camera_video_file: "Test_Trimmed.mp4"
     #camera_video_file: "birds_and_plane.mp4"
@@ -35,6 +32,9 @@ configuration_service:
     visualiser_bbox_size: 64 # fix the size of the bounding box
     visualiser_log_status_to_console: False # log the status message to the console as well
     visualiser_frame_source: "masked"
+    visualiser_resize_frame: True
+    visualiser_resize_dimension_h: 960
+    visualiser_resize_dimension_w: 960
 
     # Tracker Type
     #   currently only CSRT is supported

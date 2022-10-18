@@ -11,6 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import cv2
+from simple_tracker_shared.utils import frame_resize
 
 ####################################################################################################################################
 # Base class for various frame processor implementations. The idea here is that we have a standardised frame processing interface  #
@@ -40,10 +41,6 @@ class FrameProcessor():
     @staticmethod
     def GPU(settings):
         return GpuFrameProcessor(settings)
-
-    # frame resize interface specification
-    def resize(self, frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter):
-        pass
 
     # noise reduction interface specification
     def reduce_noise(self, frame, blur_radius, stream):
@@ -81,39 +78,6 @@ class CpuFrameProcessor(FrameProcessor):
         pass
         #print('CPU.__exit__')
 
-    def resize(self, frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter=cv2.INTER_AREA):
-        # Overload this for a CPU specific implementation
-        #print(f'CPU.resize_frame w:{w}, h:{h}')
-
-        # initialize the dimensions of the frame to be resized and
-        # grab the frame size
-        dim = None
-
-        # if both the width and height are None, then return the
-        # original frame
-        if toWidth is None and toHeight is None:
-            return frame
-
-        # check to see if the width is None
-        if toWidth is None:
-            # calculate the ratio of the height and construct the
-            # dimensions
-            r = toHeight / float(fromHeight)
-            dim = (int(fromWidth * r), toHeight)
-
-        # otherwise, the height is None
-        else:
-            # calculate the ratio of the width and construct the
-            # dimensions
-            r = toWidth / float(fromWidth)
-            dim = (toWidth, int(fromHeight * r))
-
-        # resize the frame
-        resized = cv2.resize(frame, dim, interpolation=inter)
-
-        # return the resized frame
-        return resized
-
     def reduce_noise(self, frame, blur_radius, stream):
         # Overload this for a CPU specific implementation
         #print('CPU.noise_reduction')
@@ -128,19 +92,15 @@ class CpuFrameProcessor(FrameProcessor):
 
     def process_for_frame_provider(self, mask, camera_frame, stream):
 
-        if not mask.initialised:
-            mask.initialise(camera_frame, stream)
-
-        (h, w) = camera_frame.shape[:2]
         frame_original = camera_frame
 
         if self.settings['frame_provider_resize_frame']:
-            frame_original = self.resize(frame_original, 
-                fromWidth=w, 
-                fromHeight=h, 
-                toHeight=self.settings['frame_provider_resize_dimension_h'], 
-                toWidth=self.settings['frame_provider_resize_dimension_w'], 
-                stream=stream)
+            frame_original = frame_resize(frame_original, 
+                width=self.settings['frame_provider_resize_dimension_w'], 
+                height=self.settings['frame_provider_resize_dimension_h'])
+
+        if not mask.initialised:
+            mask.initialise(frame_original, stream)
 
         # apply mask
         frame_masked = mask.apply(frame_original, stream)
@@ -183,39 +143,6 @@ class GpuFrameProcessor(FrameProcessor):
         pass
         #print('GPU.__exit__')
 
-    def resize(self, gpu_frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter=cv2.INTER_AREA):
-        # Overload this for a CPU specific implementation
-        #print(f'CPU.resize_frame w:{w}, h:{h}')
-
-        # initialize the dimensions of the frame to be resized and
-        # grab the frame size
-        dim = None
-
-        # if both the width and height are None, then return the
-        # original frame
-        if toWidth is None and toHeight is None:
-            return gpu_frame
-
-        # check to see if the width is None
-        if toWidth is None:
-            # calculate the ratio of the height and construct the
-            # dimensions
-            r = toHeight / float(fromHeight)
-            dim = (int(fromWidth * r), toHeight)
-
-        # otherwise, the height is None
-        else:
-            # calculate the ratio of the width and construct the
-            # dimensions
-            r = toWidth / float(fromWidth)
-            dim = (toWidth, int(fromHeight * r))
-
-        # resize the frame
-        resized = cv2.cuda.resize(gpu_frame, dim, stream=stream)
-
-        # return the resized frame
-        return resized
-
     def reduce_noise(self, gpu_frame, blur_radius, stream):
         # Overload this for a GPU specific implementation
         #print('GPU.noise_reduction')
@@ -230,22 +157,18 @@ class GpuFrameProcessor(FrameProcessor):
 
     def process_for_frame_provider(self, mask, camera_frame, stream):
 
-        if not mask.initialised:
-            mask.initialise(camera_frame, stream)
-
-        (h, w) = camera_frame.shape[:2]
         frame_original = camera_frame
+
+        if self.settings['frame_provider_resize_frame']:
+            frame_original = frame_resize(frame_original, 
+                width=self.settings['frame_provider_resize_dimension_w'], 
+                height=self.settings['frame_provider_resize_dimension_h'])
+
+        if not mask.initialised:
+            mask.initialise(frame_original, stream)
 
         gpu_frame_original = cv2.cuda_GpuMat()
         gpu_frame_original.upload(frame_original, stream=stream) 
-
-        if self.settings['frame_provider_resize_frame']:
-            gpu_frame_original = self.resize(gpu_frame_original, 
-                fromWidth=w, 
-                fromHeight=h, 
-                toHeight=self.settings['frame_provider_resize_dimension_h'], 
-                toWidth=self.settings['frame_provider_resize_dimension_w'], 
-                stream=stream)
 
         # apply mask
         gpu_frame_masked = mask.apply(gpu_frame_original, stream)

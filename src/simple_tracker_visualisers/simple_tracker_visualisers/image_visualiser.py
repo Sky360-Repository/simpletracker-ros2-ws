@@ -19,6 +19,8 @@ from simple_tracker_interfaces.msg import TrackArray
 from simple_tracker_interfaces.msg import Track
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.utils import frame_resize
+
 from cv_bridge import CvBridge
 import cv2
  
@@ -88,12 +90,19 @@ class ImageVisualiserNode(ConfiguredNode):
 
   def fp_annotated_callback(self, data:Frame):
     annotated_frame = self.br.imgmsg_to_cv2(data.frame)
+    annotated_frame = self._resize(annotated_frame)
     cv2.imshow("fp/annotated", annotated_frame)
     cv2.waitKey(1)
 
+  def _resize(self, frame):
+    if self.app_configuration['visualiser_resize_frame']:
+      frame = frame_resize(frame, height=self.app_configuration['visualiser_resize_dimension_h'], width=self.app_configuration['visualiser_resize_dimension_w'])
+    return frame
+
+
   def config_list(self) -> List[str]:
     return ['visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 
-      'visualiser_log_status_to_console']
+      'visualiser_log_status_to_console', 'visualiser_resize_frame', 'visualiser_resize_dimension_h', 'visualiser_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True

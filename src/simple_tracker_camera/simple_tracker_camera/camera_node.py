@@ -44,9 +44,6 @@ class ControllerNode(ControlLoopNode):
   def control_loop(self):    
     if self.success == True:
 
-      if self.app_configuration['camera_resize_frame']:
-        self.frame = frame_resize(self.frame, height=self.app_configuration['camera_resize_dimension_h'], width=self.app_configuration['camera_resize_dimension_w'])
-
       camera_frame_msg = CameraFrame()
       camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
       camera_frame_msg.fps = self.fps
@@ -56,8 +53,7 @@ class ControllerNode(ControlLoopNode):
 
 
   def config_list(self) -> List[str]:
-    return ['controller_type', 'camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 
-    'camera_resize_frame', 'camera_video_file', 'camera_video_loop']
+    return ['controller_type', 'camera_mode', 'camera_uri', 'camera_video_file', 'camera_video_loop']
 
   def validate_config(self) -> bool:
     valid = True
@@ -86,11 +82,6 @@ class ControllerNode(ControlLoopNode):
         if os.path.exists(video_file_path) == False:
             self.get_logger().error(f'Could not open video {video_file_path}.')
             valid = False
-
-    if self.app_configuration['camera_resize_frame']:
-      if self.app_configuration['camera_resize_dimension_h'] is None and self.app_configuration['camera_resize_dimension_w'] is None:
-        self.get_logger().error('Both camera_resize_dimension_h and camera_resize_dimension_w config entries are null')
-        valid = False
 
     return valid
 

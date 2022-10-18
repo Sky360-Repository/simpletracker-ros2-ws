@@ -1,3 +1,15 @@
+# Original work Copyright (c) 2022 Sky360
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
 import datetime
 import rclpy
 import cv2
@@ -7,6 +19,7 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.utils import frame_resize
 from .mask import Mask
 from .mask_client_async import MaskClientAsync
@@ -35,18 +48,7 @@ class FrameProviderNode(ControlLoopNode):
 
       self.counter += 1
 
-      if self.app_configuration['frame_provider_resize_frame']:
-        frame_original = frame_resize(frame_original, height=self.app_configuration['frame_provider_resize_dimension_h'], width=self.app_configuration['frame_provider_resize_dimension_w'])
-
-      # apply mask
-      frame_masked = self.mask.apply(frame_original)
-
-      #grey
-      frame_grey = cv2.cvtColor(frame_masked, cv2.COLOR_BGR2GRAY)
-
-      # blur
-      if self.app_configuration['frame_provider_blur']:
-        frame_grey = cv2.GaussianBlur(frame_grey, (self.app_configuration['frame_provider_blur_radius'], self.app_configuration['frame_provider_blur_radius']), 0)
+      frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, frame_original, stream=None)
 
       frame_original_msg = Frame()
       frame_original_msg.epoch = self.msg_image.epoch
@@ -74,7 +76,7 @@ class FrameProviderNode(ControlLoopNode):
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
-      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_file_name', 'mask_cuda_enable']
+      'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_file_name']
 
   def validate_config(self) -> bool:
     valid = True
@@ -98,10 +100,13 @@ class FrameProviderNode(ControlLoopNode):
       self.br = CvBridge()
       self.mask_svc = MaskClientAsync()
 
+    self.frame_processor = FrameProcessor.Select(self.app_configuration, 'frame_provider_cuda_enable')
+
     self.image_masks = ['overlay', 'overlay_inverse']
     if any(self.app_configuration['mask_type'] in s for s in self.image_masks):      
       response = self.mask_svc.send_request(self.app_configuration['mask_overlay_image_file_name'])
       self.app_configuration['mask_overlay_image'] = self.br.imgmsg_to_cv2(response.mask)
+
     self.mask = Mask.Select(self.app_configuration)
 
 

@@ -13,18 +13,17 @@ configuration_service:
     camera_uri: "rtsp://sky360:Sky360Sky!@192.168.0.43:554/cam/realmonitor?channel=1&subtype=2"
     camera_resize_frame: True
     camera_resize_dimension_h: 960
-    camera_resize_dimension_w: 960
-    camera_cuda_enable: False
+    camera_resize_dimension_w: 960    
     camera_video_file: "plane_flying_past2.mkv"
     camera_video_loop: True
-
+    
     # Frame provider section
     frame_provider_resize_frame: True
     frame_provider_resize_dimension_h: 960
     frame_provider_resize_dimension_w: 960
     frame_provider_blur: True
     frame_provider_blur_radius: 3
-    frame_provider_cuda_enable: False
+    frame_provider_cuda_enable: True
 
     # Visualiser section
     visualiser_font_size: 0.5
@@ -32,7 +31,6 @@ configuration_service:
     visualiser_bbox_line_thickness: 1 # the line thickness of the bounding box
     visualiser_bbox_size: 64 # fix the size of the bounding box
     visualiser_log_status_to_console: False # log the status message to the console as well
-    visualiser_cuda_enable: False
     visualiser_frame_source: "masked"
 
     # Tracker Type
@@ -44,7 +42,6 @@ configuration_service:
     tracker_detection_sensitivity: 1
     tracker_max_active_trackers: 10
     tracker_wait_seconds_threshold: 0
-    tracker_cuda_enable: False
 
     # Background Subtractor Type
     #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',
@@ -62,7 +59,6 @@ configuration_service:
     track_stationary_threshold: 5
     track_orphaned_threshold: 20
     track_prediction_enabled: True
-    track_cuda_enable: False
 
     # Mask types supported
     #   one of: 'no_op', 'fish_eye', 'overlay', 'overlay_inverse'
@@ -74,8 +70,7 @@ configuration_service:
     #    "mask-shrubs-inverse-overlay.jpg"
     #    "mikes-camera-mask-overlay.jpg"
     mask_overlay_image_file_name: "mask-shrubs-inverse-overlay.jpg"
-    mask_cuda_enable: False
-
+    
     dense_optical_flow_h: 400
     dense_optical_flow_w: 480
-    dense_optical_cuda_enable: False
+    dense_optical_cuda_enable: True

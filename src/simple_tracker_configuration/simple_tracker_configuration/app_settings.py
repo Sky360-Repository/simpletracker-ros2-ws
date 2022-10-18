@@ -32,7 +32,6 @@ class AppSettings():
                 ('camera_resize_frame', True),
                 ('camera_resize_dimension_h', 960),
                 ('camera_resize_dimension_w', 960),
-                ('camera_cuda_enable', False),
                 ('camera_video_file', 'plane_flying_past2.mkv'),
                 ('camera_video_loop', True),
 
@@ -48,7 +47,6 @@ class AppSettings():
                 ('visualiser_bbox_line_thickness', 1),
                 ('visualiser_bbox_size', 64),
                 ('visualiser_log_status_to_console', False),
-                ('visualiser_cuda_enable', False),
                 ('visualiser_frame_source', 'original'),
 
                 ('tracker_type', 'CSRT'),
@@ -58,7 +56,6 @@ class AppSettings():
                 ('tracker_detection_sensitivity', 1),
                 ('tracker_max_active_trackers', 10),
                 ('tracker_wait_seconds_threshold', 0),
-                ('tracker_cuda_enable', False),
 
                 ('background_subtractor_type', 'KNN'),
                 ('background_subtractor_sensitivity', 1),
@@ -71,12 +68,10 @@ class AppSettings():
                 ('track_stationary_threshold', 5),
                 ('track_orphaned_threshold', 20),
                 ('track_prediction_enabled', True),
-                ('track_cuda_enable', False),
 
                 ('mask_type', 'overlay_inverse'),
                 ('mask_pct', 10),
                 ('mask_overlay_image_file_name', 'mask-shrubs-inverse-overlay.jpg'),
-                ('mask_cuda_enable', False),                
                 
                 ('dense_optical_flow_h', 400),
                 ('dense_optical_flow_w', 480),
@@ -95,7 +90,6 @@ class AppSettings():
         app_settings['camera_resize_frame'] = node.get_parameter('camera_resize_frame').value
         app_settings['camera_resize_dimension_h'] = node.get_parameter('camera_resize_dimension_h').value
         app_settings['camera_resize_dimension_w'] = node.get_parameter('camera_resize_dimension_w').value
-        app_settings['camera_cuda_enable'] = node.get_parameter('camera_cuda_enable').value
         app_settings['camera_video_file'] = node.get_parameter('camera_video_file').value
         app_settings['camera_video_loop'] = node.get_parameter('camera_video_loop').value
 
@@ -113,7 +107,6 @@ class AppSettings():
         app_settings['visualiser_bbox_line_thickness'] = node.get_parameter('visualiser_bbox_line_thickness').value
         app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
         app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value
-        app_settings['visualiser_cuda_enable'] = node.get_parameter('visualiser_cuda_enable').value
         app_settings['visualiser_frame_source'] = node.get_parameter('visualiser_frame_source').value
 
         # Video Tracker section
@@ -124,7 +117,6 @@ class AppSettings():
         app_settings['tracker_detection_sensitivity'] = node.get_parameter('tracker_detection_sensitivity').value
         app_settings['tracker_max_active_trackers'] = node.get_parameter('tracker_max_active_trackers').value
         app_settings['tracker_wait_seconds_threshold'] = node.get_parameter('tracker_wait_seconds_threshold').value
-        app_settings['tracker_cuda_enable'] = node.get_parameter('tracker_cuda_enable').value
 
         # Background subtractor section
         app_settings['background_subtractor_type'] = node.get_parameter('background_subtractor_type').value
@@ -139,13 +131,11 @@ class AppSettings():
         app_settings['track_stationary_threshold'] = node.get_parameter('track_stationary_threshold').value
         app_settings['track_orphaned_threshold'] = node.get_parameter('track_orphaned_threshold').value
         app_settings['track_prediction_enabled'] = node.get_parameter('track_prediction_enabled').value
-        app_settings['track_cuda_enable'] = node.get_parameter('track_cuda_enable').value
 
         # Mask section
         app_settings['mask_type'] = node.get_parameter('mask_type').value
         app_settings['mask_pct'] = node.get_parameter('mask_pct').value
         app_settings['mask_overlay_image_file_name'] = node.get_parameter('mask_overlay_image_file_name').value
-        app_settings['mask_cuda_enable'] = node.get_parameter('mask_cuda_enable').value
         app_settings['mask_overlay_image'] = None # Don't configure this as it's used as temporary storage
 
         # Dense optical flow

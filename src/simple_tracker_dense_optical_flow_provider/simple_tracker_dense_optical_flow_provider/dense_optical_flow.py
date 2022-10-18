@@ -108,6 +108,7 @@ class GpuDenseOpticalFlow(DenseOpticalFlow):
 
     def __init__(self, width, height):
         super().__init__(width, height)
+        
         self.previous_gpu_frame = None
 
     def _resize(self, gpu_frame, stream):

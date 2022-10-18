@@ -42,15 +42,27 @@ class FrameProcessor():
         return GpuFrameProcessor(settings)
 
     # frame resize interface specification
-    def resize(self, frame, w, h, stream):
+    def resize(self, frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter):
         pass
 
-    # interface specification for extracting keypoints from background subtracted frame
+    # noise reduction interface specification
+    def reduce_noise(self, frame, blur_radius, stream):
+        pass
+
+    # interface specification for converting a frame from colour to grey
+    def convert_to_grey(self, frame, stream):
+        pass
+
+    # interface specification for processing the frame for the frame provider
+    def process_for_frame_provider(self, mask, camera_frame, stream):
+        pass
+
+    # interface specification for processing the background subtraction
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         pass
 
-    # interface specification for extracting keypoints from background subtracted frame
-    def process_dense_optical_flow(self, dense_optical_flow, frame_grey, stream):
+    # interface specification for processing the optical flow
+    def process_optical_flow(self, dense_optical_flow, frame_grey, stream):
         pass
 
 ######################################################################
@@ -69,17 +81,86 @@ class CpuFrameProcessor(FrameProcessor):
         pass
         #print('CPU.__exit__')
 
-    def resize(self, frame, w, h, stream):
+    def resize(self, frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter=cv2.INTER_AREA):
         # Overload this for a CPU specific implementation
         #print(f'CPU.resize_frame w:{w}, h:{h}')
-        return cv2.resize(frame, (w, h))
+
+        # initialize the dimensions of the frame to be resized and
+        # grab the frame size
+        dim = None
+
+        # if both the width and height are None, then return the
+        # original frame
+        if toWidth is None and toHeight is None:
+            return frame
+
+        # check to see if the width is None
+        if toWidth is None:
+            # calculate the ratio of the height and construct the
+            # dimensions
+            r = toHeight / float(fromHeight)
+            dim = (int(fromWidth * r), toHeight)
+
+        # otherwise, the height is None
+        else:
+            # calculate the ratio of the width and construct the
+            # dimensions
+            r = toWidth / float(fromWidth)
+            dim = (toWidth, int(fromHeight * r))
+
+        # resize the frame
+        resized = cv2.resize(frame, dim, interpolation=inter)
+
+        # return the resized frame
+        return resized
+
+    def reduce_noise(self, frame, blur_radius, stream):
+        # Overload this for a CPU specific implementation
+        #print('CPU.noise_reduction')
+        noise_reduced_frame = cv2.GaussianBlur(frame, (blur_radius, blur_radius), 0)
+        # frame_grey = cv2.medianBlur(frame_grey, blur_radius)
+        return noise_reduced_frame
+
+    def convert_to_grey(self, frame, stream):
+        # Overload this for a CPU specific implementation
+        #print('CPU.convert_to_grey')
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+    def process_for_frame_provider(self, mask, camera_frame, stream):
+
+        if not mask.initialised:
+            mask.initialise(camera_frame, stream)
+
+        (h, w) = camera_frame.shape[:2]
+        frame_original = camera_frame
+
+        if self.settings['frame_provider_resize_frame']:
+            frame_original = self.resize(frame_original, 
+                fromWidth=w, 
+                fromHeight=h, 
+                toHeight=self.settings['frame_provider_resize_dimension_h'], 
+                toWidth=self.settings['frame_provider_resize_dimension_w'], 
+                stream=stream)
+
+        # apply mask
+        frame_masked = mask.apply(frame_original, stream)
+
+        #grey
+        frame_grey = self.convert_to_grey(frame_masked, stream)
+
+        # blur
+        if self.settings['frame_provider_blur']:
+            frame_grey = self.reduce_noise(frame_grey, self.settings['frame_provider_blur_radius'], stream)
+
+        return frame_grey, frame_masked
 
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         return background_subtractor.apply(frame_grey)
 
-    def process_dense_optical_flow(self, dense_optical_flow, frame_grey, stream):
+    def process_optical_flow(self, dense_optical_flow, frame_grey, stream):
         dof_frame = dense_optical_flow.process_grey_frame(frame_grey)
-        return self.resize(dof_frame, self.settings['dense_optical_flow_w'], self.settings['dense_optical_flow_h'], stream)
+        #return self.resize(dof_frame, self.settings['dense_optical_flow_w'], self.settings['dense_optical_flow_h'], stream)
+        return dof_frame
 
 ################################################################################
 # Specialised implementation of the frame processor specific to GPU i.e. CUDA. #
@@ -100,10 +181,84 @@ class GpuFrameProcessor(FrameProcessor):
         pass
         #print('GPU.__exit__')
 
-    def resize(self, gpu_frame, w, h, stream):
+    def resize(self, gpu_frame, fromWidth, fromHeight, toWidth, toHeight, stream, inter=cv2.INTER_AREA):
+        # Overload this for a CPU specific implementation
+        #print(f'CPU.resize_frame w:{w}, h:{h}')
+
+        # initialize the dimensions of the frame to be resized and
+        # grab the frame size
+        dim = None
+
+        # if both the width and height are None, then return the
+        # original frame
+        if toWidth is None and toHeight is None:
+            return gpu_frame
+
+        # check to see if the width is None
+        if toWidth is None:
+            # calculate the ratio of the height and construct the
+            # dimensions
+            r = toHeight / float(fromHeight)
+            dim = (int(fromWidth * r), toHeight)
+
+        # otherwise, the height is None
+        else:
+            # calculate the ratio of the width and construct the
+            # dimensions
+            r = toWidth / float(fromWidth)
+            dim = (toWidth, int(fromHeight * r))
+
+        # resize the frame
+        resized = cv2.cuda.resize(gpu_frame, dim, stream=stream)
+
+        # return the resized frame
+        return resized
+
+    def reduce_noise(self, gpu_frame, blur_radius, stream):
         # Overload this for a GPU specific implementation
-        #print(f'GPU.resize_frame w:{w}, h:{h}')
-        return cv2.cuda.resize(gpu_frame, (w, h), stream=stream)
+        #print('GPU.noise_reduction')
+        gpuFilter = cv2.cuda.createGaussianFilter(cv2.CV_8UC1, cv2.CV_8UC1, (blur_radius, blur_radius), 0)
+        gpu_noise_reduced_frame = cv2.cuda_Filter.apply(gpuFilter, gpu_frame, stream=stream)
+        return gpu_noise_reduced_frame
+
+    def convert_to_grey(self, gpu_frame, stream):
+        # Overload this for a GPU specific implementation
+        #print('GPU.convert_to_grey')
+        return cv2.cuda.cvtColor(gpu_frame, cv2.COLOR_BGR2GRAY, stream=stream)
+
+    def process_for_frame_provider(self, mask, camera_frame, stream):
+
+        if not mask.initialised:
+            mask.initialise(camera_frame, stream)
+
+        (h, w) = camera_frame.shape[:2]
+        frame_original = camera_frame
+
+        gpu_frame_original = cv2.cuda_GpuMat()
+        gpu_frame_original.upload(frame_original, stream=stream) 
+
+        if self.settings['frame_provider_resize_frame']:
+            gpu_frame_original = self.resize(gpu_frame_original, 
+                fromWidth=w, 
+                fromHeight=h, 
+                toHeight=self.settings['frame_provider_resize_dimension_h'], 
+                toWidth=self.settings['frame_provider_resize_dimension_w'], 
+                stream=stream)
+
+        # apply mask
+        gpu_frame_masked = mask.apply(gpu_frame_original, stream)
+
+        #grey
+        gpu_frame_grey = self.convert_to_grey(gpu_frame_masked, stream)
+
+        # blur
+        if self.settings['frame_provider_blur']:
+            gpu_frame_grey = self.reduce_noise(gpu_frame_grey, self.settings['frame_provider_blur_radius'], stream)
+
+        frame_masked = gpu_frame_masked.download()
+        frame_grey = gpu_frame_grey.download()
+
+        return frame_grey, frame_masked
 
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         # Overload this for a GPU specific implementation
@@ -124,6 +279,5 @@ class GpuFrameProcessor(FrameProcessor):
         gpu_frame_grey.upload(frame_grey, stream=stream) 
 
         gpu_dof_frame = dense_optical_flow.process_grey_frame(gpu_frame_grey, stream)
-        gpu_dof_frame = self.resize(gpu_dof_frame, self.settings['dense_optical_flow_w'], self.settings['dense_optical_flow_h'], stream)
         dof_frame = gpu_dof_frame.download()
         return dof_frame

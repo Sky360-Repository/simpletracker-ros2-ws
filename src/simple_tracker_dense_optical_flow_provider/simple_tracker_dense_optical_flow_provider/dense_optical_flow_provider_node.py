@@ -1,3 +1,15 @@
+# Original work Copyright (c) 2022 Sky360
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
 import datetime
 import rclpy
 import cv2
@@ -28,14 +40,15 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
 
       self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
 
-      optical_flow_frame = self.frame_processor.process_dense_optical_flow(self.dense_optical_flow, self.frame_grey, None)
-
+      optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, self.frame_grey, None)
+      
       frame_optical_flow_msg = Frame()
       frame_optical_flow_msg.epoch = self.msg_frame.epoch
       frame_optical_flow_msg.fps = self.msg_frame.fps
       frame_optical_flow_msg.frame_count = self.msg_frame.frame_count
       frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
       self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
+
 
   def config_list(self) -> List[str]:
     return ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']

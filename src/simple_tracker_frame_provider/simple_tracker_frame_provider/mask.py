@@ -27,7 +27,7 @@ class Mask():
     def Select(settings):
 
         mask_type = settings['mask_type']
-        enable_cuda = settings['mask_cuda_enable']
+        enable_cuda = settings['frame_provider_cuda_enable']
 
         if mask_type == 'no_op':
             return Mask.NoOp(settings)
@@ -89,6 +89,10 @@ class Mask():
     def apply(self, frame):
         pass
 
+    def guard_initialise(self):
+        if not self.initialised:
+            raise Exception('Mask needs to be initialised before calling apply')
+
 #############################################################################################################
 # NoOp masking implementations. It's just a passthrough and does not perform any sort of masking operation. #
 # Its the fallback option and supports both CPU and GPU architectures.                                      #
@@ -106,9 +110,8 @@ class NoOpMask(Mask):
         return (self.width, self.height)
 
     def apply(self, frame, stream=None):
-        if not self.initialised:
-            self.initialise(frame, stream)
-
+        self.guard_initialise()
+        
         return frame
 
 ##################################################################################################################
@@ -134,8 +137,7 @@ class FisheyeMask(Mask):
         return (self.new_width, self.new_height)
 
     def apply(self, frame, stream=None):
-        if not self.initialised:
-            self.initialise(frame, stream)
+        self.guard_initialise()
 
         mask = np.zeros(self.shape, dtype=np.uint8)
         cv2.circle(mask, (int(self.width / 2), int(self.height / 2)), int(min(self.height, self.width) * self.mask_radius), 255, -1)
@@ -176,8 +178,7 @@ class OverlayMask(Mask):
         return (self.width, self.height)
 
     def apply(self, frame, stream=None):
-        if not self.initialised:
-            self.initialise(frame, stream)
+        self.guard_initialise()
 
         masked_frame = cv2.bitwise_and(frame, frame, mask=self.overlay_image)
         return masked_frame
@@ -216,8 +217,7 @@ class OverlayMaskGpu(Mask):
         return (self.width, self.height)
 
     def apply(self, gpu_frame, stream):
-        if not self.initialised:
-            self.initialise(gpu_frame, stream)
+        self.guard_initialise()
 
         # -- work around --
         gpu_masked_frame = cv2.cuda.bitwise_not(gpu_frame, self.gpu_overlay_image, mask=self.gpu_overlay_image, stream=stream)
@@ -238,8 +238,7 @@ class OverlayInverseMask(OverlayMask):
         super().__init__(settings)
 
     def apply(self, frame, stream=None):
-        if not self.initialised:
-            self.initialise(frame, stream)
+        self.guard_initialise()
 
         mask = cv2.bitwise_not(self.overlay_image)
         masked_frame = cv2.bitwise_and(frame, frame, mask=mask)
@@ -256,8 +255,7 @@ class OverlayInverseMaskGpu(OverlayMaskGpu):
         super().__init__(settings)
 
     def apply(self, gpu_frame, stream):
-        if not self.initialised:
-            self.initialise(gpu_frame, stream)
+        self.guard_initialise()
 
         gpu_mask = cv2.cuda.bitwise_not(self.gpu_overlay_image, stream=stream)
         # -- work around --

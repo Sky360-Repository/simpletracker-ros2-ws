@@ -1,3 +1,15 @@
+# Original work Copyright (c) 2022 Sky360
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+
 import datetime
 import rclpy
 import cv2
@@ -45,7 +57,7 @@ class ControllerNode(ControlLoopNode):
 
   def config_list(self) -> List[str]:
     return ['controller_type', 'camera_mode', 'camera_uri', 'camera_resize_dimension_h', 'camera_resize_dimension_w', 
-    'camera_resize_frame', 'camera_cuda_enable', 'camera_video_file', 'camera_video_loop']
+    'camera_resize_frame', 'camera_video_file', 'camera_video_loop']
 
   def validate_config(self) -> bool:
     valid = True

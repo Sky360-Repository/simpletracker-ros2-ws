@@ -59,11 +59,18 @@ class MaskProviderNode(ConfiguredNode):
 
     if response.success:
       # update config 
-      mask_config = ConfigItem()
-      mask_config.key = 'mask_overlay_image_file_name'
-      mask_config.type = 'str'
-      mask_config.value = request.file_name
-      update_result = self.configuration_svc.send_update_config_request(mask_config)
+      mask_type_config = ConfigItem()
+      mask_type_config.key = 'mask_type'
+      mask_type_config.type = 'str'
+      mask_type_config.value = request.mask_type
+
+      mask_image_config = ConfigItem()
+      mask_image_config.key = 'mask_overlay_image_file_name'
+      mask_image_config.type = 'str'
+      mask_image_config.value = request.file_name
+
+      config_array = [mask_image_config, mask_type_config]
+      update_result = self.configuration_svc.send_update_config_request(config_array)
       if update_result.success:
         self.get_logger().info(f'Mask image was updated successfully to {request.file_name}.')
       else:

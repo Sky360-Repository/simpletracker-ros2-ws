@@ -99,7 +99,7 @@ def generate_launch_description():
                 #('sky360/visualiser/grey_frame', 'sky360/frames/grey/v1'),
                 #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow/v1'),
                 #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background/v1'),
-                ('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask/v1'),                
+                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask/v1'),                
             ]
         ),        
     ])

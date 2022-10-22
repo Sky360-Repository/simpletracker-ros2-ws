@@ -39,8 +39,8 @@ class ConfigurationsClientAsync(Node):
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()
 
-    def send_update_config_request(self, config: ConfigItem):
-        self.update_request.entries = [config]
+    def send_update_config_request(self, config_array):
+        self.update_request.entries = config_array
         self.future = self.update_config_client.call_async(self.update_request)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()

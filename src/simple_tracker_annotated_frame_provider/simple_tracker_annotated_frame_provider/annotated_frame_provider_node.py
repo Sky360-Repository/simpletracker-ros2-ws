@@ -37,9 +37,6 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def fp_original_callback(self, msg_frame:Frame):
-    self.msg_frame = msg_frame
-
   def tracking_state_callback(self, msg_tracking_state:TrackingState):
     self.msg_tracking_state = msg_tracking_state
 

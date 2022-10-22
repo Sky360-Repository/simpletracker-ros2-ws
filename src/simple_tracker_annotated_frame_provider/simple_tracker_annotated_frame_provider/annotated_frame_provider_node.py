@@ -12,6 +12,7 @@
 
 import rclpy
 import cv2
+import numpy as np
 from typing import List
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_interfaces.msg import TrackingState
@@ -57,7 +58,15 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
         cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
         cv2.putText(annotated_frame, frame_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
+        total_height = annotated_frame.shape[:2][0]
+        total_width = annotated_frame.shape[:2][1]
+
+        cropped_track_counter = 0
+        enable_cropped_tracks = self.app_configuration['visualiser_show_cropped_tracks']
+        zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']  
+
         for track in self.msg_track_array.tracks:
+
           (x, y, w, h) = self._get_sized_bbox(track.bbox)
           p1 = (int(x), int(y))
           p2 = (int(x + w), int(y + h))
@@ -66,6 +75,14 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
           cv2.putText(annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
           self._add_tracked_path(track, annotated_frame)
           self._add_predicted_point(track, annotated_frame)
+
+          if enable_cropped_tracks and track.state == self.ACTIVE_TARGET:
+            margin = 0 if cropped_track_counter == 0 else 10
+            zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
+            cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
+            if cropped_image_x + zoom_w < total_width:
+              annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
+              cropped_track_counter += 1
 
       frame_annotated_msg = Frame()
       frame_annotated_msg.epoch = self.msg_track_array.epoch
@@ -76,7 +93,8 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
       self.pub_annotated_frame.publish(frame_annotated_msg)
 
   def config_list(self) -> List[str]:
-    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size']
+    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size',
+      'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor']
 
   def validate_config(self) -> bool:
     valid = True

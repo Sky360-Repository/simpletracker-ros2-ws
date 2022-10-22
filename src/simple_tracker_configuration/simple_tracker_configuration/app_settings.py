@@ -48,6 +48,8 @@ class AppSettings():
                 ('visualiser_resize_frame', True),
                 ('visualiser_resize_dimension_h', 960),
                 ('visualiser_resize_dimension_w', 960),
+                ('visualiser_show_cropped_tracks', True),
+                ('visualiser_cropped_zoom_factor', 2),
 
                 ('tracker_type', 'CSRT'),
                 ('tracker_stopwatch_enable', False),
@@ -105,10 +107,11 @@ class AppSettings():
         app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
         app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value
         app_settings['visualiser_frame_source'] = node.get_parameter('visualiser_frame_source').value
-
         app_settings['visualiser_resize_frame'] = node.get_parameter('visualiser_resize_frame').value
         app_settings['visualiser_resize_dimension_h'] = node.get_parameter('visualiser_resize_dimension_h').value
         app_settings['visualiser_resize_dimension_w'] = node.get_parameter('visualiser_resize_dimension_w').value
+        app_settings['visualiser_show_cropped_tracks'] = node.get_parameter('visualiser_show_cropped_tracks').value
+        app_settings['visualiser_cropped_zoom_factor'] = node.get_parameter('visualiser_cropped_zoom_factor').value
 
         # Video Tracker section
         app_settings['tracker_type'] = node.get_parameter('tracker_type').value

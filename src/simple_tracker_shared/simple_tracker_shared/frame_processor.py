@@ -112,7 +112,7 @@ class CpuFrameProcessor(FrameProcessor):
         if self.settings['frame_provider_blur']:
             frame_grey = self.reduce_noise(frame_grey, self.settings['frame_provider_blur_radius'], stream)
 
-        return frame_grey, frame_masked
+        return frame_original, frame_grey, frame_masked
 
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         foreground_mask_frame = background_subtractor.apply(frame_grey)

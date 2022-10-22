@@ -32,7 +32,6 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
 
     # setup services, publishers and subscribers
     self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)
-    self.fp_original_sub = self.create_subscription(Frame, f'sky360/frames/{self.frame_type}/v1', self.fp_original_callback, 10)
     self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
     self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
 
@@ -49,18 +48,17 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
 
   def control_loop(self):
 
-    if self.msg_frame != None:
+    if self.msg_track_array != None:
 
-      annotated_frame = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      annotated_frame = self.br.imgmsg_to_cv2(self.msg_track_array.frame)
 
       if self.msg_tracking_state != None and self.msg_track_array != None:
 
         status_message = f"(Sky360) Tracker Status: trackable:{self.msg_tracking_state.trackable}, alive:{self.msg_tracking_state.alive}, started:{self.msg_tracking_state.started}, ended:{self.msg_tracking_state.ended}"
-        frame_message = f"(Sky360) {self.frame_type} frame, count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
+        frame_message = f"(Sky360) count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
 
         cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-        cv2.putText(annotated_frame, f'(Sky360) Frame count: {self.msg_frame.frame_count}, Tracked frame count: {self.msg_track_array.frame_count}, In sync: {self.msg_frame.frame_count == self.msg_track_array.frame_count}', (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-        cv2.putText(annotated_frame, frame_message, (25, 75), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+        cv2.putText(annotated_frame, frame_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
         for track in self.msg_track_array.tracks:
           (x, y, w, h) = self._get_sized_bbox(track.bbox)
@@ -73,9 +71,9 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
           self._add_predicted_point(track, annotated_frame)
 
       frame_annotated_msg = Frame()
-      frame_annotated_msg.epoch = self.msg_frame.epoch
-      frame_annotated_msg.fps = self.msg_frame.fps
-      frame_annotated_msg.frame_count = self.msg_frame.frame_count
+      frame_annotated_msg.epoch = self.msg_track_array.epoch
+      frame_annotated_msg.fps = self.msg_track_array.fps
+      frame_annotated_msg.frame_count = self.msg_track_array.frame_count
       frame_annotated_msg.frame = self.br.cv2_to_imgmsg(annotated_frame)
 
       self.pub_annotated_frame.publish(frame_annotated_msg)

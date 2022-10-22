@@ -44,11 +44,10 @@ class FrameProviderNode(ControlLoopNode):
 
     if self.msg_image != None:
 
-      frame_original = self.br.imgmsg_to_cv2(self.msg_image.frame)
-
       self.counter += 1
 
-      frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, frame_original, stream=None)
+      frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
+        self.br.imgmsg_to_cv2(self.msg_image.frame), stream=None)
 
       frame_original_msg = Frame()
       frame_original_msg.epoch = self.msg_image.epoch

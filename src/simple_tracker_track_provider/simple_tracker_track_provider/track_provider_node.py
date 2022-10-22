@@ -31,7 +31,7 @@ class TrackProviderNode(ControlLoopNode):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_original_frame = self.create_subscription(Frame, 'sky360/frames/original/v1', self.frame_callback, 10)
+    self.sub_masked_frame = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.frame_callback, 10)
     self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', self.bboxes_callback, 10)
     self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)
@@ -59,6 +59,7 @@ class TrackProviderNode(ControlLoopNode):
       track_array_msg.fps = self.msg_frame.fps
       track_array_msg.frame_count = self.msg_frame.frame_count
       track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+      track_array_msg.frame = self.msg_frame.frame
       self.pub_tracker_tracks.publish(track_array_msg)
       
       tracking_msg = TrackingState()

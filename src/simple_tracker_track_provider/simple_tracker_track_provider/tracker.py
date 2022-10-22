@@ -142,6 +142,7 @@ class Tracker():
                         if self.tracking_state != Tracker.ACTIVE_TARGET:
                             self.tracking_state = Tracker.ACTIVE_TARGET
                             self.bbox_to_check = bbox
+                            self.stationary_track_counter = 0
 
                     if validate_bbox:
                         # print(f'5 X --> tracker {self.id}, total length: {len(self.bboxes)}')
@@ -150,7 +151,7 @@ class Tracker():
                             # Mike: this bounding box has remained pretty static, its now closer to getting scavenged
                             self.stationary_track_counter += 1
                         else:
-                            self.stationary_track_counter = 0
+                            self.stationary_track_counter = 0                            
 
                 # Mike: If the target has not moved for a period of time, we classify the target as lost
                 if stationary_track_threshold <= self.stationary_track_counter < stationary_scavanage_threshold:

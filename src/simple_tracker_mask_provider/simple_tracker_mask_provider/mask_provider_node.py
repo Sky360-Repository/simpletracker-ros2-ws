@@ -15,7 +15,8 @@ import rclpy
 import cv2
 from typing import List
 from ament_index_python.packages import get_package_share_directory
-from simple_tracker_interfaces.srv import Mask
+from simple_tracker_interfaces.srv import Mask, MaskUpdate
+from simple_tracker_interfaces.msg import ConfigItem
 from cv_bridge import CvBridge
 from simple_tracker_shared.configured_node import ConfiguredNode
 
@@ -25,7 +26,8 @@ class MaskProviderNode(ConfiguredNode):
     super().__init__('sky360_mask_provider')
 
     # setup services, publishers and subscribers
-    self.mask_service = self.create_service(Mask, 'sky360/mask/image/v1', self.get_mask_callback)
+    self.get_mask_service = self.create_service(Mask, 'sky360/mask/image/v1', self.get_mask_callback)
+    self.put_mask_service = self.create_service(MaskUpdate, 'sky360/mask/update/v1', self.put_mask_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
   
@@ -42,6 +44,33 @@ class MaskProviderNode(ConfiguredNode):
 
     return response
 
+  def put_mask_callback(self, request, response):
+
+    mask_image = self.br.cv2_to_imgmsg(request.mask)
+    masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
+    mask_file_path = os.path.join(masks_folder, request.file_name)
+
+    if os.path.exists(mask_file_path) == False:
+      self.get_logger().info(f'Mask path {request.file_name} does not exist, adding mask.')
+    else:
+      self.get_logger().info(f'Mask path {request.file_name} does exist, overwriting.')
+
+    response.success = cv2.imwrite(mask_file_path, mask_image)
+
+    if response.success:
+      # update config 
+      mask_config = ConfigItem()
+      mask_config.key = 'mask_overlay_image_file_name'
+      mask_config.type = 'str'
+      mask_config.value = request.file_name
+      update_result = self.configuration_svc.send_update_config_request(mask_config)
+      if update_result.success:
+        self.get_logger().info(f'Mask image was updated successfully to {request.file_name}.')
+      else:
+        self.get_logger().info(f'Mask image config update, failed. [{update_result.message}]')
+
+    return response
+
   def config_list(self) -> List[str]:
     return ['mask_type', 'mask_overlay_image_file_name']
 
@@ -49,7 +78,8 @@ class MaskProviderNode(ConfiguredNode):
 
     valid = True
     # TODO: This has to be moved, we only provide the image here
-    if self.app_configuration['mask_type'] == 'overlay' or self.app_configuration['mask_type'] == 'overlay_inverse':
+    self.image_masks = ['overlay', 'overlay_inverse']
+    if any(self.app_configuration['mask_type'] in s for s in self.image_masks):  
       if self.app_configuration['mask_overlay_image_file_name'] == None:
         self.get_logger().error('The mask_overlay_image_file_name config entry is null')
         valid = False

@@ -44,6 +44,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ConfigEntry.srv"
   "srv/ConfigEntryArray.srv"
   "srv/Mask.srv"
+  "srv/MaskUpdate.srv"
   DEPENDENCIES sensor_msgs
 )
 

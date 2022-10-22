@@ -71,5 +71,6 @@
         ".vscode-insiders",
         ".devcontainer/devcontainer.json"
     ],
-    "ros.distro": "humble"
+    "ros.distro": "humble",
+    "cmake.configureOnOpen": false
 }

@@ -60,7 +60,7 @@ class ConfiguredNode(BaseNode):
 
   def load_config(self):
     #self.get_logger().info(f'Loading configuration list.')
-    response = self.configuration_svc.send_request(self.config_list())
+    response = self.configuration_svc.send_get_config_request(self.config_list())
     for config_item in response.entries:
       self.app_configuration[config_item.key] = ConfigEntryConvertor.Convert(config_item.type, config_item.value)
 

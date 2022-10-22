@@ -11,7 +11,8 @@
 # all copies or substantial portions of the Software.
 
 import sys
-from simple_tracker_interfaces.srv import ConfigEntryArray
+from simple_tracker_interfaces.srv import ConfigEntryArray, ConfigEntryUpdate
+from simple_tracker_interfaces.msg import ConfigItem
 import rclpy
 from rclpy.node import Node
 
@@ -19,15 +20,27 @@ class ConfigurationsClientAsync(Node):
 
     def __init__(self):
         super().__init__('configurations_client_async')
-        self.client = self.create_client(ConfigEntryArray, 'sky360/config/entries/v1')
+        self.get_config_client = self.create_client(ConfigEntryArray, 'sky360/config/entries/v1')
+        self.update_config_client = self.create_client(ConfigEntryUpdate, 'sky360/config/entry/update/v1')
         self.get_logger().info('created config service client...')
 
-        while not self.client.wait_for_service(timeout_sec = 1.0):
-            self.get_logger().info('configurations service not available, waiting again...')
-        self.request = ConfigEntryArray.Request()
+        while not self.get_config_client.wait_for_service(timeout_sec = 1.0):
+            self.get_logger().info('configuration get service not available, spinning ...')
 
-    def send_request(self, keys):
-        self.request.keys = keys
-        self.future = self.client.call_async(self.request)
+        while not self.update_config_client.wait_for_service(timeout_sec = 1.0):
+            self.get_logger().info('configuration update service not available, spinning ...')
+
+        self.get_request = ConfigEntryArray.Request()
+        self.update_request = ConfigEntryUpdate.Request()
+
+    def send_get_config_request(self, keys):
+        self.get_request.keys = keys
+        self.future = self.get_config_client.call_async(self.get_request)
+        rclpy.spin_until_future_complete(self, self.future)
+        return self.future.result()
+
+    def send_update_config_request(self, config: ConfigItem):
+        self.update_request.entries = [config]
+        self.future = self.update_config_client.call_async(self.update_request)
         rclpy.spin_until_future_complete(self, self.future)
         return self.future.result()

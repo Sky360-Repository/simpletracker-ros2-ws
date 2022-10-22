@@ -10,16 +10,13 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import os
 import rclpy
 from typing import List
-from simple_tracker_interfaces.msg import Frame
-from simple_tracker_interfaces.msg import CameraFrame
-from simple_tracker_interfaces.msg import TrackingState
-from simple_tracker_interfaces.msg import TrackArray
-from simple_tracker_interfaces.msg import Track
-from simple_tracker_interfaces.msg import BoundingBox
+from simple_tracker_interfaces.msg import Frame, CameraFrame, TrackingState, TrackArray, Track, BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
+from .mask_client_async import MaskClientAsync
 
 from cv_bridge import CvBridge
 import cv2
@@ -92,7 +89,12 @@ class ImageVisualiserNode(ConfiguredNode):
     annotated_frame = self.br.imgmsg_to_cv2(data.frame)
     annotated_frame = self._resize(annotated_frame)
     cv2.imshow("fp/annotated", annotated_frame)
-    cv2.waitKey(1)
+    k = cv2.waitKey(1)
+    if k > 0:
+      self.get_logger().info(f'Key press {k} captured.')
+      if k == 32:
+        # spacebar
+        self.update_mask_test()
 
   def _resize(self, frame):
     if self.app_configuration['visualiser_resize_frame']:
@@ -121,11 +123,26 @@ class ImageVisualiserNode(ConfiguredNode):
     if init:
       self.br = CvBridge()
       self.font_colour = (50, 170, 50)
+      self.mask_svc = MaskClientAsync()
 
     self.font_size = self.app_configuration['visualiser_font_size']
     self.font_thickness = self.app_configuration['visualiser_font_thickness']
     self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
 
+  def update_mask_test(self):
+
+    mask_file_path = '/workspaces/simpletracker-ros2-ws/beeks_mask.jpg'
+
+    if os.path.exists(mask_file_path) == False:
+      self.get_logger().error(f'Mask path {mask_file_path} does not exist.')
+
+    mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
+    msg_mask_image = self.br.cv2_to_imgmsg(mask_image)    
+    mask_type = 'overlay_inverse'
+    file_name = 'beeks_mask.jpg'
+
+    response = self.mask_svc.send_request(msg_mask_image, mask_type,file_name)
+    self.get_logger().info(f'Mask update response: {response}')
 
 def main(args=None):
 

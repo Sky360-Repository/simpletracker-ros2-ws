@@ -46,7 +46,7 @@ class MaskProviderNode(ConfiguredNode):
 
   def put_mask_callback(self, request, response):
 
-    mask_image = self.br.cv2_to_imgmsg(request.mask)
+    mask_image = self.br.imgmsg_to_cv2(request.mask)
     masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
     mask_file_path = os.path.join(masks_folder, request.file_name)
 

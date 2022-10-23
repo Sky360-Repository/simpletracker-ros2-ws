@@ -26,8 +26,16 @@
 
 ### I have made some more progress with regards to ROS2, follow steps above to ensure everything is working
 
-* You can run Simple Tracker using the launch facility
-  * `ros2 launch simple_tracker_launch simple_tracker_launch.py` 
+* You can run Simple Tracker by running the build file
+  * `./build.sh` 
+
+### Updating configuration from the Visualiser window
+
+* When the visualiser is up and running, a number of key presses are currently handled as to allow you to change the configuration dynamically:
+  * **+** This will increase the size of the image
+  * **-** This will decrease the size of the image
+  * **m** This will switch masks
+  * **c** This will switch controllers, however you need to have configured your camera details as per above for this to work
 
 ### Updating configuration from command line example:
 

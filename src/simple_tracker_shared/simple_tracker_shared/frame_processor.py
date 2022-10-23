@@ -183,7 +183,7 @@ class GpuFrameProcessor(FrameProcessor):
         frame_masked = gpu_frame_masked.download()
         frame_grey = gpu_frame_grey.download()
 
-        return frame_grey, frame_masked
+        return frame_original, frame_grey, frame_masked
 
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         # Overload this for a GPU specific implementation

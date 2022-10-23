@@ -151,6 +151,8 @@ class KeyHandler():
       for config in config_array:
         self.node.get_logger().info(f'{config.key} was updated successfully to {config.value}.')
         self.state[config.key] = ConfigEntryConvertor.Convert(config.type, config.value)
+    else:
+      self.node.get_logger().warn(f'Error updating configuration: {update_result.message}.')
 
   def init_state(self):
     self.state = {}

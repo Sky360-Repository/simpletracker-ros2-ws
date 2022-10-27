@@ -81,8 +81,12 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
             zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
             cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
             if cropped_image_x + zoom_w < total_width:
-              annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
-              cropped_track_counter += 1
+              try:
+                annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
+              except ValueError as e:
+                self.get_logger().warn(f'Value Error: {print(e)}')
+              finally:
+                cropped_track_counter += 1
 
       frame_annotated_msg = Frame()
       frame_annotated_msg.epoch = self.msg_track_array.epoch

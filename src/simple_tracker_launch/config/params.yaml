@@ -16,6 +16,7 @@ configuration_service:
     #camera_video_file: "birds_and_plane.mp4"
     camera_video_file: "brad_drone_1.mp4"
     #camera_video_file: "brad_drone_2.mp4"
+    #camera_video_file: "uap_texas_skyhub.mp4"
     camera_video_loop: True
 
     # Frame provider section
@@ -53,7 +54,7 @@ configuration_service:
     #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',
     #           'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'
     #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
-    background_subtractor_type: "BGS_WMV"
+    background_subtractor_type: "BGS_WMM"
     background_subtractor_sensitivity: 1
     background_subtractor_learning_rate: 0.05
     background_subtractor_cuda_enable: False
@@ -70,6 +71,7 @@ configuration_service:
     #   one of: 'no_op', 'fish_eye', 'overlay', 'overlay_inverse'
     #   each option has it's own parameters, see below
     #   NOTE: 'fish_eye' does not support cuda and will fallback to no_op    
+    #mask_type: "no_op"
     mask_type: "overlay_inverse"
     mask_pct: 20
     # A couple of built in options already available

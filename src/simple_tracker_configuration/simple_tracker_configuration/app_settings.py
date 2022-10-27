@@ -57,7 +57,7 @@ class AppSettings():
                 ('tracker_detection_mode', 'background_subtraction'),
                 ('tracker_detection_sensitivity', 1),
                 ('tracker_max_active_trackers', 10),
-                ('tracker_wait_seconds_threshold', 0),
+                ('tracker_min_centre_point_distance_between_bboxes', 64),
 
                 ('background_subtractor_type', 'KNN'),
                 ('background_subtractor_sensitivity', 1),
@@ -120,8 +120,8 @@ class AppSettings():
         app_settings['tracker_detection_mode'] = node.get_parameter('tracker_detection_mode').value
         app_settings['tracker_detection_sensitivity'] = node.get_parameter('tracker_detection_sensitivity').value
         app_settings['tracker_max_active_trackers'] = node.get_parameter('tracker_max_active_trackers').value
-        app_settings['tracker_wait_seconds_threshold'] = node.get_parameter('tracker_wait_seconds_threshold').value
-
+        app_settings['tracker_min_centre_point_distance_between_bboxes'] = node.get_parameter('tracker_min_centre_point_distance_between_bboxes').value
+        
         # Background subtractor section
         app_settings['background_subtractor_type'] = node.get_parameter('background_subtractor_type').value
         app_settings['background_subtractor_sensitivity'] = node.get_parameter('background_subtractor_sensitivity').value

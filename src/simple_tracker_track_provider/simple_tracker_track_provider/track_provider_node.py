@@ -104,7 +104,7 @@ class TrackProviderNode(ControlLoopNode):
   def config_list(self) -> List[str]:
     return ['tracker_type', 'tracker_detection_sensitivity', 'tracker_active_only', 'tracker_max_active_trackers', 'frame_provider_resize_dimension_h', 
       'frame_provider_resize_dimension_w', 'track_path_plotting_enabled', 'track_prediction_enabled', 'track_validation_enable', 'track_stationary_threshold', 
-      'track_orphaned_threshold']
+      'track_orphaned_threshold', 'tracker_min_centre_point_distance_between_bboxes']
 
   def validate_config(self) -> bool:
     valid = True

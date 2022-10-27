@@ -12,7 +12,7 @@
 
 import numpy as np
 from threading import Thread
-from simple_tracker_shared.utils import is_bbox_being_tracked, bbox_overlap, is_bbox_being_tracked
+from simple_tracker_shared.utils import is_bbox_being_tracked, calc_centre_point_distance
 from .tracker import Tracker
 
 ################################################################################################
@@ -90,9 +90,8 @@ class VideoTracker():
             # Try to match the new detections with this tracker
             for new_bbox in bboxes:
                 if new_bbox in unmatched_bboxes:
-                    overlap = bbox_overlap(bbox, new_bbox)
-                    # print(f'Overlap: {overlap}; bbox:{bbox}, new_bbox:{new_bbox}')
-                    if overlap > 0.2:
+                    # ensure the centre 
+                    if calc_centre_point_distance(bbox, new_bbox) < self.settings['tracker_min_centre_point_distance_between_bboxes']:
                         unmatched_bboxes.remove(new_bbox)
 
         # remove failed trackers from live tracking

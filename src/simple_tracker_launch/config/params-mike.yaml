@@ -43,7 +43,7 @@ configuration_service:
     tracker_detection_mode: "background_subtraction"
     tracker_detection_sensitivity: 1
     tracker_max_active_trackers: 10
-    tracker_wait_seconds_threshold: 0
+    tracker_min_centre_point_distance_between_bboxes: 64 # we could make this 1/15 of the width
 
     # Background Subtractor Type
     #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',

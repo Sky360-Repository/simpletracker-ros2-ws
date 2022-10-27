@@ -118,101 +118,27 @@ def bbox1_contain_bbox2(bbox1, bbox2):
     x2, y2, w2, h2 = bbox2
     return (x2 > x1) and (y2 > y1) and (x2+w2 < x1+w1) and (y2+h2 < y1+h1)
 
+# Utility function to calculate the distance between the centre points of 2 bounding boxes
+def calc_centre_point_distance(bbox1, bbox2):
+    x1, y1, w1, h1 = bbox1
+    c1 = (int(x1+(w1/2)), int(y1+(h1/2)))
+    x2, y2, w2, h2 = bbox2
+    c2 = (int(x2+(w2/2)), int(y2+(h2/2)))
+    #euclidean = math.sqrt((x2-x1)**2+(y2-y1)**2)
+    res = cv2.norm(c1, c2)
+    return int(res)
+
 # Utility function to determine if a bounding box is already being tracked by checkling if its overlapped or already contained
 def is_bbox_being_tracked(live_trackers, bbox):
     # Mike: The bbox contained should computationally be faster than the overlap, so we use it first as a shortcut
     for tracker in live_trackers:
-        if tracker.is_bbx_contained(bbox):
+        if tracker.is_bbox_contained(bbox):
             return True
         else:
-            if tracker.does_bbx_overlap(bbox):
+            if tracker.does_bbox_overlap(bbox):
                 return True
 
     return False
-
-# Utility function to detect blobs in a background subtracted frame
-def perform_blob_detection(frame, sensitivity):
-    params = cv2.SimpleBlobDetector_Params()
-    # print(f"original sbd params:{params}")
-
-    params.minRepeatability = 2
-    # 5% of the width of the image
-    params.minDistBetweenBlobs = int(frame.shape[1] * 0.05)
-    params.minThreshold = 3
-    params.filterByArea = 1
-    params.filterByColor = 0
-    # params.blobColor=255
-
-    if sensitivity == 1:  # Detects small, medium and large objects
-        params.minArea = 3
-    elif sensitivity == 2:  # Detects medium and large objects
-        params.minArea = 5
-    elif sensitivity == 3:  # Detects large objects
-        params.minArea = 25
-    else:
-        raise Exception(
-            f"Unknown sensitivity option ({sensitivity}). 1, 2 and 3 is supported not {sensitivity}.")
-
-    detector = cv2.SimpleBlobDetector_create(params)
-    # params.write('params.json')
-    # print("created detector")
-    # blobframe=cv2.convertScaleAbs(frame)
-    # print("blobframe")
-    keypoints = detector.detect(frame)
-    # print("ran detect")
-    return keypoints
-
-# Check to see if an image needs to be scaled down
-def calc_image_scale(frame_w, frame_h, to_w, to_h):
-    if frame_h > to_h or frame_w > to_w:
-        # calculate the width and height percent of original size
-        width = int((to_w / frame_w) * 100)
-        height = int((to_h / frame_h) * 100)
-        # pick the largest of the two
-        scale_percent = max(width, height)
-        # calc the scaled width and height
-        scaled_width = int(frame_w * scale_percent / 100)
-        scaled_height = int(frame_h * scale_percent / 100)
-        return (True, scaled_width, scaled_height)
-    else:
-        return (False,  frame_w, frame_h)
-
-# Utility function to standardise the drawing of a bounding box (rectangle) onto a frame
-def add_bbox_to_image(bbox, frame, tracker_id, font_size, color, settings):
-    x1, y1, w, h = get_sized_bbox(bbox, settings)
-    p1 = (int(x1), int(y1))
-    p2 = (int(x1 + w), int(y1 + h))
-    cv2.rectangle(frame, p1, p2, color, 2, 1)
-    cv2.putText(frame, str(tracker_id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, font_size, color, 2)
-
-# Utility function to standardise the drawing of the track center point onto a frame
-def add_track_points_to_image(tracker, frame):
-    bbox = get_sized_bbox_from_tracker(tracker)
-    center_points = tracker.center_points
-    for center_point in center_points:
-        if not is_point_contained_in_bbox(bbox, center_point[0]):
-            cv2.circle(frame, center_point[0], radius=1, color=center_point[1], thickness=2)
-
-# Utility function to standardise the drawing of the track line onto a frame
-def add_track_line_to_image(tracker, frame):
-    bbox = get_sized_bbox_from_tracker(tracker)
-    center_points = tracker.center_points
-    previous_point = None
-    for center_point in center_points:
-        if not previous_point is None:
-            if not is_point_contained_in_bbox(bbox, center_point[0]):
-                cv2.line(frame, previous_point[0], center_point[0], previous_point[1], thickness=2)
-        previous_point = center_point
-
-# Utility function to standardise the drawing of bbox center point onto a frame
-def add_center_point_to_image(tracker, frame):
-    predicted_center_point = tracker.get_center()
-    cv2.circle(frame, predicted_center_point, radius=1, color=(0, 0, 255), thickness=2)
-
-# Utility function to standardise the drawing of prediction point onto a frame
-def add_predicted_point_to_image(tracker, frame):
-    predicted_center_point = tracker.predictor_center_points[-1]
-    cv2.circle(frame, predicted_center_point, radius=1, color=(255, 0, 0), thickness=2)
 
 # Utility function to deletrmine if a point overlaps a bouding box
 def is_point_contained_in_bbox(bbox, point):
@@ -262,54 +188,6 @@ def clip_at_center(frame, center, width, height, new_width, new_height):
     bottom = max(new_height, bottom)
 
     return frame[top:bottom, left:right]
-
-# Utility function to combine 4 frames into a single frame, mainly used by a visualiser
-def combine_frames_2x2(top_left, top_right, bottom_left, bottom_right):
-    im_h1 = cv2.hconcat([top_left, top_right])
-    im_h2 = cv2.hconcat([bottom_left, bottom_right])
-    return cv2.vconcat([im_h1, im_h2])
-
-# Utility function to stamp the original frame with text stating its the original frame
-def stamp_original_frame(frame, font_size, font_color, font_thickness):
-    cv2.putText(frame, 'Original Frame (Sky360)', (25, 25),
-                cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-
-# Utility function to stamp the output frame with text displaying the current state of the trackers
-def stamp_output_frame(video_tracker, frame, font_size, font_color, fps, font_thickness):
-    msg = f"Trackers: trackable:{sum(map(lambda x: x.is_tracking(), video_tracker.live_trackers))}, alive:{len(video_tracker.live_trackers)}, started:{video_tracker.total_trackers_started}, ended:{video_tracker.total_trackers_finished} (Sky360)"
-    cv2.putText(frame, msg, (25, 25),
-                cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-    cv2.putText(frame, f"FPS: {str(int(fps))} (Sky360)", (
-        25, 50), cv2.FONT_HERSHEY_SIMPLEX, font_size, font_color, font_thickness)
-
-# Utility function to standardise the display of a frame
-def display_frame(processed_frame, max_display_dim):
-    # print(f"display_frame shape:{processed_frame.shape}, max:{max_display_dim}")
-    # Display result, resize it to a standard size
-    if processed_frame.shape[0] > max_display_dim or processed_frame.shape[1] > max_display_dim:
-        # Mike: scale the image to something that is of a reasonable viewing size
-        frame_scaled = _scale_image_for_display(
-            processed_frame, max_display_dim, max_display_dim)
-        # print(f"{frame_scaled.shape}")
-        cv2.imshow("Tracking", frame_scaled)
-    else:
-        cv2.imshow("Tracking", processed_frame)
-
-# Utility function to standardise the scaling of an image for display
-# NOTE: Mike: This will likely be removed in future as it does not take platform (cpu or gpu) into consideration
-def _scale_image_for_display(frame, w, h):
-    if frame.shape[0] > h or frame.shape[1] > w:
-        # calculate the width and height percent of original size
-        width = int((w / frame.shape[1]) * 100)
-        height = int((h / frame.shape[0]) * 100)
-        # pick the largest of the two
-        scale_percent = max(width, height)
-        # calc the scaled width and height
-        scaled_width = int(frame.shape[1] * scale_percent / 100)
-        scaled_height = int(frame.shape[0] * scale_percent / 100)
-        return cv2.resize(frame, (scaled_width, scaled_height))
-    else:
-        return frame
 
 def frame_resize(frame, width=None, height=None, inter=cv2.INTER_AREA):
     # initialize the dimensions of the frame to be resized and

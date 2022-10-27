@@ -177,11 +177,11 @@ class Tracker():
         return self.tracking_state == Tracker.ACTIVE_TARGET
 
     # Utility function to determine if there is overlap between existing and new bboxes
-    def does_bbx_overlap(self, bbox):
+    def does_bbox_overlap(self, bbox):
         overlap = bbox_overlap(self.bboxes[-1], bbox)
-        # print(f'checking tracking overlap {overlap} for {self.id}')
+
         return overlap > 0
     
     # Utility function to determine if there is containment of new bboxes
-    def is_bbx_contained(self, bbox):
+    def is_bbox_contained(self, bbox):
         return bbox1_contain_bbox2(self.bboxes[-1], bbox)

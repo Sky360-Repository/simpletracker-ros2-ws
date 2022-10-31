@@ -12,7 +12,8 @@
 
 import datetime
 import rclpy
-import cv2
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -20,20 +21,20 @@ from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.frame_processor import FrameProcessor
-from simple_tracker_shared.utils import frame_resize
+from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .mask import Mask
 from .mask_client_async import MaskClientAsync
 
 class FrameProviderNode(ControlLoopNode):
 
-  def __init__(self):
+  def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_frame_provider')
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, 10)
-    self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)
-    self.pub_masked_frame = self.create_publisher(Frame, 'sky360/frames/masked/v1', 10)
-    self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)
+    self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, subscriber_qos_profile)
+    self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', publisher_qos_profile)
+    self.pub_masked_frame = self.create_publisher(Frame, 'sky360/frames/masked/v1', publisher_qos_profile)
+    self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -113,10 +114,20 @@ class FrameProviderNode(ControlLoopNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  frame_provider = FrameProviderNode()
-  rclpy.spin(frame_provider)
-  frame_provider.destroy_node()
-  rclpy.rosshutdown()
+
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
+
+  node = FrameProviderNode(subscriber_qos_profile, publisher_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
+
 
 if __name__ == '__main__':
   main()

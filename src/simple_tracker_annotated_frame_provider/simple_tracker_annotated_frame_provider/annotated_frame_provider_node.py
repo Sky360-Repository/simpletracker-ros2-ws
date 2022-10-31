@@ -11,16 +11,15 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import cv2
 import numpy as np
 from typing import List
-from simple_tracker_interfaces.msg import Frame
-from simple_tracker_interfaces.msg import TrackingState
-from simple_tracker_interfaces.msg import TrackArray
-from simple_tracker_interfaces.msg import Track
-from simple_tracker_interfaces.msg import BoundingBox
-from simple_tracker_shared.control_loop_node import ControlLoopNode
 from cv_bridge import CvBridge
+from simple_tracker_interfaces.msg import Frame, TrackingState, TrackArray, Track, BoundingBox
+from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
  
 class AnnotatedFrameProviderNode(ControlLoopNode):
 
@@ -28,13 +27,14 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
   ACTIVE_TARGET = 2
   LOST_TARGET = 3
 
-  def __init__(self):
+  def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('annotated_frame_provider')
 
     # setup services, publishers and subscribers
-    self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)
-    self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
-    self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
+    self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', publisher_qos_profile)
+    self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', 
+      self.tracking_state_callback, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
+    self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -84,7 +84,8 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
               try:
                 annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
               except ValueError as e:
-                self.get_logger().warn(f'Value Error: {print(e)}')
+                #self.get_logger().warn(f'Value Error: {print(e)}')
+                pass
               finally:
                 cropped_track_counter += 1
 
@@ -172,10 +173,21 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  annotated_frame_provider_node = AnnotatedFrameProviderNode()
-  rclpy.spin(annotated_frame_provider_node)
-  annotated_frame_provider_node.destroy_node()
-  rclpy.shutdown()
-  
+
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
+
+  node = AnnotatedFrameProviderNode(subscriber_qos_profile, publisher_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
+      #rclpy.rosshutdown()
+
+
 if __name__ == '__main__':
   main()

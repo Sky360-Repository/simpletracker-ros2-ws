@@ -11,10 +11,9 @@
 # all copies or substantial portions of the Software.
 
 import sys
-from simple_tracker_interfaces.srv import ConfigEntryArray, ConfigEntryUpdate
-from simple_tracker_interfaces.msg import ConfigItem
 import rclpy
 from rclpy.node import Node
+from simple_tracker_interfaces.srv import ConfigEntryArray, ConfigEntryUpdate
 
 class ConfigurationsClientAsync(Node):
 

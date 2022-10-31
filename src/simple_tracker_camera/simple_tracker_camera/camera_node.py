@@ -12,6 +12,8 @@
 
 import datetime
 import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile
 import cv2
 import time
 import os
@@ -20,16 +22,16 @@ from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
-from simple_tracker_shared.utils import frame_resize
+from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile
 from .controller import Controller
 
 class ControllerNode(ControlLoopNode):
 
-  def __init__(self):
+  def __init__(self, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)   
+    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -50,7 +52,6 @@ class ControllerNode(ControlLoopNode):
       camera_frame_msg.frame = self.br.cv2_to_imgmsg(self.frame)
 
       self.pub_frame.publish(camera_frame_msg)
-
 
   def config_list(self) -> List[str]:
     return ['controller_type', 'camera_mode', 'camera_uri', 'camera_video_file', 'camera_video_loop']
@@ -100,10 +101,19 @@ class ControllerNode(ControlLoopNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  camera = ControllerNode()
-  rclpy.spin(camera)
-  camera.destroy_node()
-  rclpy.rosshutdown()
+
+  publisher_qos_profile = get_topic_publisher_qos_profile()
+
+  node = ControllerNode(publisher_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
+
 
 if __name__ == '__main__':
   main()

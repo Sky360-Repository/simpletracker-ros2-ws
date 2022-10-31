@@ -12,10 +12,13 @@
 
 import os
 import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from simple_tracker_interfaces.msg import Frame, CameraFrame, TrackingState, TrackArray, Track, BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
+from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
 from .key_handler import KeyHandler
 
 from cv_bridge import CvBridge
@@ -27,18 +30,19 @@ class ImageVisualiserNode(ConfiguredNode):
   ACTIVE_TARGET = 2
   LOST_TARGET = 3
 
-  def __init__(self):
+  def __init__(self, subscriber_qos_profile: QoSProfile):
     super().__init__('image_visualiser_node')
 
-    self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, 10)
-    self.fp_original_sub = self.create_subscription(Frame, 'sky360/visualiser/original_frame', self.fp_original_callback, 10)
-    self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, 10)
-    self.fp_grey_sub = self.create_subscription(Frame, 'sky360/visualiser/grey_frame', self.fp_grey_callback, 10)
-    self.dof_sub = self.create_subscription(Frame, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, 10)
-    self.forground_sub = self.create_subscription(Frame, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, 10) #sky360/frames/foreground_mask/v1
-    self.masked_background_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, 10)
-    self.fp_annotated_sub = self.create_subscription(Frame, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, 10)
-    #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
+    self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/visualiser/original_camera_frame', 
+      self.camera_original_callback, subscriber_qos_profile)
+    self.fp_original_sub = self.create_subscription(Frame, 'sky360/visualiser/original_frame', self.fp_original_callback, subscriber_qos_profile)
+    self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, subscriber_qos_profile)
+    self.fp_grey_sub = self.create_subscription(Frame, 'sky360/visualiser/grey_frame', self.fp_grey_callback, subscriber_qos_profile)
+    self.dof_sub = self.create_subscription(Frame, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, subscriber_qos_profile)
+    self.forground_sub = self.create_subscription(Frame, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, subscriber_qos_profile) #sky360/frames/foreground_mask/v1
+    self.masked_background_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, subscriber_qos_profile)
+    self.fp_annotated_sub = self.create_subscription(Frame, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, subscriber_qos_profile)
+    #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -126,10 +130,19 @@ class ImageVisualiserNode(ConfiguredNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  image_visualiser = ImageVisualiserNode()
-  rclpy.spin(image_visualiser)
-  image_visualiser.destroy_node()
-  rclpy.shutdown()
+
+  subscriber_qos_profile = get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT)
+
+  node = ImageVisualiserNode(subscriber_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
+      #rclpy.rosshutdown()
   
 if __name__ == '__main__':
   main()

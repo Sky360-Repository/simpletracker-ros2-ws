@@ -12,22 +12,24 @@
 
 import datetime
 import rclpy
-import cv2
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile
 from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.frame_processor import FrameProcessor
+from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .dense_optical_flow import DenseOpticalFlow
 
 class DenseOpticalFlowProviderNode(ControlLoopNode):
 
-  def __init__(self):
+  def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_dense_optical_flow_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)
-    self.pub_dense_optical_flow_frame = self.create_publisher(Frame, 'sky360/frames/dense_optical_flow/v1', 10)
+    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, subscriber_qos_profile)
+    self.pub_dense_optical_flow_frame = self.create_publisher(Frame, 'sky360/frames/dense_optical_flow/v1', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -78,10 +80,19 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  dof_provider = DenseOpticalFlowProviderNode()
-  rclpy.spin(dof_provider)
-  dof_provider.destroy_node()
-  rclpy.rosshutdown()
+
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
+
+  node = DenseOpticalFlowProviderNode(subscriber_qos_profile, publisher_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
 
 if __name__ == '__main__':
   main()

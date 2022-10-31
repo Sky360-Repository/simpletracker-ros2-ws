@@ -12,25 +12,25 @@
 
 import datetime
 import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile
 import cv2
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame
-from simple_tracker_interfaces.msg import KeyPoint
-from simple_tracker_interfaces.msg import KeyPointArray
-from simple_tracker_interfaces.msg import BoundingBox
-from simple_tracker_interfaces.msg import BoundingBoxArray
+from simple_tracker_interfaces.msg import Frame, KeyPoint, KeyPointArray, BoundingBox, BoundingBoxArray
 from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
 class BGSDetectorNode(ControlLoopNode):
 
-  def __init__(self):
+  def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_bgs_detector')
 
     # setup services, publishers and subscribers
-    self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', self.masked_background_frame_callback, 10)
-    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', 10)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)   
+    self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', 
+      self.masked_background_frame_callback, subscriber_qos_profile)
+    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', publisher_qos_profile)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -136,10 +136,19 @@ class BGSDetectorNode(ControlLoopNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  detector_node = BGSDetectorNode()
-  rclpy.spin(detector_node)
-  detector_node.destroy_node()
-  rclpy.rosshutdown()
+
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
+
+  node = BGSDetectorNode(subscriber_qos_profile, publisher_qos_profile)
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
 
 if __name__ == '__main__':
   main()

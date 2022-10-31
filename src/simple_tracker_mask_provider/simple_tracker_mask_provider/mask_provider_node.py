@@ -12,12 +12,13 @@
 
 import os
 import rclpy
+from rclpy.executors import ExternalShutdownException
 import cv2
 from typing import List
 from ament_index_python.packages import get_package_share_directory
+from cv_bridge import CvBridge
 from simple_tracker_interfaces.srv import Mask, MaskUpdate
 from simple_tracker_interfaces.msg import ConfigItem
-from cv_bridge import CvBridge
 from simple_tracker_shared.configured_node import ConfiguredNode
 
 class MaskProviderNode(ConfiguredNode):
@@ -100,10 +101,18 @@ class MaskProviderNode(ConfiguredNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  mask_provider = MaskProviderNode()
-  rclpy.spin(mask_provider)
-  mask_provider.destroy_node()
-  rclpy.rosshutdown()
+
+  node = MaskProviderNode()
+
+  try:
+    rclpy.spin(node)
+  except (KeyboardInterrupt, ExternalShutdownException):
+      pass
+  finally:
+      rclpy.try_shutdown()
+      node.destroy_node()
+      #rclpy.rosshutdown()
+
 
 if __name__ == '__main__':
   main()

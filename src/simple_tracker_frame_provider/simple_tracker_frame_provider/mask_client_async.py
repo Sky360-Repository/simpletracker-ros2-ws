@@ -11,10 +11,9 @@
 # all copies or substantial portions of the Software.
 
 import sys
-from sensor_msgs.msg import Image
-from simple_tracker_interfaces.srv import Mask
 import rclpy
 from rclpy.node import Node
+from simple_tracker_interfaces.srv import Mask
 
 class MaskClientAsync(Node):
 

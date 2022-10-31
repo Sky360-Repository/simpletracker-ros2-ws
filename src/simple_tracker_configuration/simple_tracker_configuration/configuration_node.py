@@ -11,28 +11,32 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
+from rclpy.executors import ExternalShutdownException
+from rclpy.qos import QoSProfile
 from rclpy.node import Node
-from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
-from simple_tracker_interfaces.msg import ConfigItem
-from simple_tracker_interfaces.srv import ConfigEntryUpdate
-from simple_tracker_interfaces.srv import ConfigEntry
-from simple_tracker_interfaces.srv import ConfigEntryArray
+from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray
+from simple_tracker_interfaces.srv import ConfigEntryUpdate, ConfigEntry, ConfigEntryArray
 from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
+from simple_tracker_shared.qos_profiles import get_config_publisher_qos_profile
 from .app_settings import AppSettings
 
 class SimpleTrackerConfigurationNode(Node):
 
-    def __init__(self):
+    def __init__(self, publisher_qos_profile: QoSProfile):
 
         super().__init__('sky360_configuration')
 
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get(self)
 
-        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', self.get_config_callback)
-        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', self.get_config_array_callback)
-        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', 
+            self.get_config_callback)
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', 
+            self.get_config_array_callback)
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', 
+            self.get_config_update_callback)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 
+            publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -123,11 +127,27 @@ class SimpleTrackerConfigurationNode(Node):
 
 
 def main(args=None):
-  rclpy.init(args=args)
-  configuration_service = SimpleTrackerConfigurationNode()  
-  rclpy.spin(configuration_service)
-  configuration_service.destroy_node()
-  rclpy.rosshutdown()
+
+    #publisher_callbacks = PublisherEventCallbacks(incompatible_qos=lambda event: get_logger('Talker').info(str(event)))
+    #subscription_callbacks = SubscriptionEventCallbacks(incompatible_qos=lambda event: get_logger('Listener').info(str(event)))
+    #subscription_callbacks = SubscriptionEventCallbacks(message_lost=self._message_lost_event_callback)
+    #subscription_callbacks = SubscriptionEventCallbacks(liveliness=lambda event: get_logger('Listener').info(str(event)))
+
+    rclpy.init(args=args)
+
+    publisher_qos_profile = get_config_publisher_qos_profile()
+
+    node = SimpleTrackerConfigurationNode(publisher_qos_profile)
+
+    try:
+        rclpy.spin(node)
+    except (KeyboardInterrupt, ExternalShutdownException):
+        pass
+    finally:
+        rclpy.try_shutdown()
+        node.destroy_node()
+        #rclpy.rosshutdown()
+
 
 if __name__ == '__main__':
   main()

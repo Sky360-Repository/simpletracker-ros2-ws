@@ -1,7 +1,9 @@
 from rclpy.duration import Duration
 from rclpy.logging import get_logger
-from rclpy.qos import QoSPresetProfiles, QoSDurabilityPolicy, QoSLivelinessPolicy, QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSProfile, QoSPresetProfiles, QoSReliabilityPolicy, QoSDurabilityPolicy, HistoryPolicy, QoSLivelinessPolicy
 from rclpy.qos_event import PublisherEventCallbacks, SubscriptionEventCallbacks
+
+#https://uk.mathworks.com/help/ros/ug/manage-quality-of-service-policies-in-ros2.html
 
 #https://github.com/ros2/demos/blob/rolling/quality_of_service_demo/rclpy/quality_of_service_demo_py/incompatible_qos.py
 
@@ -62,20 +64,30 @@ def get_config_subscriber_qos_profile() -> QoSProfile:
 
     #return QoSPresetProfiles.SYSTEM_DEFAULT.value    
 
-def get_topic_publisher_qos_profile(reliability: QoSReliabilityPolicy = QoSReliabilityPolicy.RELIABLE) -> QoSProfile:
+def get_topic_publisher_qos_profile(reliability: QoSReliabilityPolicy = QoSReliabilityPolicy.RELIABLE,
+    durability: QoSDurabilityPolicy = QoSDurabilityPolicy.TRANSIENT_LOCAL,
+    history: HistoryPolicy = HistoryPolicy.KEEP_LAST,
+    depth: int = 5) -> QoSProfile:
     #return QoSPresetProfiles.SENSOR_DATA.value    
     #return QoSPresetProfiles.SYSTEM_DEFAULT.value    
-    qos_profile = QoSProfile(depth=5)
-    qos_profile.reliability = reliability
-    qos_profile.durability = QoSDurabilityPolicy.VOLATILE
+    qos_profile = QoSProfile(reliability = reliability, durability = durability, history = history, depth = depth)
+    #qos_profile.reliability = reliability
+    #qos_profile.durability = durability
+    #qos_profile.history = history
+    #qos_profile.depth = depth
     return qos_profile
 
-def get_topic_subscriber_qos_profile(reliability: QoSReliabilityPolicy = QoSReliabilityPolicy.RELIABLE) -> QoSProfile:
+def get_topic_subscriber_qos_profile(reliability: QoSReliabilityPolicy = QoSReliabilityPolicy.BEST_EFFORT,
+    durability: QoSDurabilityPolicy = QoSDurabilityPolicy.VOLATILE,
+    history: HistoryPolicy = HistoryPolicy.KEEP_LAST,
+    depth: int = 5) -> QoSProfile:
     #return QoSPresetProfiles.SENSOR_DATA.value    
     #return QoSPresetProfiles.SYSTEM_DEFAULT.value    
-    qos_profile = QoSProfile(depth=5)
-    qos_profile.reliability = reliability
-    qos_profile.durability = QoSDurabilityPolicy.VOLATILE
+    qos_profile = QoSProfile(reliability = reliability, durability = durability, history = history, depth = depth)
+    #qos_profile.reliability = reliability
+    #qos_profile.durability = durability
+    #qos_profile.history = history
+    #qos_profile.depth = depth
     return qos_profile
 
 def get_service_qos_profile() -> QoSProfile:

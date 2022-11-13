@@ -1,5 +1,5 @@
-#FROM sky360/ros2-humble-dev:opencv4.6.0
-FROM sky360/ros2-humble-cuda-dev:opencv4.6.0
+FROM sky360/ros2-humble-dev:opencv4.6.0
+#FROM sky360/ros2-humble-cuda-dev:opencv4.6.0
 
 # ** [Optional] Uncomment this section to install additional packages. **
 

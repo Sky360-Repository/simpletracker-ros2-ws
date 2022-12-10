@@ -29,9 +29,9 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
     super().__init__('sky360_foreground_mask_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, subscriber_qos_profile)
-    self.pub_foreground_mask_frame = self.create_publisher(Frame, 'sky360/frames/foreground_mask/v1', publisher_qos_profile)
-    self.pub_masked_background_frame = self.create_publisher(Frame, 'sky360/frames/masked_background/v1', publisher_qos_profile)
+    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)
+    self.pub_foreground_mask_frame = self.create_publisher(Frame, 'sky360/frames/foreground_mask/v1', 10)#, publisher_qos_profile)
+    self.pub_masked_background_frame = self.create_publisher(Frame, 'sky360/frames/masked_background/v1', 10)#, publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 

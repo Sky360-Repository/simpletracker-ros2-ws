@@ -11,6 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
+import message_filters
 from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 import cv2
@@ -18,7 +19,7 @@ import numpy as np
 from typing import List
 from cv_bridge import CvBridge
 from simple_tracker_interfaces.msg import Frame, TrackingState, TrackArray, Track, BoundingBox
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.control_loop_node import ControlLoopNode, ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
  
 class AnnotatedFrameProviderNode(ControlLoopNode):
@@ -31,10 +32,18 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
     super().__init__('annotated_frame_provider')
 
     # setup services, publishers and subscribers
-    self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', publisher_qos_profile)
-    self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', 
-      self.tracking_state_callback, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
-    self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, subscriber_qos_profile)
+    self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)#, publisher_qos_profile)
+
+    self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
+    self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
+
+    #self.masked_frame_sub = message_filters.Subscriber(self, Frame, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
+    #self.tracking_state_sub = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state/v1')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
+    #self.tracker_tracks_sub = message_filters.Subscriber(self, TrackArray, 'sky360/tracker/tracks/v1')#, subscriber_qos_profile)
+
+    # setup the time synchronizer and register the subscriptions and callback
+    #self.time_synchronizer = message_filters.TimeSynchronizer([self.masked_frame_sub, self.tracking_state_sub, self.tracker_tracks_sub], 10)
+    #self.time_synchronizer.registerCallback(self.detections_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -88,6 +97,57 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
                 pass
               finally:
                 cropped_track_counter += 1
+
+      frame_annotated_msg = Frame()
+      frame_annotated_msg.epoch = self.msg_track_array.epoch
+      frame_annotated_msg.fps = self.msg_track_array.fps
+      frame_annotated_msg.frame_count = self.msg_track_array.frame_count
+      frame_annotated_msg.frame = self.br.cv2_to_imgmsg(annotated_frame)
+
+      self.pub_annotated_frame.publish(frame_annotated_msg)
+
+  def detections_callback(self, masked_frame:Frame, msg_tracking_state:TrackingState, msg_track_array:TrackArray):
+
+    if masked_frame != None and msg_tracking_state != None and msg_track_array != None:
+
+      annotated_frame = self.br.imgmsg_to_cv2(masked_frame)
+
+      status_message = f"(Sky360) Tracker Status: trackable:{self.msg_tracking_state.trackable}, alive:{self.msg_tracking_state.alive}, started:{self.msg_tracking_state.started}, ended:{self.msg_tracking_state.ended}"
+      frame_message = f"(Sky360) count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
+
+      cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+      cv2.putText(annotated_frame, frame_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+
+      total_height = annotated_frame.shape[:2][0]
+      total_width = annotated_frame.shape[:2][1]
+
+      cropped_track_counter = 0
+      enable_cropped_tracks = self.app_configuration['visualiser_show_cropped_tracks']
+      zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']  
+
+      for track in self.msg_track_array.tracks:
+
+        (x, y, w, h) = self._get_sized_bbox(track.bbox)
+        p1 = (int(x), int(y))
+        p2 = (int(x + w), int(y + h))
+        color = self._color(track.state)
+        cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
+        cv2.putText(annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+        self._add_tracked_path(track, annotated_frame)
+        self._add_predicted_point(track, annotated_frame)
+
+        if enable_cropped_tracks and track.state == self.ACTIVE_TARGET:
+          margin = 0 if cropped_track_counter == 0 else 10
+          zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
+          cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
+          if cropped_image_x + zoom_w < total_width:
+            try:
+              annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
+            except ValueError as e:
+              #self.get_logger().warn(f'Value Error: {print(e)}')
+              pass
+            finally:
+              cropped_track_counter += 1
 
       frame_annotated_msg = Frame()
       frame_annotated_msg.epoch = self.msg_track_array.epoch

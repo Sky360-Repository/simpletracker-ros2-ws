@@ -31,7 +31,7 @@ class ControllerNode(ControlLoopNode):
     super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', publisher_qos_profile)   
+    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)#, publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 

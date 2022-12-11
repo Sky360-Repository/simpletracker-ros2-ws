@@ -20,7 +20,8 @@ import os
 from typing import List
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import CameraFrame
+from builtin_interfaces.msg import Time
+from sensor_msgs.msg import Image
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile
 from .controller import Controller
@@ -31,7 +32,7 @@ class ControllerNode(ControlLoopNode):
     super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(CameraFrame, 'sky360/camera/original/v1', 10)#, publisher_qos_profile)   
+    self.pub_frame = self.create_publisher(Image, 'sky360/camera/original/v1', 10)#, publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -46,12 +47,11 @@ class ControllerNode(ControlLoopNode):
   def control_loop(self):    
     if self.success == True:
 
-      camera_frame_msg = CameraFrame()
-      camera_frame_msg.epoch = round(time.time() * 1000) #(time.time_ns() / 1000)
-      camera_frame_msg.fps = self.fps
-      camera_frame_msg.frame = self.br.cv2_to_imgmsg(self.frame)
+      img_msg = CvBridge().cv2_to_imgmsg(self.frame, encoding="bgr8")
+      img_msg.header.stamp = self.get_time_msg()
+      img_msg.header.frame_id = self.app_configuration['controller_type']
 
-      self.pub_frame.publish(camera_frame_msg)
+      self.pub_frame.publish(img_msg)
 
   def config_list(self) -> List[str]:
     return ['controller_type', 'camera_mode', 'camera_uri', 'camera_video_file', 'camera_video_loop']
@@ -97,6 +97,14 @@ class ControllerNode(ControlLoopNode):
       self.fps = 0
       
     self.controller = Controller.Select(self, self.app_configuration)
+
+  def get_time_msg(self):
+      time_msg = Time()
+      msg_time = self.get_clock().now().seconds_nanoseconds()
+
+      time_msg.sec = int(msg_time[0])
+      time_msg.nanosec = int(msg_time[1])
+      return time_msg
 
 def main(args=None):
 

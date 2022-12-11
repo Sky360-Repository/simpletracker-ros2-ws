@@ -1,3 +1,3 @@
-uint64 epoch
-uint64 frame_count
+builtin_interfaces/Time epoch
+uint32 frame_count
 BoundingBox[] boxes

@@ -17,7 +17,6 @@ from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import CameraFrame
 from simple_tracker_interfaces.msg import Frame
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.frame_processor import FrameProcessor
@@ -31,7 +30,7 @@ class FrameProviderNode(ControlLoopNode):
     super().__init__('sky360_frame_provider')
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(CameraFrame, 'sky360/camera/original/v1', self.camera_callback, 10)#, subscriber_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_callback, 10)#, subscriber_qos_profile)
     self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)#, publisher_qos_profile)
     self.pub_masked_frame = self.create_publisher(Frame, 'sky360/frames/masked/v1', 10)#, publisher_qos_profile)
     self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)#, publisher_qos_profile)
@@ -48,31 +47,32 @@ class FrameProviderNode(ControlLoopNode):
       self.counter += 1
 
       frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
-        self.br.imgmsg_to_cv2(self.msg_image.frame), stream=None)
+        self.br.imgmsg_to_cv2(self.msg_image), stream=None)
 
       frame_original_msg = Frame()
-      frame_original_msg.epoch = self.msg_image.epoch
-      frame_original_msg.fps = self.msg_image.fps
-      frame_original_msg.frame_count = self.counter
+      frame_original_msg.epoch = self.msg_image.header.stamp
+      frame_original_msg.fps = 10 #self.msg_image.fps
       frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
 
       self.pub_original_frame.publish(frame_original_msg)
 
       frame_original_masked_msg = Frame()
-      frame_original_masked_msg.epoch = self.msg_image.epoch
-      frame_original_masked_msg.fps = self.msg_image.fps
-      frame_original_masked_msg.frame_count = self.counter
+      frame_original_masked_msg.epoch = self.msg_image.header.stamp
+      frame_original_masked_msg.fps = 10 #self.msg_image.fps
       frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked)
 
       self.pub_masked_frame.publish(frame_original_masked_msg)
 
       frame_grey_msg = Frame()
-      frame_grey_msg.epoch = self.msg_image.epoch
-      frame_grey_msg.fps = self.msg_image.fps
-      frame_grey_msg.frame_count = self.counter
+      frame_grey_msg.epoch = self.msg_image.header.stamp
+      frame_grey_msg.fps = 10 #self.msg_image.fps
       frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
 
       self.pub_grey_frame.publish(frame_grey_msg)
+
+    else:
+      self.get_logger().info('self.msg_image is None')
+
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 

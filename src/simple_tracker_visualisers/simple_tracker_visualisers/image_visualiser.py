@@ -15,7 +15,8 @@ import rclpy
 from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
-from simple_tracker_interfaces.msg import Frame, CameraFrame, TrackingState, TrackArray, Track, BoundingBox
+from sensor_msgs.msg import Image
+from simple_tracker_interfaces.msg import Frame, TrackingState, TrackArray, Track, BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
@@ -33,7 +34,7 @@ class ImageVisualiserNode(ConfiguredNode):
   def __init__(self, subscriber_qos_profile: QoSProfile):
     super().__init__('image_visualiser_node')
 
-    self.camera_original_sub = self.create_subscription(CameraFrame, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, 10)#, subscriber_qos_profile)
+    self.camera_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, 10)#, subscriber_qos_profile)
     self.fp_original_sub = self.create_subscription(Frame, 'sky360/visualiser/original_frame', self.fp_original_callback, 10)#, subscriber_qos_profile)
     self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, 10)#, subscriber_qos_profile)
     self.fp_grey_sub = self.create_subscription(Frame, 'sky360/visualiser/grey_frame', self.fp_grey_callback, 10)#, subscriber_qos_profile)
@@ -45,7 +46,7 @@ class ImageVisualiserNode(ConfiguredNode):
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def camera_original_callback(self, data:CameraFrame):
+  def camera_original_callback(self, data:Image):
     camera_original_frame = self.br.imgmsg_to_cv2(data.frame)
     cv2.imshow("camera/original", camera_original_frame)
     cv2.waitKey(1)

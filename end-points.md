@@ -14,7 +14,7 @@ Message end point to provide a notification event that the config entry has been
 
 ## Camera
 
-### sky360/camera/original/v1 - CameraFrame.msg
+### sky360/camera/original/v1 - [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html)
 Message end point for the publishing of the original frame received from OpenCV
 
 ## Frames

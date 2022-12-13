@@ -17,7 +17,8 @@ from rclpy.qos import QoSProfile
 import cv2
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame, KeyPoint, KeyPointArray, BoundingBox, BoundingBoxArray
+from sensor_msgs.msg import Image
+from simple_tracker_interfaces.msg import KeyPoint, KeyPointArray, BoundingBox, BoundingBoxArray
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
@@ -27,33 +28,29 @@ class BGSDetectorNode(ControlLoopNode):
     super().__init__('sky360_bgs_detector')
 
     # setup services, publishers and subscribers
-    self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', 
+    self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background/v1', 
       self.masked_background_frame_callback, 10)#, subscriber_qos_profile)
     self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', 10)#, publisher_qos_profile)
     self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)#, publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def masked_background_frame_callback(self, msg_frame:Frame):
+  def masked_background_frame_callback(self, msg_frame:Image):
     self.msg_frame = msg_frame
 
   def control_loop(self):
 
     if self.msg_frame != None:
 
-      frame_foreground_mask = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      frame_foreground_mask = self.br.imgmsg_to_cv2(self.msg_frame)
 
       key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
       kp_array_msg = KeyPointArray()
-      kp_array_msg.epoch = self.msg_frame.epoch
-      kp_array_msg.frame_count = self.msg_frame.frame_count
       kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
       self.pub_key_points.publish(kp_array_msg)
 
       bbox_array_msg = BoundingBoxArray()
-      bbox_array_msg.epoch = self.msg_frame.epoch    
-      bbox_array_msg.frame_count = self.msg_frame.frame_count
       bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
       self.pub_bounding_boxes.publish(bbox_array_msg)
 
@@ -129,7 +126,7 @@ class BGSDetectorNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Frame = None
+      self.msg_frame: Image = None
       self.br = CvBridge() 
 
 

@@ -18,7 +18,8 @@ import cv2
 import numpy as np
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame, TrackingState, TrackArray, Track, BoundingBox
+from sensor_msgs.msg import Image
+from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track, BoundingBox
 from simple_tracker_shared.control_loop_node import ControlLoopNode, ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
  
@@ -32,12 +33,12 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
     super().__init__('annotated_frame_provider')
 
     # setup services, publishers and subscribers
-    self.pub_annotated_frame = self.create_publisher(Frame, 'sky360/frames/annotated/v1', 10)#, publisher_qos_profile)
+    self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated/v1', 10)#, publisher_qos_profile)
 
     self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, 10)
     self.tracker_tracks_sub = self.create_subscription(TrackArray, 'sky360/tracker/tracks/v1', self.tracks_callback, 10)
 
-    #self.masked_frame_sub = message_filters.Subscriber(self, Frame, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
+    #self.masked_frame_sub = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
     #self.tracking_state_sub = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state/v1')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
     #self.tracker_tracks_sub = message_filters.Subscriber(self, TrackArray, 'sky360/tracker/tracks/v1')#, subscriber_qos_profile)
 
@@ -62,10 +63,10 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
       if self.msg_tracking_state != None and self.msg_track_array != None:
 
         status_message = f"(Sky360) Tracker Status: trackable:{self.msg_tracking_state.trackable}, alive:{self.msg_tracking_state.alive}, started:{self.msg_tracking_state.started}, ended:{self.msg_tracking_state.ended}"
-        frame_message = f"(Sky360) count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
+        #frame_message = f"(Sky360) count:{self.msg_tracking_state.frame_count}, epoch:{self.msg_tracking_state.epoch}, fps:{self.msg_tracking_state.fps}"
 
         cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
-        cv2.putText(annotated_frame, frame_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+        #cv2.putText(annotated_frame, frame_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
         total_height = annotated_frame.shape[:2][0]
         total_width = annotated_frame.shape[:2][1]
@@ -98,15 +99,10 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
               finally:
                 cropped_track_counter += 1
 
-      frame_annotated_msg = Frame()
-      frame_annotated_msg.epoch = self.msg_track_array.epoch
-      frame_annotated_msg.fps = self.msg_track_array.fps
-      frame_annotated_msg.frame_count = self.msg_track_array.frame_count
-      frame_annotated_msg.frame = self.br.cv2_to_imgmsg(annotated_frame)
-
+      frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, self.msg_track_array.frame.encoding)
       self.pub_annotated_frame.publish(frame_annotated_msg)
 
-  def detections_callback(self, masked_frame:Frame, msg_tracking_state:TrackingState, msg_track_array:TrackArray):
+  def detections_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_track_array:TrackArray):
 
     if masked_frame != None and msg_tracking_state != None and msg_track_array != None:
 
@@ -149,12 +145,7 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
             finally:
               cropped_track_counter += 1
 
-      frame_annotated_msg = Frame()
-      frame_annotated_msg.epoch = self.msg_track_array.epoch
-      frame_annotated_msg.fps = self.msg_track_array.fps
-      frame_annotated_msg.frame_count = self.msg_track_array.frame_count
-      frame_annotated_msg.frame = self.br.cv2_to_imgmsg(annotated_frame)
-
+      frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, self.msg_track_array.frame.encoding)
       self.pub_annotated_frame.publish(frame_annotated_msg)
 
   def config_list(self) -> List[str]:
@@ -179,7 +170,7 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
       self.font_colour = (50, 170, 50)
       self.prediction_colour = (255, 0, 0)
       self.prediction_radius = 1
-      self.msg_frame: Frame = None
+      self.msg_frame: Image = None
       self.msg_tracking_state: TrackingState = None
       self.msg_track_array: TrackArray = None
       self.br = CvBridge()      

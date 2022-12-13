@@ -16,7 +16,7 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame
+from sensor_msgs.msg import Image
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
@@ -28,27 +28,24 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
     super().__init__('sky360_dense_optical_flow_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_dense_optical_flow_frame = self.create_publisher(Frame, 'sky360/frames/dense_optical_flow/v1', 10)#, publisher_qos_profile)
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)
+    self.pub_dense_optical_flow_frame = self.create_publisher(Image, 'sky360/frames/dense_optical_flow/v1', 10)#, publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def grey_frame_callback(self, msg_frame:Frame):
+  def grey_frame_callback(self, msg_frame:Image):
     self.msg_frame = msg_frame
 
   def control_loop(self):
 
     if self.msg_frame != None:
 
-      self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame)
 
       optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, self.frame_grey, None)
       
-      frame_optical_flow_msg = Frame()
-      frame_optical_flow_msg.epoch = self.msg_frame.epoch
-      frame_optical_flow_msg.fps = self.msg_frame.fps
-      frame_optical_flow_msg.frame_count = self.msg_frame.frame_count
-      frame_optical_flow_msg.frame = self.br.cv2_to_imgmsg(optical_flow_frame)
+      frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
+
       self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
 
 
@@ -71,7 +68,7 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.br = CvBridge()
-      self.msg_frame:Frame = None
+      self.msg_frame = None
 
     self.frame_processor = FrameProcessor.Select(self.app_configuration, 'dense_optical_cuda_enable')
     self.dense_optical_flow = DenseOpticalFlow.Select(self.app_configuration)

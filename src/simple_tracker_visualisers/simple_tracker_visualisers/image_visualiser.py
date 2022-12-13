@@ -16,7 +16,7 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from sensor_msgs.msg import Image
-from simple_tracker_interfaces.msg import Frame, TrackingState, TrackArray, Track, BoundingBox
+from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track, BoundingBox
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
@@ -35,49 +35,49 @@ class ImageVisualiserNode(ConfiguredNode):
     super().__init__('image_visualiser_node')
 
     self.camera_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, 10)#, subscriber_qos_profile)
-    self.fp_original_sub = self.create_subscription(Frame, 'sky360/visualiser/original_frame', self.fp_original_callback, 10)#, subscriber_qos_profile)
-    self.fp_original_masked_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, 10)#, subscriber_qos_profile)
-    self.fp_grey_sub = self.create_subscription(Frame, 'sky360/visualiser/grey_frame', self.fp_grey_callback, 10)#, subscriber_qos_profile)
-    self.dof_sub = self.create_subscription(Frame, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, 10)#, subscriber_qos_profile)
-    self.forground_sub = self.create_subscription(Frame, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, 10)#, subscriber_qos_profile) #sky360/frames/foreground_mask/v1
-    self.masked_background_sub = self.create_subscription(Frame, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, 10)#, subscriber_qos_profile)
-    self.fp_annotated_sub = self.create_subscription(Frame, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, 10)#, subscriber_qos_profile)
+    self.fp_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_frame', self.fp_original_callback, 10)#, subscriber_qos_profile)
+    self.fp_original_masked_sub = self.create_subscription(Image, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, 10)#, subscriber_qos_profile)
+    self.fp_grey_sub = self.create_subscription(Image, 'sky360/visualiser/grey_frame', self.fp_grey_callback, 10)#, subscriber_qos_profile)
+    self.dof_sub = self.create_subscription(Image, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, 10)#, subscriber_qos_profile)
+    self.forground_sub = self.create_subscription(Image, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, 10)#, subscriber_qos_profile) #sky360/frames/foreground_mask/v1
+    self.masked_background_sub = self.create_subscription(Image, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, 10)#, subscriber_qos_profile)
+    self.fp_annotated_sub = self.create_subscription(Image, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, 10)#, subscriber_qos_profile)
     #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_original_callback(self, data:Image):
-    camera_original_frame = self.br.imgmsg_to_cv2(data.frame)
+    camera_original_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("camera/original", camera_original_frame)
     cv2.waitKey(1)
 
-  def fp_original_callback(self, data:Frame):
-    original_frame = self.br.imgmsg_to_cv2(data.frame)
+  def fp_original_callback(self, data:Image):
+    original_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("fp/original", original_frame)
     cv2.waitKey(1)
 
-  def fp_original_masked_callback(self, data:Frame):
-    masked_frame = self.br.imgmsg_to_cv2(data.frame)
+  def fp_original_masked_callback(self, data:Image):
+    masked_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("fp/masked", masked_frame)
     cv2.waitKey(1)
 
-  def fp_grey_callback(self, data:Frame):
-    camera_grey_frame = self.br.imgmsg_to_cv2(data.frame)
+  def fp_grey_callback(self, data:Image):
+    camera_grey_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("fp/grey", camera_grey_frame)
     cv2.waitKey(1)
 
-  def dof_callback(self, data:Frame):
-    dof_frame = self.br.imgmsg_to_cv2(data.frame)
+  def dof_callback(self, data:Image):
+    dof_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("dense-optical-flow", dof_frame)
     cv2.waitKey(1)
 
-  def foreground_callback(self, data:Frame):
-    foreground_frame = self.br.imgmsg_to_cv2(data.frame)
+  def foreground_callback(self, data:Image):
+    foreground_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("foreground-mask", foreground_frame)
     cv2.waitKey(1)
 
-  def masked_background_callback(self, data:Frame):
-    masked_background_frame = self.br.imgmsg_to_cv2(data.frame)
+  def masked_background_callback(self, data:Image):
+    masked_background_frame = self.br.imgmsg_to_cv2(data)
     cv2.imshow("masked-background", masked_background_frame)
     cv2.waitKey(1)
 
@@ -85,12 +85,12 @@ class ImageVisualiserNode(ConfiguredNode):
     if self.configuration_loaded == False:
       pass
 
-    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended}, frame count:{data.frame_count}, frame epoch:{data.epoch}, fps:{data.fps} "
+    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended} "#, frame count:{data.frame_count}, frame epoch:{data.epoch}, fps:{data.fps} "
     if self.app_configuration['visualiser_log_status_to_console']:
       self.get_logger().info(msg)
 
-  def fp_annotated_callback(self, data:Frame):
-    annotated_frame = self.br.imgmsg_to_cv2(data.frame)
+  def fp_annotated_callback(self, data:Image):
+    annotated_frame = self.br.imgmsg_to_cv2(data)
     annotated_frame = self._resize(annotated_frame)
     cv2.imshow("fp/annotated", annotated_frame)
     self.key_handler.handle_key_press(cv2.waitKeyEx(1))

@@ -33,7 +33,6 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/CenterPoint.msg"
   "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
-  "msg/Frame.msg"
   "msg/KeyPoint.msg"
   "msg/KeyPointArray.msg"
   "msg/Track.msg"

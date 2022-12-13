@@ -16,7 +16,8 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame, BoundingBox, BoundingBoxArray, TrackingState, Track, TrackArray, CenterPoint
+from sensor_msgs.msg import Image
+from simple_tracker_interfaces.msg import BoundingBox, BoundingBoxArray, TrackingState, Track, TrackArray, CenterPoint
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .video_tracker import VideoTracker
@@ -27,14 +28,14 @@ class TrackProviderNode(ControlLoopNode):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_masked_frame = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.frame_callback, 10)#, subscriber_qos_profile)
+    self.sub_masked_frame = self.create_subscription(Image, 'sky360/frames/masked/v1', self.frame_callback, 10)#, subscriber_qos_profile)
     self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', self.bboxes_callback, 10)#, subscriber_qos_profile)
     self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)#, publisher_qos_profile)
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def frame_callback(self, msg_frame:Frame):
+  def frame_callback(self, msg_frame:Image):
     self.msg_frame = msg_frame
 
   def bboxes_callback(self, msg_bounding_box_array:BoundingBoxArray):
@@ -44,24 +45,18 @@ class TrackProviderNode(ControlLoopNode):
 
     if self.msg_frame != None:
 
-      frame = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      frame = self.br.imgmsg_to_cv2(self.msg_frame)
 
       if self.msg_bounding_box_array != None:
         bboxes = [self._msg_to_bbox(x) for x in self.msg_bounding_box_array.boxes]
         self.video_tracker.update_trackers(bboxes, frame)
 
       track_array_msg = TrackArray()
-      track_array_msg.epoch = self.msg_frame.epoch
-      track_array_msg.fps = self.msg_frame.fps
-      track_array_msg.frame_count = self.msg_frame.frame_count
       track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
-      track_array_msg.frame = self.msg_frame.frame
+      track_array_msg.frame = self.msg_frame ## TODO: Remove this field!
       self.pub_tracker_tracks.publish(track_array_msg)
       
       tracking_msg = TrackingState()
-      tracking_msg.epoch = self.msg_frame.epoch
-      tracking_msg.fps = self.msg_frame.fps
-      tracking_msg.frame_count = self.msg_frame.frame_count
       tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
       tracking_msg.alive = len(self.video_tracker.live_trackers)
       tracking_msg.started = self.video_tracker.total_trackers_started
@@ -113,7 +108,7 @@ class TrackProviderNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Frame = None
+      self.msg_frame: Image = None
       self.msg_bounding_box_array: BoundingBoxArray = None
       self.br = CvBridge()
 

@@ -17,7 +17,7 @@ from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame
+from sensor_msgs.msg import Image
 from simple_tracker_shared.control_loop_node import ControlLoopNode
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
@@ -31,9 +31,9 @@ class FrameProviderNode(ControlLoopNode):
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.pub_original_frame = self.create_publisher(Frame, 'sky360/frames/original/v1', 10)#, publisher_qos_profile)
-    self.pub_masked_frame = self.create_publisher(Frame, 'sky360/frames/masked/v1', 10)#, publisher_qos_profile)
-    self.pub_grey_frame = self.create_publisher(Frame, 'sky360/frames/grey/v1', 10)#, publisher_qos_profile)
+    self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original/v1', 10)#, publisher_qos_profile)
+    self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked/v1', 10)#, publisher_qos_profile)
+    self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey/v1', 10)#, publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -49,25 +49,12 @@ class FrameProviderNode(ControlLoopNode):
       frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
         self.br.imgmsg_to_cv2(self.msg_image), stream=None)
 
-      frame_original_msg = Frame()
-      frame_original_msg.epoch = self.msg_image.header.stamp
-      frame_original_msg.fps = 10 #self.msg_image.fps
-      frame_original_msg.frame = self.br.cv2_to_imgmsg(frame_original)
+      frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=self.msg_image.encoding)
+      frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=self.msg_image.encoding)
+      frame_grey_msg = self.br.cv2_to_imgmsg(frame_grey, encoding="mono8")
 
       self.pub_original_frame.publish(frame_original_msg)
-
-      frame_original_masked_msg = Frame()
-      frame_original_masked_msg.epoch = self.msg_image.header.stamp
-      frame_original_masked_msg.fps = 10 #self.msg_image.fps
-      frame_original_masked_msg.frame = self.br.cv2_to_imgmsg(frame_masked)
-
       self.pub_masked_frame.publish(frame_original_masked_msg)
-
-      frame_grey_msg = Frame()
-      frame_grey_msg.epoch = self.msg_image.header.stamp
-      frame_grey_msg.fps = 10 #self.msg_image.fps
-      frame_grey_msg.frame = self.br.cv2_to_imgmsg(frame_grey)
-
       self.pub_grey_frame.publish(frame_grey_msg)
 
     else:

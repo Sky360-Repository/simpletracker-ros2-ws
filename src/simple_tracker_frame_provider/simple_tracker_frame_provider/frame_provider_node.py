@@ -18,13 +18,13 @@ from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .mask import Mask
 from .mask_client_async import MaskClientAsync
 
-class FrameProviderNode(ControlLoopNode):
+class FrameProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_frame_provider')
@@ -38,33 +38,26 @@ class FrameProviderNode(ControlLoopNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, msg_image:Image):
-    self.msg_image = msg_image
 
-  def control_loop(self):
-
-    if self.msg_image != None:
+    if msg_image != None:
 
       self.counter += 1
 
       frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
-        self.br.imgmsg_to_cv2(self.msg_image), stream=None)
+        self.br.imgmsg_to_cv2(msg_image), stream=None)
 
-      frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=self.msg_image.encoding)
-      frame_original_msg.header = self.msg_image.header
+      frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=msg_image.encoding)
+      frame_original_msg.header = msg_image.header
 
-      frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=self.msg_image.encoding)
-      frame_original_masked_msg.header = self.msg_image.header
+      frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=msg_image.encoding)
+      frame_original_masked_msg.header = msg_image.header
 
       frame_grey_msg = self.br.cv2_to_imgmsg(frame_grey, encoding="mono8")
-      frame_grey_msg.header = self.msg_image.header
+      frame_grey_msg.header = msg_image.header
 
       self.pub_original_frame.publish(frame_original_msg)
       self.pub_masked_frame.publish(frame_original_masked_msg)
       self.pub_grey_frame.publish(frame_grey_msg)
-
-    #else:
-    #  self.get_logger().info('self.msg_image is None')
-
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
@@ -89,7 +82,6 @@ class FrameProviderNode(ControlLoopNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.counter = 0
-      self.msg_image: Image = None
       self.br = CvBridge()
       self.mask_svc = MaskClientAsync()
 

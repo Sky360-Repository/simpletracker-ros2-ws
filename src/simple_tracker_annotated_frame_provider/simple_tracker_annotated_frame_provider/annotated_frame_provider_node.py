@@ -42,7 +42,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.masked_frame_sub, self.tracking_state_sub, self.tracker_tracks_sub], 10)
-    self.time_synchronizer.registerCallback(self.detections_callback)
+    self.time_synchronizer.registerCallback(self.synced_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -52,7 +52,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
   def tracks_callback(self, msg_track_array:TrackArray):
     self.msg_track_array = msg_track_array
 
-  def detections_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_track_array:TrackArray):
+  def synced_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_track_array:TrackArray):
 
     if masked_frame is not None and msg_tracking_state is not None and msg_track_array is not None:
 

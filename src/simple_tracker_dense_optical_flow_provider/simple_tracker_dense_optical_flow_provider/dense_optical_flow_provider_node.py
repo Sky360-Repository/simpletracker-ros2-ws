@@ -17,12 +17,12 @@ from rclpy.qos import QoSProfile
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .dense_optical_flow import DenseOpticalFlow
 
-class DenseOpticalFlowProviderNode(ControlLoopNode):
+class DenseOpticalFlowProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_dense_optical_flow_provider')
@@ -34,18 +34,15 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def grey_frame_callback(self, msg_frame:Image):
-    self.msg_frame = msg_frame
 
-  def control_loop(self):
+    if msg_frame != None:
 
-    if self.msg_frame != None:
+      frame_grey = self.br.imgmsg_to_cv2(msg_frame)
 
-      self.frame_grey = self.br.imgmsg_to_cv2(self.msg_frame)
-
-      optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, self.frame_grey, None)
+      optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, frame_grey, None)
       
       frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
-      frame_optical_flow_msg.header = self.msg_frame.header
+      frame_optical_flow_msg.header = msg_frame.header
 
       self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
 
@@ -69,7 +66,6 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.br = CvBridge()
-      self.msg_frame = None
 
     self.frame_processor = FrameProcessor.Select(self.app_configuration, 'dense_optical_cuda_enable')
     self.dense_optical_flow = DenseOpticalFlow.Select(self.app_configuration)

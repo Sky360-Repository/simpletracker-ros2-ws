@@ -21,10 +21,10 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
 #from geometry_msgs.msg import Pose2D
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
-class BGSDetectorNode(ControlLoopNode):
+class BGSDetectorNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_bgs_detector')
@@ -37,18 +37,15 @@ class BGSDetectorNode(ControlLoopNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def masked_background_frame_callback(self, msg_frame:Image):
-    self.msg_frame = msg_frame
 
-  def control_loop(self):
+    if msg_frame != None:
 
-    if self.msg_frame != None:
-
-      frame_foreground_mask = self.br.imgmsg_to_cv2(self.msg_frame)
+      frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
 
       key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
       bbox_array_msg = BoundingBox2DArray()
-      bbox_array_msg.header = self.msg_frame.header
+      bbox_array_msg.header = msg_frame.header
       [bbox_array_msg.boxes.append(self._kp_to_bbox_msg(x)) for x in key_points]
       self.pub_bounding_boxes.publish(bbox_array_msg)
 
@@ -116,7 +113,6 @@ class BGSDetectorNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Image = None
       self.br = CvBridge() 
 
 

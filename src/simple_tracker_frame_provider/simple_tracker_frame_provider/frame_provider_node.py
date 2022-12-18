@@ -62,8 +62,8 @@ class FrameProviderNode(ControlLoopNode):
       self.pub_masked_frame.publish(frame_original_masked_msg)
       self.pub_grey_frame.publish(frame_grey_msg)
 
-    else:
-      self.get_logger().info('self.msg_image is None')
+    #else:
+    #  self.get_logger().info('self.msg_image is None')
 
 
   def config_list(self) -> List[str]:

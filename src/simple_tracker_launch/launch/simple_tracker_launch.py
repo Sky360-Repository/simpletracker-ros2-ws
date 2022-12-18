@@ -18,7 +18,8 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     
-    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'plane_flying_past2.mkv')
+    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'plane_flying_past2.mkv')
+    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
     camera_info_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'camera_info.yaml')
     config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params.yaml')
 

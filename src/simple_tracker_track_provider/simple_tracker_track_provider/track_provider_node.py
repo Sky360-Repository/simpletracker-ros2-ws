@@ -57,7 +57,6 @@ class TrackProviderNode(ControlLoopNode):
       track_array_msg = TrackArray()
       track_array_msg.header = self.msg_frame.header
       track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
-      track_array_msg.frame = self.msg_frame ## TODO: Remove this field!
       self.pub_tracker_tracks.publish(track_array_msg)
       
       tracking_msg = TrackingState()

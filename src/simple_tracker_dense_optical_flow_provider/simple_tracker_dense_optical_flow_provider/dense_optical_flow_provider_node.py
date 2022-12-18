@@ -45,6 +45,7 @@ class DenseOpticalFlowProviderNode(ControlLoopNode):
       optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, self.frame_grey, None)
       
       frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
+      frame_optical_flow_msg.header = self.msg_frame.header
 
       self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
 

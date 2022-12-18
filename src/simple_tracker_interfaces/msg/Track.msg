@@ -1,5 +1,5 @@
 int32 id
 int32 state
-BoundingBox bbox
+vision_msgs/BoundingBox2D bbox
 CenterPoint[] path
-CenterPoint predicted_point
+geometry_msgs/Pose2D predicted_point

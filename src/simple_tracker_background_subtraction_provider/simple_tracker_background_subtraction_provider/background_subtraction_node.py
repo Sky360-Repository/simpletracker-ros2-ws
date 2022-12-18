@@ -48,7 +48,10 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
         self.background_subtractor, frame_grey, None)
 
       frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, self.msg_frame.encoding)
+      frame_foreground_mask_msg.header = self.msg_frame.header
+
       frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, self.msg_frame.encoding)
+      frame_masked_background_msg.header = self.msg_frame.header
 
       self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
       self.pub_masked_background_frame.publish(frame_masked_background_msg)

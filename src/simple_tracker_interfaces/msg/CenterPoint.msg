@@ -1,3 +1,2 @@
-int32 x
-int32 y
+geometry_msgs/Pose2D center
 int32 state

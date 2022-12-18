@@ -23,18 +23,17 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(vision_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   #"msg/ConfigEntryUpdated.msg"
-  "msg/BoundingBox.msg"
-  "msg/BoundingBoxArray.msg"
   "msg/CenterPoint.msg"
   "msg/ConfigEntryUpdatedArray.msg"
   "msg/ConfigItem.msg"
-  "msg/KeyPoint.msg"
-  "msg/KeyPointArray.msg"
   "msg/Track.msg"
   "msg/TrackArray.msg"
   "msg/TrackingState.msg"
@@ -43,7 +42,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/ConfigEntryArray.srv"
   "srv/Mask.srv"
   "srv/MaskUpdate.srv"
-  DEPENDENCIES sensor_msgs
+  DEPENDENCIES std_msgs sensor_msgs vision_msgs geometry_msgs
 )
 
 ament_package()

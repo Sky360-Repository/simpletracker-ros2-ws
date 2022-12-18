@@ -19,7 +19,8 @@ import numpy as np
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track, BoundingBox
+from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
+from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track
 from simple_tracker_shared.control_loop_node import ControlLoopNode, ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
  
@@ -83,6 +84,7 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
           color = self._color(track.state)
           cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
           cv2.putText(annotated_frame, str(track.id), (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+          #self.get_logger().info(f'Track: --> {track}')
           self._add_tracked_path(track, annotated_frame)
           self._add_predicted_point(track, annotated_frame)
 
@@ -180,11 +182,12 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
     self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
     self.frame_type = self.app_configuration['visualiser_frame_source']
 
-  def _get_sized_bbox(self, bbox_msg: BoundingBox):
-    x = bbox_msg.x
-    y = bbox_msg.y
-    w = bbox_msg.w
-    h = bbox_msg.h
+  def _get_sized_bbox(self, bbox_msg: BoundingBox2D):
+    x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), bbox_msg.size_x, bbox_msg.size_y)
+    #x = bbox_msg.x
+    #y = bbox_msg.y
+    #w = bbox_msg.w
+    #h = bbox_msg.h
     bbox = (x, y, w, h)
     if self.app_configuration['visualiser_bbox_size'] is not None:
         size = self.app_configuration['visualiser_bbox_size']
@@ -200,13 +203,14 @@ class AnnotatedFrameProviderNode(ControlLoopNode):
     previous_point = None
     for path_point in path_points:
         if not previous_point is None:
-            if not self._is_point_contained_in_bbox(bbox, (path_point.x, path_point.y)):
-                cv2.line(frame, (previous_point.x, previous_point.y), (path_point.x, path_point.y), self._color(path_point.state), thickness=self.bbox_line_thickness)
+            if not self._is_point_contained_in_bbox(bbox, (path_point.center.x, path_point.center.y)):
+                cv2.line(frame, (int(previous_point.center.x), int(previous_point.center.y)), (int(path_point.center.x), int(path_point.center.y)), 
+                  self._color(path_point.state), thickness=self.bbox_line_thickness)
         previous_point = path_point
 
   def _add_predicted_point(self, track: Track, frame):
     predicted_center_point = track.predicted_point
-    cv2.circle(frame, (predicted_center_point.x, predicted_center_point.y), radius=self.prediction_radius, color=self.prediction_colour, thickness=self.bbox_line_thickness)
+    cv2.circle(frame, (int(predicted_center_point.x), int(predicted_center_point.y)), radius=self.prediction_radius, color=self.prediction_colour, thickness=self.bbox_line_thickness)
 
   def _is_point_contained_in_bbox(self, bbox, point):
     x, y, w, h = bbox

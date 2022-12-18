@@ -16,7 +16,8 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from sensor_msgs.msg import Image
-from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track, BoundingBox
+from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
+from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile

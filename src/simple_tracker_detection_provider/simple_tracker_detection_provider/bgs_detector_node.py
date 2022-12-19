@@ -28,9 +28,9 @@ class BGSDetectorNode(ControlLoopNode):
 
     # setup services, publishers and subscribers
     self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', 
-      self.masked_background_frame_callback, subscriber_qos_profile)
-    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', publisher_qos_profile)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', publisher_qos_profile)   
+      self.masked_background_frame_callback, 10)#, subscriber_qos_profile)
+    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', 10)#, publisher_qos_profile)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)#, publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    

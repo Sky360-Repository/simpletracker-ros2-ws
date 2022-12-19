@@ -4,7 +4,16 @@
 # Example:
 ############
 repositories:
-  examples:
+  usb_cam:
     type: git
-    url: https://github.com/ros2/examples.git
-    version: foxy
+    url: https://github.com/ros-drivers/usb_cam.git
+    version: ros2
+  ros2_video_streamer:
+    type: git
+    url: https://github.com/Sky360-Repository/ros2_video_streamer.git
+    version: ros2-launch-file-friendly #master
+  #rxros2_py:
+  #  type: git
+  #  url: https://github.com/rosin-project/rxros2.git
+  #  version: master
+  

@@ -27,12 +27,10 @@ class TrackProviderNode(ControlLoopNode):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_masked_frame = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.frame_callback, subscriber_qos_profile)
-    self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 
-      self.bboxes_callback, subscriber_qos_profile)
-    self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', publisher_qos_profile)
-    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 
-      get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
+    self.sub_masked_frame = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.frame_callback, 10)#, subscriber_qos_profile)
+    self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', self.bboxes_callback, 10)#, subscriber_qos_profile)
+    self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    

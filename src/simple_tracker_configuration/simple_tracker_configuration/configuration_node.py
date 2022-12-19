@@ -35,8 +35,7 @@ class SimpleTrackerConfigurationNode(Node):
             self.get_config_array_callback)
         self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', 
             self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 
-            publisher_qos_profile)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)#, publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 

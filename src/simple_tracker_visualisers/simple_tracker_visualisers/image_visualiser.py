@@ -16,8 +16,7 @@ from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from sensor_msgs.msg import Image
-from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
-from simple_tracker_interfaces.msg import TrackingState, TrackArray, Track
+from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
@@ -86,7 +85,7 @@ class ImageVisualiserNode(ConfiguredNode):
     if self.configuration_loaded == False:
       pass
 
-    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended} "#, frame count:{data.frame_count}, frame epoch:{data.epoch}, fps:{data.fps} "
+    msg = f"(Sky360) Tracker Status: trackable:{data.trackable}, alive:{data.alive}, started:{data.started}, ended:{data.ended} "
     if self.app_configuration['visualiser_log_status_to_console']:
       self.get_logger().info(msg)
 

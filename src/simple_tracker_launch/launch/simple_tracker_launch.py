@@ -72,12 +72,12 @@ def generate_launch_description():
             executable='frame_provider',
             name='frame_provider'
         ),
-        Node(
-            package='simple_tracker_dense_optical_flow_provider',
-            #namespace='sky360',
-            executable='dense_optical_flow_provider',
-            name='dense_optical_flow_provider'
-        ),
+        #Node(
+        #    package='simple_tracker_dense_optical_flow_provider',
+        #    #namespace='sky360',
+        #    executable='dense_optical_flow_provider',
+        #    name='dense_optical_flow_provider'
+        #),
         Node(
             package='simple_tracker_background_subtraction_provider',
             #namespace='sky360',

@@ -115,6 +115,7 @@ class Tracker():
                 self.center_points.append((self.get_center(), self.tracking_state))
 
             if self.settings['track_prediction_enabled']:
+                self.predictor_center_points.clear()
                 self.predictor_center_points.append(self.track_predictor.update(bbox))
 
             if self.settings['track_validation_enable']:

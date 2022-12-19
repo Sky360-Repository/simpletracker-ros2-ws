@@ -1,5 +1,4 @@
 int32 id
 int32 state
+TrackPoint[] trajectory
 vision_msgs/BoundingBox2D bbox
-CenterPoint[] path
-geometry_msgs/Pose2D predicted_point

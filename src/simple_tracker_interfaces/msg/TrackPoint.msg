@@ -1,2 +1,3 @@
 geometry_msgs/Pose2D center
 int32 state
+bool prediction

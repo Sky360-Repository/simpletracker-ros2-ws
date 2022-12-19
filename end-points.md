@@ -42,16 +42,20 @@ Message end point for the publishing the annotated frame i.e. the frame with sta
 
 ## Detection
 
-### sky360/detector/bgs/bounding_boxes/v1 - BoundingBoxArray.msg
+### sky360/detector/bgs/bounding_boxes/v1 - [vision_msgs/BoundingBox2DArray](https://github.com/ros-perception/vision_msgs)
 Message end point for the publishing of bounding box array for a frame
 
-### sky360/detector/canny/bounding_boxes/v1 - BoundingBoxArray.msg
+### sky360/detector/canny/bounding_boxes/v1 - [vision_msgs/BoundingBox2DArray](https://github.com/ros-perception/vision_msgs)
 Message end point for the publishing of bounding box array for a frame
 
 ## Tracker
 
+### sky360/tracker/detections/v1 - [vision_msgs/Detection2DArray](https://github.com/ros-perception/vision_msgs)
+Message end point for the publishing of detections
+
+### sky360/tracker/trajectories/v1 - TrackTrajectoryArray.msg
+Message end point for the publishing of detection trajectories
+
 ### sky360/tracker/tracking_state/v1 - TrackingState.msg
 Message end point for the publishing whether the tracker is tracking
 
-### sky360/tracker/tracks/v1 - TrackArray.msg
-Message end point for the publishing of tracks

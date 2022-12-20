@@ -1,2 +1,2 @@
-int32 id
+string id
 TrackPoint[] trajectory

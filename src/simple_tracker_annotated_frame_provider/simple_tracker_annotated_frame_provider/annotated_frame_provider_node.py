@@ -20,7 +20,7 @@ from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, Detection2DArray
-from simple_tracker_interfaces.msg import TrackingState, TrackTrajectory, TrackTrajectoryArray
+from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
  
@@ -62,18 +62,26 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
       cropped_track_counter = 0
       enable_cropped_tracks = self.app_configuration['visualiser_show_cropped_tracks']
-      zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']  
+      zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']
+
+      detections = {}
 
       for detection in msg_detection_array.detections:
-        (x, y, w, h) = self._get_sized_bbox(detection.bbox)        
+
+        id_arr = detection.id.split("-")
+
+        id = id_arr[0]
+        state = int(id_arr[1])
+
+        (x, y, w, h) = self._get_sized_bbox(detection.bbox)
+        detections[detection.id] = (x, y, w, h)
         p1 = (int(x), int(y))
         p2 = (int(x + w), int(y + h))
-        #color = self._color(track.state)
-        color = self._color(self.ACTIVE_TARGET) # TODO: Fix this
+        color = self._color(state)
         cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
-        cv2.putText(annotated_frame, detection.id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+        cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
 
-        if enable_cropped_tracks: #and track.state == self.ACTIVE_TARGET:  # TODO: Fix this
+        if enable_cropped_tracks and state == self.ACTIVE_TARGET:
           margin = 0 if cropped_track_counter == 0 else 10
           zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
           cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
@@ -86,7 +94,17 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
               cropped_track_counter += 1
 
       for trajectory in msg_trajectory_array.trajectories:
-        self._add_trajectory(trajectory, annotated_frame)
+        trajectory_array = trajectory.trajectory
+        p_point = None
+        for t_point in trajectory_array:
+          if not p_point is None:
+            if not self._is_point_contained_in_bbox(detections[trajectory.id], (t_point.center.x, t_point.center.y)):
+              cv2.line(annotated_frame, 
+                (int(p_point.center.x), int(p_point.center.y)), (int(t_point.center.x), int(t_point.center.y)), 
+                color = self.prediction_colour if t_point.prediction else self._color(t_point.state), 
+                thickness = self.bbox_line_thickness)
+
+          p_point = t_point
 
       frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, masked_frame.encoding)
       frame_annotated_msg.header = masked_frame.header
@@ -134,18 +152,6 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
           y1 = int(y+(h/2)) - int(size/2)
           bbox = (x1, y1, size, size)
     return bbox
-
-  def _add_trajectory(self, track: TrackTrajectory, frame):
-    trajectory_array = track.trajectory
-    p_point_ = None
-    for t_point in trajectory_array:
-      if not p_point_ is None:
-        cv2.line(frame, 
-          (int(p_point_.center.x), int(p_point_.center.y)), (int(t_point.center.x), int(t_point.center.y)), 
-          color = self.prediction_colour if t_point.prediction else self._color(t_point.state), 
-          thickness = self.bbox_line_thickness)
-
-      p_point_ = t_point
 
   def _is_point_contained_in_bbox(self, bbox, point):
     x, y, w, h = bbox

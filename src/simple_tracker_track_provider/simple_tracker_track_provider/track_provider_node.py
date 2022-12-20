@@ -87,7 +87,7 @@ class TrackProviderNode(ConfiguredNode):
     bbox_msg.size_y = float(h)
 
     detect_msg = Detection2D()
-    detect_msg.id = str(tracker.id)
+    detect_msg.id = f'{tracker.id}-{tracker.tracking_state}'
     detect_msg.bbox = bbox_msg
 
     return detect_msg
@@ -95,7 +95,7 @@ class TrackProviderNode(ConfiguredNode):
   def _trajectories_to_msg(self, tracker):
 
     track_msg = TrackTrajectory()
-    track_msg.id = tracker.id
+    track_msg.id = f'{tracker.id}-{tracker.tracking_state}'
 
     for center_point in tracker.center_points:
       (x,y) = center_point[0]

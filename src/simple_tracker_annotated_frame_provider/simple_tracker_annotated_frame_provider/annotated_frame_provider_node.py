@@ -39,15 +39,18 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
     self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
     self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state/v1')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
     self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections/v1')#, subscriber_qos_profile)
-    self.sub_tracker_trajectories = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectories/v1')#, subscriber_qos_profile)
+    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory/v1')#, subscriber_qos_profile)
+    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction/v1')#, subscriber_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
-    self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, self.sub_tracker_detections, self.sub_tracker_trajectories], 10)
+    self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, 
+    self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction], 10)
     self.time_synchronizer.registerCallback(self.synced_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def synced_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, msg_trajectory_array:TrackTrajectoryArray):
+  def synced_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
+    msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray):
 
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:
 
@@ -65,23 +68,24 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
       zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']
 
       detections = {}
+      final_trajectory_points = {}
 
       for detection in msg_detection_array.detections:
 
         id_arr = detection.id.split("-")
 
         id = id_arr[0]
-        state = int(id_arr[1])
+        tracking_state = int(id_arr[1])
 
         (x, y, w, h) = self._get_sized_bbox(detection.bbox)
         detections[detection.id] = (x, y, w, h)
         p1 = (int(x), int(y))
         p2 = (int(x + w), int(y + h))
-        color = self._color(state)
+        color = self._color(tracking_state)
         cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
         cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
 
-        if enable_cropped_tracks and state == self.ACTIVE_TARGET:
+        if enable_cropped_tracks and tracking_state == self.ACTIVE_TARGET:
           margin = 0 if cropped_track_counter == 0 else 10
           zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
           cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
@@ -95,16 +99,28 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
       for trajectory in msg_trajectory_array.trajectories:
         trajectory_array = trajectory.trajectory
-        p_point = None
-        for t_point in trajectory_array:
-          if not p_point is None:
-            if not self._is_point_contained_in_bbox(detections[trajectory.id], (t_point.center.x, t_point.center.y)):
+        previous_trajectory_point = None
+        for trajectory_point in trajectory_array:
+          if not previous_trajectory_point is None:
+            #if not self._is_point_contained_in_bbox(detections[trajectory.id], (trajectory_point.center.x, trajectory_point.center.y)):
               cv2.line(annotated_frame, 
-                (int(p_point.center.x), int(p_point.center.y)), (int(t_point.center.x), int(t_point.center.y)), 
-                color = self.prediction_colour if t_point.prediction else self._color(t_point.state), 
-                thickness = self.bbox_line_thickness)
+                (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)), 
+                color = self._color(trajectory_point.tracking_state), thickness = self.bbox_line_thickness)
+          previous_trajectory_point = trajectory_point
+          final_trajectory_points[trajectory.id] = previous_trajectory_point
 
-          p_point = t_point
+      for prediction in msg_prediction_array.trajectories:
+        prediction_array = prediction.trajectory
+        if prediction.id in final_trajectory_points:
+          previous_prediction_point = final_trajectory_points[prediction.id]
+          for prediction_point in prediction_array:
+            if not previous_prediction_point is None:
+              #if not self._is_point_contained_in_bbox(detections[trajectory.id], (prediction_point.center.x, prediction_point.center.y)):
+                cv2.line(annotated_frame, 
+                  (int(previous_prediction_point.center.x), int(previous_prediction_point.center.y)), (int(prediction_point.center.x), int(prediction_point.center.y)), 
+                  color = self.prediction_colour, thickness = self.bbox_line_thickness)
+
+            previous_prediction_point = prediction_point
 
       frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, masked_frame.encoding)
       frame_annotated_msg.header = masked_frame.header

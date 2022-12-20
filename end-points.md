@@ -53,8 +53,11 @@ Message end point for the publishing of bounding box array for a frame
 ### sky360/tracker/detections/v1 - [vision_msgs/Detection2DArray](https://github.com/ros-perception/vision_msgs)
 Message end point for the publishing of detections
 
-### sky360/tracker/trajectories/v1 - TrackTrajectoryArray.msg
+### sky360/tracker/trajectory/v1 - TrackTrajectoryArray.msg
 Message end point for the publishing of detection trajectories
+
+### sky360/tracker/prediction/v1 - TrackTrajectoryArray.msg
+Message end point for the publishing of predicted trajectories
 
 ### sky360/tracker/tracking_state/v1 - TrackingState.msg
 Message end point for the publishing whether the tracker is tracking

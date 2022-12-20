@@ -35,7 +35,8 @@ class TrackProviderNode(ConfiguredNode):
     
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
     self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections/v1', 10)#, publisher_qos_profile)
-    self.pub_tracker_trajectories = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectories/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction/v1', 10)#, publisher_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_detector_bounding_boxes], 10)
@@ -61,6 +62,10 @@ class TrackProviderNode(ConfiguredNode):
       trajectory_array_msg.header = msg_frame.header
       trajectory_array_msg.trajectories = [self._trajectories_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
 
+      prediction_array_msg = TrackTrajectoryArray()
+      prediction_array_msg.header = msg_frame.header
+      prediction_array_msg.trajectories = [self._predictions_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+
       tracking_msg = TrackingState()
       tracking_msg.header = msg_frame.header
       tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
@@ -69,7 +74,8 @@ class TrackProviderNode(ConfiguredNode):
       tracking_msg.ended = self.video_tracker.total_trackers_finished
 
       self.pub_tracker_detects.publish(detect_array_msg)
-      self.pub_tracker_trajectories.publish(trajectory_array_msg)
+      self.pub_tracker_trajectory.publish(trajectory_array_msg)
+      self.pub_tracker_prediction.publish(prediction_array_msg)
       self.pub_tracker_tracking_state.publish(tracking_msg)
 
   def _msg_to_bbox(self, bbox_msg: BoundingBox2D):
@@ -103,16 +109,21 @@ class TrackProviderNode(ConfiguredNode):
       point = TrackPoint()
       point.center.x = float(x)
       point.center.y = float(y)
-      point.state = state
-      point.prediction = False
+      point.tracking_state = state
       track_msg.trajectory.append(point)
+
+    return track_msg
+
+  def _predictions_to_msg(self, tracker):
+
+    track_msg = TrackTrajectory()
+    track_msg.id = f'{tracker.id}-{tracker.tracking_state}'
 
     for center_point in tracker.predictor_center_points:
       (x,y) = center_point
       point = TrackPoint()
       point.center.x = float(x)
       point.center.y = float(y)
-      point.prediction = True
       track_msg.trajectory.append(point)
 
     return track_msg

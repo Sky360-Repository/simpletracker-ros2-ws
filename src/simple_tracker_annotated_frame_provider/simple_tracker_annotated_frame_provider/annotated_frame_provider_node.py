@@ -54,21 +54,22 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:
 
+      cropped_track_counter = 0
+      enable_cropped_tracks = self.app_configuration['visualiser_show_cropped_tracks']
+      zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']
+      detections = {}
+      final_trajectory_points = {}
+
       annotated_frame = self.br.imgmsg_to_cv2(masked_frame)
-
-      status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
-
-      cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+      if enable_cropped_tracks:
+        annotated_frame_clone = annotated_frame.copy()
 
       total_height = annotated_frame.shape[:2][0]
       total_width = annotated_frame.shape[:2][1]
 
-      cropped_track_counter = 0
-      enable_cropped_tracks = self.app_configuration['visualiser_show_cropped_tracks']
-      zoom_factor = self.app_configuration['visualiser_cropped_zoom_factor']
+      status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
 
-      detections = {}
-      final_trajectory_points = {}
+      cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
 
       for detection in msg_detection_array.detections:
 
@@ -91,7 +92,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
           cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
           if cropped_image_x + zoom_w < total_width:
             try:
-              annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
+              annotated_frame[cropped_image_y:cropped_image_y+zoom_h,cropped_image_x:cropped_image_x+zoom_w] = cv2.resize(annotated_frame_clone[y:y+h, x:x+w], None, fx=zoom_factor, fy=zoom_factor)
             except TypeError:
               pass
             finally:

@@ -17,56 +17,37 @@ from rclpy.qos import QoSProfile
 import cv2
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame, KeyPoint, KeyPointArray, BoundingBox, BoundingBoxArray
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+#from std_msgs.msg import Header
+from sensor_msgs.msg import Image
+from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
+#from geometry_msgs.msg import Pose2D
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
-class BGSDetectorNode(ControlLoopNode):
+class BGSDetectorNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_bgs_detector')
 
     # setup services, publishers and subscribers
-    self.sub_masked_background_frame = self.create_subscription(Frame, 'sky360/frames/masked_background/v1', 
+    self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background/v1', 
       self.masked_background_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_key_points = self.create_publisher(KeyPointArray, 'sky360/detector/bgs/key_points/v1', 10)#, publisher_qos_profile)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)#, publisher_qos_profile)   
+    self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes/v1', 10)#, publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def masked_background_frame_callback(self, msg_frame:Frame):
-    self.msg_frame = msg_frame
+  def masked_background_frame_callback(self, msg_frame:Image):
 
-  def control_loop(self):
+    if msg_frame != None:
 
-    if self.msg_frame != None:
-
-      frame_foreground_mask = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
 
       key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
-      kp_array_msg = KeyPointArray()
-      kp_array_msg.epoch = self.msg_frame.epoch
-      kp_array_msg.frame_count = self.msg_frame.frame_count
-      kp_array_msg.kps = [self._kp_to_msg(x) for x in key_points]
-      self.pub_key_points.publish(kp_array_msg)
-
-      bbox_array_msg = BoundingBoxArray()
-      bbox_array_msg.epoch = self.msg_frame.epoch    
-      bbox_array_msg.frame_count = self.msg_frame.frame_count
-      bbox_array_msg.boxes = [self._kp_to_bbox_msg(x) for x in key_points]
+      bbox_array_msg = BoundingBox2DArray()
+      bbox_array_msg.header = msg_frame.header
+      [bbox_array_msg.boxes.append(self._kp_to_bbox_msg(x)) for x in key_points]
       self.pub_bounding_boxes.publish(bbox_array_msg)
-
-  def _kp_to_msg(self, kp):
-
-    (x, y) = kp.pt
-
-    kp_msg = KeyPoint()
-    kp_msg.x = x
-    kp_msg.y = y
-    kp_msg.size = kp.size
-
-    return kp_msg
 
   def _kp_to_bbox_msg(self, kp):
 
@@ -74,13 +55,16 @@ class BGSDetectorNode(ControlLoopNode):
     size = kp.size    
     scale = 6
 
-    x1, y1, w1, h1 = (int(x - scale * size / 2), int(y - scale * size / 2), int(scale * size), int(scale * size))
+    x1, y1, w1, h1 = ((x - scale * size / 2), (y - scale * size / 2), (scale * size), (scale * size))
 
-    bbox_msg = BoundingBox()
-    bbox_msg.x = x1
-    bbox_msg.y = y1
-    bbox_msg.w = w1
-    bbox_msg.h = h1
+    bbox_msg = BoundingBox2D()
+    ## bbox_msg.source_img = deepcopy(req.image)
+    bbox_msg.center.position.x = float(x1+(w1/2))
+    bbox_msg.center.position.y = float(y1+(h1/2))
+    bbox_msg.center.theta = 0.0
+
+    bbox_msg.size_x = float(w1)
+    bbox_msg.size_y = float(h1)
 
     return bbox_msg
 
@@ -129,7 +113,6 @@ class BGSDetectorNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Frame = None
       self.br = CvBridge() 
 
 

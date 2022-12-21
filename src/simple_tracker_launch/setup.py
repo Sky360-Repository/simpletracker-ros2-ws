@@ -13,6 +13,7 @@ setup(
         # Include all launch files.
         (os.path.join('share', package_name), glob('launch/*launch.[pxy][yma]*')),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
+        (os.path.join('share', package_name, 'videos'), glob('videos/*.*')),
     ],
     #install_requires=['setuptools'],
     #zip_safe=True,

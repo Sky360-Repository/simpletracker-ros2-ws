@@ -12,88 +12,119 @@
 
 import datetime
 import rclpy
+import message_filters
 from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame, BoundingBox, BoundingBoxArray, TrackingState, Track, TrackArray, CenterPoint
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from sensor_msgs.msg import Image
+from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray, Detection2D, Detection2DArray
+from simple_tracker_interfaces.msg import TrackingState, TrackPoint, TrackTrajectory, TrackTrajectoryArray
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .video_tracker import VideoTracker
 
-class TrackProviderNode(ControlLoopNode):
+class TrackProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_masked_frame = self.create_subscription(Frame, 'sky360/frames/masked/v1', self.frame_callback, 10)#, subscriber_qos_profile)
-    self.sub_detector_bounding_boxes = self.create_subscription(BoundingBoxArray, 'sky360/detector/bgs/bounding_boxes/v1', self.bboxes_callback, 10)#, subscriber_qos_profile)
-    self.pub_tracker_tracks = self.create_publisher(TrackArray, 'sky360/tracker/tracks/v1', 10)#, publisher_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
+    self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes/v1')#, subscriber_qos_profile)
+    
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
+    self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction/v1', 10)#, publisher_qos_profile)
+
+    # setup the time synchronizer and register the subscriptions and callback
+    self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_detector_bounding_boxes], 10)
+    self.time_synchronizer.registerCallback(self.synced_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def frame_callback(self, msg_frame:Frame):
-    self.msg_frame = msg_frame
+  def synced_callback(self, msg_frame:Image, msg_bounding_box_array:BoundingBox2DArray):
 
-  def bboxes_callback(self, msg_bounding_box_array:BoundingBoxArray):
-    self.msg_bounding_box_array = msg_bounding_box_array
+    if msg_frame is not None and msg_bounding_box_array is not None:
 
-  def control_loop(self):  
+      frame = self.br.imgmsg_to_cv2(msg_frame)
 
-    if self.msg_frame != None:
+      bboxes = [self._msg_to_bbox(x) for x in msg_bounding_box_array.boxes]
 
-      frame = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      self.video_tracker.update_trackers(bboxes, frame)
 
-      if self.msg_bounding_box_array != None:
-        bboxes = [self._msg_to_bbox(x) for x in self.msg_bounding_box_array.boxes]
-        self.video_tracker.update_trackers(bboxes, frame)
+      detect_array_msg = Detection2DArray()
+      detect_array_msg.header = msg_frame.header
+      detect_array_msg.detections = [self._detects_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
 
-      track_array_msg = TrackArray()
-      track_array_msg.epoch = self.msg_frame.epoch
-      track_array_msg.fps = self.msg_frame.fps
-      track_array_msg.frame_count = self.msg_frame.frame_count
-      track_array_msg.tracks = [self._track_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
-      track_array_msg.frame = self.msg_frame.frame
-      self.pub_tracker_tracks.publish(track_array_msg)
-      
+      trajectory_array_msg = TrackTrajectoryArray()
+      trajectory_array_msg.header = msg_frame.header
+      trajectory_array_msg.trajectories = [self._trajectories_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+
+      prediction_array_msg = TrackTrajectoryArray()
+      prediction_array_msg.header = msg_frame.header
+      prediction_array_msg.trajectories = [self._predictions_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+
       tracking_msg = TrackingState()
-      tracking_msg.epoch = self.msg_frame.epoch
-      tracking_msg.fps = self.msg_frame.fps
-      tracking_msg.frame_count = self.msg_frame.frame_count
+      tracking_msg.header = msg_frame.header
       tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
       tracking_msg.alive = len(self.video_tracker.live_trackers)
       tracking_msg.started = self.video_tracker.total_trackers_started
       tracking_msg.ended = self.video_tracker.total_trackers_finished
+
+      self.pub_tracker_detects.publish(detect_array_msg)
+      self.pub_tracker_trajectory.publish(trajectory_array_msg)
+      self.pub_tracker_prediction.publish(prediction_array_msg)
       self.pub_tracker_tracking_state.publish(tracking_msg)
 
+  def _msg_to_bbox(self, bbox_msg: BoundingBox2D):
+    x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), int(bbox_msg.size_x), int(bbox_msg.size_y))
+    return x, y, w, h
 
-  def _msg_to_bbox(self, bbox_msg):
-    return bbox_msg.x, bbox_msg.y, bbox_msg.w, bbox_msg.h
-
-  def _track_to_msg(self, tracker):
+  def _detects_to_msg(self, tracker):
 
     x, y, w, h = tracker.get_bbox()
-    bbox_msg = BoundingBox()
-    bbox_msg.x = x
-    bbox_msg.y = y
-    bbox_msg.w = w
-    bbox_msg.h = h
+    bbox_msg = BoundingBox2D()
+    bbox_msg.center.position.x = float(x+(w/2))
+    bbox_msg.center.position.y = float(y+(h/2))
+    bbox_msg.center.theta = 0.0
+    bbox_msg.size_x = float(w)
+    bbox_msg.size_y = float(h)
 
-    track_msg = Track()
-    track_msg.id = tracker.id
-    track_msg.state = tracker.tracking_state
-    track_msg.bbox = bbox_msg
+    detect_msg = Detection2D()
+    detect_msg.id = f'{tracker.id}-{tracker.tracking_state}'
+    detect_msg.bbox = bbox_msg
+
+    return detect_msg
+
+  def _trajectories_to_msg(self, tracker):
+
+    track_msg = TrackTrajectory()
+    track_msg.id = f'{tracker.id}-{tracker.tracking_state}'
 
     for center_point in tracker.center_points:
       (x,y) = center_point[0]
-      state = center_point[1]
-      cpoint = CenterPoint()
-      cpoint.x = x
-      cpoint.y = y
-      cpoint.state = state
-      track_msg.path.append(cpoint)
+      state = center_point[1]      
+      point = TrackPoint()
+      point.center.x = float(x)
+      point.center.y = float(y)
+      point.tracking_state = state
+      track_msg.trajectory.append(point)
+
+    return track_msg
+
+  def _predictions_to_msg(self, tracker):
+
+    track_msg = TrackTrajectory()
+    track_msg.id = f'{tracker.id}-{tracker.tracking_state}'
+
+    for center_point in tracker.predictor_center_points:
+      (x,y) = center_point
+      point = TrackPoint()
+      point.center.x = float(x)
+      point.center.y = float(y)
+      track_msg.trajectory.append(point)
 
     return track_msg
 
@@ -113,8 +144,6 @@ class TrackProviderNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Frame = None
-      self.msg_bounding_box_array: BoundingBoxArray = None
       self.br = CvBridge()
 
     self.video_tracker = VideoTracker(self.app_configuration)

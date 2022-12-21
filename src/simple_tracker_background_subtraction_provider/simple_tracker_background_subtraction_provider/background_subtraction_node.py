@@ -17,48 +17,40 @@ from rclpy.qos import QoSProfile
 import cv2
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame
-from simple_tracker_shared.control_loop_node import ControlLoopNode
+from sensor_msgs.msg import Image
+from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .background_subtractor import BackgroundSubtractor
 
-class BackgroundSubtractionProviderNode(ControlLoopNode):
+class BackgroundSubtractionProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_foreground_mask_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_foreground_mask_frame = self.create_publisher(Frame, 'sky360/frames/foreground_mask/v1', 10)#, publisher_qos_profile)
-    self.pub_masked_background_frame = self.create_publisher(Frame, 'sky360/frames/masked_background/v1', 10)#, publisher_qos_profile)
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)
+    self.pub_foreground_mask_frame = self.create_publisher(Image, 'sky360/frames/foreground_mask/v1', 10)#, publisher_qos_profile)
+    self.pub_masked_background_frame = self.create_publisher(Image, 'sky360/frames/masked_background/v1', 10)#, publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def grey_frame_callback(self, msg_frame:Frame):
-    self.msg_frame = msg_frame
+  def grey_frame_callback(self, msg_frame:Image):
 
-  def control_loop(self):
+    if msg_frame != None:
 
-    if self.msg_frame != None:
-
-      frame_grey = self.br.imgmsg_to_cv2(self.msg_frame.frame)
+      frame_grey = self.br.imgmsg_to_cv2(msg_frame)
 
       frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
         self.background_subtractor, frame_grey, None)
 
-      frame_foreground_mask_msg = Frame()
-      frame_foreground_mask_msg.epoch = self.msg_frame.epoch
-      frame_foreground_mask_msg.fps = self.msg_frame.fps
-      frame_foreground_mask_msg.frame_count = self.msg_frame.frame_count
-      frame_foreground_mask_msg.frame = self.br.cv2_to_imgmsg(frame_foreground_mask)
-      self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
+      frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
+      frame_foreground_mask_msg.header = msg_frame.header
 
-      frame_masked_background_msg = Frame()
-      frame_masked_background_msg.epoch = self.msg_frame.epoch
-      frame_masked_background_msg.fps = self.msg_frame.fps
-      frame_masked_background_msg.frame_count = self.msg_frame.frame_count
-      frame_masked_background_msg.frame = self.br.cv2_to_imgmsg(frame_masked_background)
+      frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
+      frame_masked_background_msg.header = msg_frame.header
+
+      self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
       self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
@@ -88,7 +80,6 @@ class BackgroundSubtractionProviderNode(ControlLoopNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.msg_frame: Frame = None
       self.br = CvBridge()
 
     self.frame_processor = FrameProcessor.Select(self.app_configuration, 'background_subtractor_cuda_enable')

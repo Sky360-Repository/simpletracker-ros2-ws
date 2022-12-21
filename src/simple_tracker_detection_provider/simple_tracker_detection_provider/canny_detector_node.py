@@ -15,7 +15,7 @@ import rclpy
 import cv2
 from typing import List
 from cv_bridge import CvBridge
-from simple_tracker_interfaces.msg import Frame
+from sensor_msgs.msg import Image
 from simple_tracker_interfaces.msg import KeyPoint
 from simple_tracker_interfaces.msg import KeyPointArray
 from simple_tracker_interfaces.msg import BoundingBox
@@ -29,14 +29,14 @@ class CannyDetectorNode(ConfiguredNode):
     super().__init__('sky360_canny_detector')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Frame, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)    
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)    
     self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/canny/bounding_boxes/v1', 10)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
-  def grey_frame_callback(self, data:Frame):
+  def grey_frame_callback(self, data:Image):
 
-    frame_grey = self.br.imgmsg_to_cv2(data.frame)
+    frame_grey = self.br.imgmsg_to_cv2(data)
 
     # TODO:
    

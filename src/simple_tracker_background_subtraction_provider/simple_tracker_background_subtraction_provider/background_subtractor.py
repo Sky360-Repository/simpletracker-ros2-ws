@@ -12,6 +12,7 @@
 
 import cv2
 import pybgs as bgs
+import pysky360 as sky360
 
 ####################################################################################################################
 # This class provides a factory implimentation for selecting which background subtraction algorithm should be used #
@@ -141,9 +142,7 @@ class BackgroundSubtractor():
             background_subtractor = bgs.CodeBook()
 
         if type == 'SKY_WMV':
-            background_subtractor = bgs.WeightedMovingVarianceSky360()
-        if type == 'SKY_VB':
-            background_subtractor = bgs.ViBeBGS()            
+            background_subtractor = sky360.WeightedMovingVariance()          
 
         if background_subtractor is None:
             raise Exception(f"Unknown background subtractor type ({type}).")

@@ -60,7 +60,7 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
     valid = True
 
     background_subtractor_type = self.app_configuration['background_subtractor_type']
-    supported_bgsubtractors = {'KNN', 'MOG', 'MOG2', 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2', 'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'}
+    supported_bgsubtractors = {'KNN', 'MOG', 'MOG2', 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2', 'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB', 'SKY_WMV'}
     supported_cuda_bgsubtractors = {'MOG2_CUDA', 'MOG_CUDA'}
     supported = False
     if self.app_configuration['background_subtractor_cuda_enable']:

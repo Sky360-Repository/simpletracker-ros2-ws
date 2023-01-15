@@ -18,12 +18,8 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     
-    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'plane_flying_past2.mkv')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Test_Trimmed.mp4')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'uap_texas_skyhub.mp4')
     camera_info_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'camera_info.yaml')
-    config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params.yaml')
+    config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params-simulation.yaml')
 
     #with open(config, 'r') as f:
     #    configuration = yaml.safe_load(f)
@@ -43,31 +39,15 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),
-        #Node(
-        #    name='usb_cam',
-        #    package='usb_cam',
-        #    executable='usb_cam_node_exe',
-        #    parameters = [config],
-        #    remappings=[('image_raw', 'sky360/camera/original/v1')]
-        #),
         Node(
-            name='camera_simulator',
-            package='camera_simulator',
-            executable='camera_simulator',
+            name='synthetic_data_provider',
+            package='synthetic_data_provider',
+            executable='simulation_provider',
             parameters = [config],
-            remappings=[('/camera/image', 'sky360/camera/original/v1')],
-            arguments=[
-                '--type', 'video', 
-                '--path', video_file, 
-                '--calibration_file', camera_info_file,
-                '--loop']
+            remappings=[
+                ('sky360/simulation/v1', 'sky360/camera/original/v1'),
+            ]
         ),
-        #Node(
-        #    package='simple_tracker_camera',
-        #    #namespace='sky360',
-        #    executable='camera',
-        #    name='camera'
-        #),
         Node(
             package='simple_tracker_frame_provider',
             #namespace='sky360',

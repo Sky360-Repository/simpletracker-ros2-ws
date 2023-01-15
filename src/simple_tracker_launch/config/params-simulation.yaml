@@ -1,0 +1,67 @@
+configuration_service:
+  ros__parameters:
+
+    # Frame provider section
+    frame_provider_resize_frame: True
+    frame_provider_resize_dimension_h: 960
+    frame_provider_resize_dimension_w: 960
+    frame_provider_blur: True
+    frame_provider_blur_radius: 3
+    frame_provider_cuda_enable: False
+
+    # Visualiser section
+    visualiser_font_size: 0.5
+    visualiser_font_thickness: 1
+    visualiser_bbox_line_thickness: 1 # the line thickness of the bounding box
+    visualiser_bbox_size: 64 # fix the size of the bounding box
+    visualiser_log_status_to_console: False # log the status message to the console as well
+    visualiser_frame_source: "masked"
+    visualiser_resize_frame: True
+    visualiser_resize_dimension_h: 960
+    visualiser_resize_dimension_w: 960
+    visualiser_show_cropped_tracks: True
+    visualiser_cropped_zoom_factor: 2
+
+    # Tracker Type
+    #   currently only CSRT is supported
+    tracker_type: "CSRT"
+    tracker_stopwatch_enable: False
+    tracker_active_only: True
+    tracker_detection_mode: "background_subtraction"
+    tracker_detection_sensitivity: 1
+    tracker_max_active_trackers: 10
+    tracker_min_centre_point_distance_between_bboxes: 64 # we could make this 1/15 of the width
+
+    # Background Subtractor Type
+    #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',
+    #           'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'
+    #           'SKY_WMV'
+    #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
+    background_subtractor_type: "SKY_WMV"
+    background_subtractor_sensitivity: 1
+    background_subtractor_learning_rate: 0.05
+    background_subtractor_cuda_enable: False
+
+    # Track section
+    track_path_plotting_enabled: True # plot the line of the tracked object
+    track_plotting_type: "line"
+    track_validation_enable: True
+    track_stationary_threshold: 5
+    track_orphaned_threshold: 20
+    track_prediction_enabled: True
+
+    # Mask types supported
+    #   one of: 'no_op', 'fish_eye', 'overlay', 'overlay_inverse'
+    #   each option has it's own parameters, see below
+    #   NOTE: 'fish_eye' does not support cuda and will fallback to no_op    
+    #mask_type: "no_op"
+    mask_type: "no_op"
+    mask_pct: 20
+    # A couple of built in options already available
+    #    "mask-shrubs-inverse-overlay.jpg"
+    #    "mikes-camera-mask-overlay.jpg"
+    mask_overlay_image_file_name: "mask-shrubs-inverse-overlay.jpg"
+    
+    dense_optical_flow_h: 400
+    dense_optical_flow_w: 480
+    dense_optical_cuda_enable: False

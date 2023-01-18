@@ -44,7 +44,7 @@ configuration_service:
 
     # Blob Detector Type
     #   one of: 'simple', 'sky360'
-    blob_detector_type: "simple"
+    blob_detector_type: "sky360"
     blob_detector_min_distance_between_blobs: 64
 
     # Track section

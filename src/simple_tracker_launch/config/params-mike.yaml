@@ -66,12 +66,17 @@ configuration_service:
     # Background Subtractor Type
     #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',
     #           'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'
-    #           'SKY_WMV'
+    #           'SKY_WMV', 'SKY_VIBE'
     #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
     background_subtractor_type: "SKY_WMV"
     background_subtractor_sensitivity: 1
     background_subtractor_learning_rate: 0.05
     background_subtractor_cuda_enable: False
+
+    # Blob Detector Type
+    #   one of: 'simple', 'sky360'
+    blob_detector_type: "simple"
+    blob_detector_min_distance_between_blobs: 64
 
     # Track section
     track_path_plotting_enabled: True # plot the line of the tracked object

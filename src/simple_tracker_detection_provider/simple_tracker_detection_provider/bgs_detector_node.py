@@ -17,6 +17,7 @@ from rclpy.qos import QoSProfile
 import cv2
 from typing import List
 from cv_bridge import CvBridge
+from .blob_detector import BlobDetector
 #from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
@@ -42,20 +43,18 @@ class BGSDetectorNode(ConfiguredNode):
 
       frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
 
-      key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
+      bboxes = self.blob_detector.detect(frame_foreground_mask)
+
+      #key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
 
       bbox_array_msg = BoundingBox2DArray()
       bbox_array_msg.header = msg_frame.header
-      [bbox_array_msg.boxes.append(self._kp_to_bbox_msg(x)) for x in key_points]
+      [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
       self.pub_bounding_boxes.publish(bbox_array_msg)
 
-  def _kp_to_bbox_msg(self, kp):
+  def _bbox_to_bbox_msg(self, bbox):
 
-    (x, y) = kp.pt
-    size = kp.size    
-    scale = 6
-
-    x1, y1, w1, h1 = ((x - scale * size / 2), (y - scale * size / 2), (scale * size), (scale * size))
+    (x1, y1, w1, h1) = bbox
 
     bbox_msg = BoundingBox2D()
     ## bbox_msg.source_img = deepcopy(req.image)
@@ -100,7 +99,7 @@ class BGSDetectorNode(ConfiguredNode):
     return keypoints
 
   def config_list(self) -> List[str]:
-    return ['tracker_detection_sensitivity']
+    return ['tracker_detection_sensitivity', 'blob_detector_type', 'blob_detector_min_distance_between_blobs']
 
   def validate_config(self) -> bool:
     valid = True
@@ -108,12 +107,20 @@ class BGSDetectorNode(ConfiguredNode):
     if self.app_configuration['tracker_detection_sensitivity'] == None:
       self.get_logger().error('The tracker_detection_sensitivity config entry is null')
       valid = False
-      
+
+    blob_detector_type = self.app_configuration['blob_detector_type']
+    supported_blob_detectors = {'simple', 'sky360'}
+    if blob_detector_type not in supported_blob_detectors:
+      self.get_logger().error(f'Unknown blob_detector_type {blob_detector_type}')
+      valid = False
+
     return valid
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.br = CvBridge() 
+      self.br = CvBridge()
+
+    self.blob_detector = BlobDetector.Select(self.app_configuration)
 
 
 def main(args=None):

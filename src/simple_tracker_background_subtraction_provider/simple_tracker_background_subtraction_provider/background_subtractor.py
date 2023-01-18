@@ -142,7 +142,9 @@ class BackgroundSubtractor():
             background_subtractor = bgs.CodeBook()
 
         if type == 'SKY_WMV':
-            background_subtractor = sky360.WeightedMovingVariance()          
+            background_subtractor = sky360.WeightedMovingVariance()
+        if type == 'SKY_VIBE':
+            background_subtractor = sky360.Vibe()            
 
         if background_subtractor is None:
             raise Exception(f"Unknown background subtractor type ({type}).")

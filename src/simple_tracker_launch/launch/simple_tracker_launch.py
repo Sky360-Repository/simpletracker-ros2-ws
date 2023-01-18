@@ -22,6 +22,7 @@ def generate_launch_description():
     #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
     #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Test_Trimmed.mp4')
     #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'uap_texas_skyhub.mp4')
+    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Syn_ISS_Tracking.mp4')
     camera_info_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'camera_info.yaml')
     config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params.yaml')
 

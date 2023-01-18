@@ -39,14 +39,15 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),
-        Node(
-            name='synthetic_data_provider',
-            package='synthetic_data_provider',
-            executable='simulation_provider',
+        Node(            
+            package='simulated_video_provider',
+            ##namespace='sky360',
+            executable='simulated_video_provider',
             parameters = [config],
             remappings=[
                 ('sky360/simulation/v1', 'sky360/camera/original/v1'),
-            ]
+            ],
+            name='simulated_video_provider',
         ),
         Node(
             package='simple_tracker_frame_provider',
@@ -88,7 +89,6 @@ def generate_launch_description():
             package='simple_tracker_visualisers',
             #namespace='sky360',
             executable='simple_visualiser',
-            name='simple_visualiser',
             remappings=[
                 ('sky360/visualiser/annotated_frame', 'sky360/frames/annotated/v1'),
                 #('sky360/visualiser/original_camera_frame', 'sky360/camera/original/v1'),
@@ -98,7 +98,8 @@ def generate_launch_description():
                 #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow/v1'),
                 #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background/v1'),
                 #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask/v1'),                
-            ]
+            ],
+            name='simple_visualiser',
         ),
         #Node(
         #    package='rqt_image_view',

@@ -19,12 +19,14 @@ from cv_bridge import CvBridge
 import os
 from rclpy.executors import ExternalShutdownException
 from typing import List
-from ament_index_python.packages import get_package_share_directory
 from sensor_msgs.msg import Image
 from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
-from .synthetic_data_generator import SyntheticDataGenerator
-from simple_tracker_shared.utils import frame_resize
+
+from .synthetic_data import DroneSyntheticData, PlaneSyntheticData
+from .simulation_test import SimulationTest
+from .simulation_test_case import SimulationTestCase
+from .simulation_runner import SimulationRunner
 
 class SimulatedVideoProviderNode(ConfiguredNode):
 
@@ -40,37 +42,27 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
   def timer_callback(self):
 
-    if not self.still_frame_image is None:
-
-      frame = self.still_frame_image.copy()
+    if self.test_runner.active:
 
       self.counter += 1
 
       if self.counter > 150:
-        frame_synthetic = self.create_and_add_synthetic_data(frame)
+        frame_synthetic = self.test_runner.run()
       else:
-        frame_synthetic = frame
+        frame_synthetic = self.test_runner.image
 
-      time_msg = self.get_time_msg()
+      if frame_synthetic is not None:
 
-      frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding="bgr8")
-      frame_synthetic_msg.header.stamp = time_msg
-      frame_synthetic_msg.header.frame_id = 'synthetic'
+        time_msg = self.get_time_msg()
 
-      self.pub_synthetic_frame.publish(frame_synthetic_msg)
+        frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding="bgr8")
+        frame_synthetic_msg.header.stamp = time_msg
+        frame_synthetic_msg.header.frame_id = 'synthetic'
 
-  def create_and_add_synthetic_data(self, frame_original):
-
-    self.shape = frame_original.shape[:2]
-    self.height = self.shape[0]
-    self.width = self.shape[1]
-
-    frame_with_data = self.data_generator.generate_and_add(frame_original)
-
-    return frame_with_data
+        self.pub_synthetic_frame.publish(frame_synthetic_msg)
 
   def config_list(self) -> List[str]:
-    return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
+    return []
 
   def validate_config(self) -> bool:
     valid = True
@@ -83,22 +75,14 @@ class SimulatedVideoProviderNode(ConfiguredNode):
       self.still_frame_image = None
       self.counter = 0
 
-    file_name = 'frame_1.jpg'
-    frames_folder = self.videos_folder = os.path.join(get_package_share_directory('simulated_video_provider'), 'still_frames')
-    frame_file_path = os.path.join(frames_folder, file_name)
-
-    if os.path.exists(frame_file_path) == False:
-      self.get_logger().error(f'Still frame path {frame_file_path} does not exist.')
-
-    self.still_frame_image = cv2.imread(frame_file_path, cv2.IMREAD_COLOR)
-
-    if self.app_configuration['frame_provider_resize_frame']: 
-      self.still_frame_image = frame_resize(self.still_frame_image, 
-        width=self.app_configuration['frame_provider_resize_dimension_w'], 
-        height=self.app_configuration['frame_provider_resize_dimension_h'])
-
-    #self.data_generator = SyntheticDataGenerator.Plane(self.app_configuration, self.get_logger())
-    self.data_generator = SyntheticDataGenerator.Drone(self.app_configuration, self.get_logger())
+    self.test_runner = SimulationRunner(
+      [
+        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (960, 960), 'frame_1.jpg'),
+        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), 'frame_1.jpg'),
+        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (2160, 2160), 'frame_1.jpg'),
+        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (2880, 2880), 'frame_1.jpg')
+      ]
+    )
 
   def get_time_msg(self):
     time_msg = Time()

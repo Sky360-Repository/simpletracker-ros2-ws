@@ -10,104 +10,22 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import cv2
-import os
-import numpy as np
+class SyntheticData():
 
-####################################################################################################################################
-# Base class for various synthetic data generators
-####################################################################################################################################
-class SyntheticDataGenerator():
-  
-    # Static factory select method to determine what masking implementation to use
-    @staticmethod
-    def Select(settings, logger):
-
-        mask_type = settings['synthetic_data_generator_type']
-
-        if mask_type == 'no_op':
-            return SyntheticDataGenerator.NoOp(settings)
-
-        if mask_type == 'drone':
-            return SyntheticDataGenerator.Drone(settings)
-
-        if mask_type == 'plane':
-            return SyntheticDataGenerator.Plane(settings)
-
-        print(f'The NoOp Mask has been selected, is this correct or is there a config error?')
-        return SyntheticDataGenerator.NoOp(settings)
-
-    @staticmethod
-    def NoOp(settings, logger):
-        return NoOpDataGenerator(settings, logger)
-
-    @staticmethod
-    def Drone(settings, logger):
-        return DroneDataGenerator(settings, logger)
-
-    @staticmethod
-    def Plane(settings, logger):
-        return planeDataGenerator(settings, logger)
-
-    def __init__(self, settings, logger):
-        self.counter = 0
-        self.settings = settings
-        self.logger = logger
-        self.initialised = False
-
-    def get_frame_size(self):
-      return (960, 960)
-
-    def generate_and_add(self, frame):
-      path_lenth = len(self.get_path())
-      #self.logger.info(f'c --> {c}.')
-      frame_with_data = frame
-      if path_lenth > 0:
-        if self.counter >= path_lenth:
-          self.counter = 0
-
-        #self.logger.info(f'self.counter --> {self.counter}.')
-
-        if not self.initialised:
-          (h,w) = self.get_frame_size()
-          frame_with_data.shape
-          shape = frame_with_data.shape[:2]
-          f_h = shape[0]
-          f_w = shape[1]
-          self.factor_h = f_h/h
-          self.factor_w = f_w/w
-          self.initialised = True
-
-        (x,y) = self.get_path()[self.counter]
-        y1 = int(y*self.factor_h)
-        x1 = int(x*self.factor_w)
-
-        #cv2.circle(frame_with_data, (x,y), 2, (25,25,25), -1)
-        cv2.circle(frame_with_data, (x1,y1), 2, (25,25,25), -1)
-        self.counter = self.counter + 1
-      return frame_with_data      
-
-    def get_path(self):
-      return []
-
-class NoOpDataGenerator(SyntheticDataGenerator):
-
-  def __init__(self, settings, logger):
-    super().__init__(settings, logger)
-
-  def generate_and_add(self, frame):
-    return frame
-
-class DroneDataGenerator(SyntheticDataGenerator):
-
-  def __init__(self, settings, logger):
-    super().__init__(settings, logger)
+  def __init__(self, recorded_frame_size, recorded_flight_path):
+    self.recorded_frame_size = recorded_frame_size
+    self.recorded_flight_path = recorded_flight_path
 
   def get_frame_size(self):
-    return (960, 960)
+    return self.recorded_frame_size
 
   def get_path(self):
-    return [(357,485),(356,485),(355,485),(354,485),(353,485),(351,485),(351,485),(350,484),(348,484),(347,484),(346,484),(344,484),
+    return self.recorded_flight_path
+
+class DroneSyntheticData(SyntheticData):
+
+  def __init__(self):
+    super().__init__((960, 960), [(357,485),(356,485),(355,485),(354,485),(353,485),(351,485),(351,485),(350,484),(348,484),(347,484),(346,484),(344,484),
       (343,484),(341,484),(339,484),(339,483),(337,483),(335,483),(335,483),(333,483),(331,482),(330,482),(328,481),(327,480),(327,480),
       (326,479),(325,477),(325,476),(325,474),(325,473),(324,472),(324,469),(325,466),(325,465),(326,463),(327,460),(327,458),(328,454),
       (330,450),(330,449),(332,445),(334,441),(335,439),(338,434),(340,430),(341,427),(345,423),(349,419),(351,417),(355,412),(360,408),
@@ -171,18 +89,12 @@ class DroneDataGenerator(SyntheticDataGenerator):
       (555,449),(554,449),(554,449),(554,449),(554,450),(553,450),(553,450),(553,451),(552,451),(552,451),(552,451),(552,452),(551,452),
       (551,452),(551,452),(551,453),(551,453),(551,453),(550,453),(551,453),(551,454),(551,453),(551,454),(550,454),(550,455),(550,455),
       (549,455),(549,455),(549,455),(549,455),(549,455),(548,455),(548,455),(548,456),(548,456),(548,456),(548,456),(548,456),(547,457),
-      (547,456),(546,456),(546,456),(546,456),(546,456),(546,456),(546,455),(545,455),(544,455)]
+      (547,456),(546,456),(546,456),(546,456),(546,456),(546,456),(546,455),(545,455),(544,455)])
 
-class planeDataGenerator(SyntheticDataGenerator):
+class PlaneSyntheticData(SyntheticData):
 
-  def __init__(self, settings, logger):
-    super().__init__(settings, logger)
-
-  def get_frame_size(self):
-    return (960, 960)
-
-  def get_path(self):
-    return [(314,753),(317,752),(319,752),(321,752),(322,751),(323,751),(324,750),(326,751),(326,750),(328,750),(329,749),(330,749),
+  def __init__(self):
+    super().__init__((960, 960), [(314,753),(317,752),(319,752),(321,752),(322,751),(323,751),(324,750),(326,751),(326,750),(328,750),(329,749),(330,749),
       (331,749),(333,749),(333,748),(335,748),(337,748),(337,747),(338,747),(340,747),(341,746),(343,746),(344,746),(344,746),(347,745),
       (347,744),(349,745),(350,744),(352,744),(352,743),(355,743),(355,743),(357,742),(358,742),(360,741),(361,741),(362,741),(364,740),
       (365,740),(367,740),(368,739),(369,739),(371,738),(373,738),(373,737),(375,737),(377,737),(378,736),(380,736),(381,735),(383,734),
@@ -213,4 +125,4 @@ class planeDataGenerator(SyntheticDataGenerator):
       (834,447),(835,447),(835,446),(836,446),(836,445),(836,444),(838,444),(837,443),(838,442),(839,442),(840,441),(840,440),(841,439),
       (843,437),(843,437),(844,435),(845,436),(845,434),(845,433),(846,434),(847,431),(848,431),(848,431),(849,429),(849,430),(850,428),
       (850,428),(851,427),(851,427),(851,427),(852,426),(852,425),(854,424),(853,423),(855,423),(855,421),(855,422),(856,420),(856,421),
-      (859,417),(859,417),(859,417),(859,417),(859,417)]
+      (859,417),(859,417),(859,417),(859,417),(859,417)])

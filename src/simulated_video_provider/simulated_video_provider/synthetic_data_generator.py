@@ -53,17 +53,37 @@ class SyntheticDataGenerator():
         self.counter = 0
         self.settings = settings
         self.logger = logger
+        self.initialised = False
+
+    def get_frame_size(self):
+      return (960, 960)
 
     def generate_and_add(self, frame):
       path_lenth = len(self.get_path())
       #self.logger.info(f'c --> {c}.')
-      frame_with_data = frame.copy()
+      frame_with_data = frame
       if path_lenth > 0:
         if self.counter >= path_lenth:
           self.counter = 0
+
         #self.logger.info(f'self.counter --> {self.counter}.')
+
+        if not self.initialised:
+          (h,w) = self.get_frame_size()
+          frame_with_data.shape
+          shape = frame_with_data.shape[:2]
+          f_h = shape[0]
+          f_w = shape[1]
+          self.factor_h = f_h/h
+          self.factor_w = f_w/w
+          self.initialised = True
+
         (x,y) = self.get_path()[self.counter]
-        cv2.circle(frame_with_data, (x,y), 2, (25,25,25), -1)
+        y1 = int(y*self.factor_h)
+        x1 = int(x*self.factor_w)
+
+        #cv2.circle(frame_with_data, (x,y), 2, (25,25,25), -1)
+        cv2.circle(frame_with_data, (x1,y1), 2, (25,25,25), -1)
         self.counter = self.counter + 1
       return frame_with_data      
 
@@ -82,6 +102,9 @@ class DroneDataGenerator(SyntheticDataGenerator):
 
   def __init__(self, settings, logger):
     super().__init__(settings, logger)
+
+  def get_frame_size(self):
+    return (960, 960)
 
   def get_path(self):
     return [(357,485),(356,485),(355,485),(354,485),(353,485),(351,485),(351,485),(350,484),(348,484),(347,484),(346,484),(344,484),
@@ -154,6 +177,9 @@ class planeDataGenerator(SyntheticDataGenerator):
 
   def __init__(self, settings, logger):
     super().__init__(settings, logger)
+
+  def get_frame_size(self):
+    return (960, 960)
 
   def get_path(self):
     return [(314,753),(317,752),(319,752),(321,752),(322,751),(323,751),(324,750),(326,751),(326,750),(328,750),(329,749),(330,749),

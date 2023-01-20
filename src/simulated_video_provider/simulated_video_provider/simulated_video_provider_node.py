@@ -42,10 +42,14 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
     if not self.still_frame_image is None:
 
+      frame = self.still_frame_image.copy()
+
       self.counter += 1
-      frame_synthetic = self.still_frame_image
+
       if self.counter > 150:
-        frame_synthetic = self.create_and_add_synthetic_data(self.still_frame_image)      
+        frame_synthetic = self.create_and_add_synthetic_data(frame)
+      else:
+        frame_synthetic = frame
 
       time_msg = self.get_time_msg()
 
@@ -70,7 +74,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
   def validate_config(self) -> bool:
     valid = True
-    return valid          
+    return valid
 
   def on_config_loaded(self, init: bool):
     if init:

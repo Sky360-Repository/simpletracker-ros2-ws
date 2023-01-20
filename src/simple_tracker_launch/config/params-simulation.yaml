@@ -2,7 +2,7 @@ configuration_service:
   ros__parameters:
 
     # Frame provider section
-    frame_provider_resize_frame: True
+    frame_provider_resize_frame: False
     frame_provider_resize_dimension_h: 960
     frame_provider_resize_dimension_w: 960
     frame_provider_blur: True

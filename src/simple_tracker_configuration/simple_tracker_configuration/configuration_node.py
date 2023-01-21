@@ -85,7 +85,7 @@ class SimpleTrackerConfigurationNode(Node):
 
         updated = False
         validated = True
-        message = 'Unknown/Failed'
+        message = 'NoChange/Unknown/Failed'
         message_inner = ''
         keys = []
 

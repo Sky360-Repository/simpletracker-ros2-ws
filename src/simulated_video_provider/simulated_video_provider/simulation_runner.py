@@ -13,6 +13,7 @@
 import cv2
 import os
 import numpy as np
+from simple_tracker_shared.utils import get_optimal_font_scale
 
 class SimulationRunner():
 
@@ -24,6 +25,8 @@ class SimulationRunner():
     self.warmup_threshold = 0
     if len(self.test_cases) > 0:
         self.running_test_case = self.test_cases[0]
+        self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
+    self.completed_frame = None
 
   @property
   def active(self):
@@ -46,6 +49,7 @@ class SimulationRunner():
         if len(self.test_cases) > 0:
           self.running_test_case = self.test_cases[0]
           self.running_test_case.notify_of_frame_change()
+          self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
           self.counter = 0
 
       if not self.running_test_case is None:
@@ -55,5 +59,15 @@ class SimulationRunner():
           self.counter += 1
           return self.running_test_case.image
 
-    return None
+    return self._completed_frame()
 
+  def _completed_frame(self):
+
+    if self.completed_frame is None:
+      (w, h) = self.completed_frame_dimensions
+      self.completed_frame = np.full((w, h, 3) , (255, 255, 255), np.uint8)      
+      simulation_message = f"(Sky360) Simulation Complete"
+      fontScale = get_optimal_font_scale(simulation_message, int(w-50))
+      cv2.putText(self.completed_frame, simulation_message, (25, int(h/2)), cv2.FONT_HERSHEY_SIMPLEX, fontScale, (50, 170, 50), 2)
+
+    return self.completed_frame

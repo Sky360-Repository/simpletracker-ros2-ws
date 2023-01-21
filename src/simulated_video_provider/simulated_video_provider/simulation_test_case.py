@@ -21,12 +21,12 @@ from simple_tracker_shared.utils import frame_resize, get_optimal_font_scale
 
 class SimulationTestCase():
 
-  def __init__(self, node: ConfiguredNode, tests, dimension, file_name=None):
+  def __init__(self, node: ConfiguredNode, tests, dimensions, file_name=None):
     self.node = node
     self.logger = node.get_logger()
     self.tests = tests
     self.running = True
-    (self.w, self.h) = dimension
+    (self.w, self.h) = dimensions
     self.frame = None
 
     if not file_name is None and len(file_name) > 0:
@@ -53,6 +53,10 @@ class SimulationTestCase():
   @property
   def image(self):
     return self.frame
+
+  @property
+  def dimensions(self):
+    return (self.w, self.h)
 
   def run(self):
     if self.running:

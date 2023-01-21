@@ -46,18 +46,16 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
       frame_synthetic = self.test_runner.run()
 
-      if frame_synthetic is not None:
+      time_msg = self.get_time_msg()
 
-        time_msg = self.get_time_msg()
+      frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding="bgr8")
+      frame_synthetic_msg.header.stamp = time_msg
+      frame_synthetic_msg.header.frame_id = 'synthetic'
 
-        frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding="bgr8")
-        frame_synthetic_msg.header.stamp = time_msg
-        frame_synthetic_msg.header.frame_id = 'synthetic'
-
-        self.pub_synthetic_frame.publish(frame_synthetic_msg)
+      self.pub_synthetic_frame.publish(frame_synthetic_msg)
 
   def config_list(self) -> List[str]:
-    return []
+    return ['frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True
@@ -69,15 +67,20 @@ class SimulatedVideoProviderNode(ConfiguredNode):
       self.br = CvBridge()
       self.still_frame_image = None
 
-    self.test_runner = SimulationRunner(
-      [
-        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960)),
-        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440)),
-        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160)),
-        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880)),
-        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=15, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=15, loop=False)], (3600, 3600))
-      ]
-    )
+      self.test_runner = SimulationRunner(
+        [
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960)),
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440)),
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160)),
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880)),
+          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=15, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=15, loop=False)], (3600, 3600)),
+          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160)),
+          #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160)),
+          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960)),
+        ]
+      )
+
+    (self.w, self.h) = (self.app_configuration['frame_provider_resize_dimension_w'], self.app_configuration['frame_provider_resize_dimension_h'])
 
   def get_time_msg(self):
     time_msg = Time()

@@ -20,6 +20,8 @@ class SimulationRunner():
     self.test_cases = test_cases
     self.completed_test_cases = []
     self.running_test_case = None
+    self.counter = 0
+    self.warmup_threshold = 0
     if len(self.test_cases) > 0:
         self.running_test_case = self.test_cases[0]
 
@@ -38,13 +40,20 @@ class SimulationRunner():
       if not self.running_test_case.active:
         self.completed_test_cases.append(self.running_test_case)
         self.test_cases.remove(self.running_test_case)
-        self.running_test_case = None
+        self.running_test_case = None        
 
-      if len(self.test_cases) > 0:
-        self.running_test_case = self.test_cases[0]
+      if self.running_test_case is None:
+        if len(self.test_cases) > 0:
+          self.running_test_case = self.test_cases[0]
+          self.running_test_case.notify_of_frame_change()
+          self.counter = 0
 
       if not self.running_test_case is None:
-        return self.running_test_case.run()
+        if self.counter > self.warmup_threshold:
+          return self.running_test_case.run()
+        else:
+          self.counter += 1
+          return self.running_test_case.image
 
     return None
 

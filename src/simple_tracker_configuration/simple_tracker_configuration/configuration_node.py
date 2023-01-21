@@ -85,7 +85,8 @@ class SimpleTrackerConfigurationNode(Node):
 
         updated = False
         validated = True
-        message = 'Success - '
+        message = 'Unknown/Failed'
+        message_inner = ''
         keys = []
 
         for config_entry in request.entries:
@@ -95,7 +96,7 @@ class SimpleTrackerConfigurationNode(Node):
             if previous_value is not None:
                 if type(previous_value).__name__ != type(updated_value).__name__:
                     validated = False
-                    message += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+                    message_inner += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
 
                 if validated:
                     for config_entry in request.entries:
@@ -106,19 +107,20 @@ class SimpleTrackerConfigurationNode(Node):
                         if previous_value is None:
                             self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
                             self.get_logger().info(f'Updating config {config_entry.key}.')
-                            message += f'Updated: {config_entry.key},'
+                            message_inner += f'Updated: {config_entry.key},'
                             updated = True
                         else:
                             if previous_value != updated_value:
                                 self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
                                 self.get_logger().info(f'Updating config {config_entry.key}.')
-                                message += f'Updated: {config_entry.key},'
+                                message_inner += f'Updated: {config_entry.key},'
                                 updated = True
 
         if updated:
             msg = ConfigEntryUpdatedArray()
             msg.keys = keys
             self.config_change_publisher.publish(msg)
+            message = f'Success - {message_inner}'
 
         response.success = updated
         response.message = message

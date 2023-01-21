@@ -46,8 +46,6 @@ configuration_service:
     frame_provider_cuda_enable: False
 
     # Visualiser section
-    visualiser_font_size: 0.5
-    visualiser_font_thickness: 1
     visualiser_bbox_line_thickness: 1 # the line thickness of the bounding box
     visualiser_bbox_size: 64 # fix the size of the bounding box
     visualiser_log_status_to_console: False # log the status message to the console as well

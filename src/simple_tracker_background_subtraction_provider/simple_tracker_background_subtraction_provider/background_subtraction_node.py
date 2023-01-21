@@ -54,7 +54,8 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
       self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
-    return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_learning_rate', 'background_subtractor_cuda_enable']
+    return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_learning_rate', 'background_subtractor_cuda_enable',
+    'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True

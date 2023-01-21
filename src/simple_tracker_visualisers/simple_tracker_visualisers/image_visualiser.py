@@ -101,20 +101,10 @@ class ImageVisualiserNode(ConfiguredNode):
     return frame
 
   def config_list(self) -> List[str]:
-    return ['visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 
-      'visualiser_log_status_to_console', 'visualiser_resize_frame', 'visualiser_resize_dimension_h', 'visualiser_resize_dimension_w']
+    return ['visualiser_log_status_to_console', 'visualiser_resize_frame', 'visualiser_resize_dimension_h', 'visualiser_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True
-
-    if self.app_configuration['visualiser_font_size'] == None:
-      self.get_logger().error('The visualiser_font_size config entry is null')
-      valid = False
-
-    if self.app_configuration['visualiser_font_thickness'] == None:
-      self.get_logger().error('The visualiser_font_thickness config entry is null')
-      valid = False
-
     return valid  
 
   def on_config_loaded(self, init: bool):
@@ -122,10 +112,6 @@ class ImageVisualiserNode(ConfiguredNode):
       self.br = CvBridge()
       self.font_colour = (50, 170, 50)
       self.key_handler = KeyHandler(self, self.br)
-
-    self.font_size = self.app_configuration['visualiser_font_size']
-    self.font_thickness = self.app_configuration['visualiser_font_thickness']
-    self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
 
 def main(args=None):
 

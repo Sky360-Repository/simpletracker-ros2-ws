@@ -39,8 +39,6 @@ class AppSettings():
                 ('frame_provider_blur_radius', 3),
                 ('frame_provider_cuda_enable', False),
 
-                ('visualiser_font_size', 0.5),
-                ('visualiser_font_thickness', 1),
                 ('visualiser_bbox_line_thickness', 1),
                 ('visualiser_bbox_size', 64),
                 ('visualiser_log_status_to_console', False),
@@ -104,8 +102,6 @@ class AppSettings():
         app_settings['frame_provider_cuda_enable'] = node.get_parameter('frame_provider_cuda_enable').value
 
         # Visualiser node section
-        app_settings['visualiser_font_size'] = node.get_parameter('visualiser_font_size').value
-        app_settings['visualiser_font_thickness'] = node.get_parameter('visualiser_font_thickness').value
         app_settings['visualiser_bbox_line_thickness'] = node.get_parameter('visualiser_bbox_line_thickness').value
         app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
         app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value

@@ -45,8 +45,6 @@ class BGSDetectorNode(ConfiguredNode):
 
       bboxes = self.blob_detector.detect(frame_foreground_mask)
 
-      #key_points = self.perform_blob_detection(frame_foreground_mask, self.app_configuration['tracker_detection_sensitivity'])
-
       bbox_array_msg = BoundingBox2DArray()
       bbox_array_msg.header = msg_frame.header
       [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
@@ -67,39 +65,9 @@ class BGSDetectorNode(ConfiguredNode):
 
     return bbox_msg
 
-  def perform_blob_detection(self, frame, sensitivity):
-    params = cv2.SimpleBlobDetector_Params()
-    # print(f"original sbd params:{params}")
-
-    params.minRepeatability = 2
-    # 5% of the width of the image
-    params.minDistBetweenBlobs = int(frame.shape[1] * 0.05)
-    params.minThreshold = 3
-    params.filterByArea = 1
-    params.filterByColor = 0
-    # params.blobColor=255
-
-    if sensitivity == 1:  # Detects small, medium and large objects
-        params.minArea = 3
-    elif sensitivity == 2:  # Detects medium and large objects
-        params.minArea = 5
-    elif sensitivity == 3:  # Detects large objects
-        params.minArea = 25
-    else:
-        raise Exception(
-            f"Unknown sensitivity option ({sensitivity}). 1, 2 and 3 is supported not {sensitivity}.")
-
-    detector = cv2.SimpleBlobDetector_create(params)
-    # params.write('params.json')
-    # print("created detector")
-    # blobframe=cv2.convertScaleAbs(frame)
-    # print("blobframe")
-    keypoints = detector.detect(frame)
-    # print("ran detect")
-    return keypoints
-
   def config_list(self) -> List[str]:
-    return ['tracker_detection_sensitivity', 'blob_detector_type', 'blob_detector_min_distance_between_blobs']
+    return ['tracker_detection_sensitivity', 'blob_detector_type', 'blob_detector_min_distance_between_blobs', 'frame_provider_resize_dimension_h', 
+    'frame_provider_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True

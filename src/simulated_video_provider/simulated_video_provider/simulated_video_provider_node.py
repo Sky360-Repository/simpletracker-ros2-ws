@@ -44,12 +44,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
     if self.test_runner.active:
 
-      self.counter += 1
-
-      if self.counter > 150:
-        frame_synthetic = self.test_runner.run()
-      else:
-        frame_synthetic = self.test_runner.image
+      frame_synthetic = self.test_runner.run()
 
       if frame_synthetic is not None:
 
@@ -73,14 +68,14 @@ class SimulatedVideoProviderNode(ConfiguredNode):
       self.timer_period = 0.05
       self.br = CvBridge()
       self.still_frame_image = None
-      self.counter = 0
 
     self.test_runner = SimulationRunner(
       [
-        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (960, 960), 'frame_1.jpg'),
-        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), 'frame_1.jpg'),
-        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (2160, 2160), 'frame_1.jpg'),
-        SimulationTestCase(self.app_configuration, self.get_logger(), [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (2880, 2880), 'frame_1.jpg')
+        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960)),
+        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440)),
+        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160)),
+        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880)),
+        SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=15, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=15, loop=False)], (3600, 3600))
       ]
     )
 

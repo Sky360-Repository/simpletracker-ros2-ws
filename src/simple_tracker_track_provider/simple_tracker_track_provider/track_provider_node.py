@@ -52,7 +52,7 @@ class TrackProviderNode(ConfiguredNode):
 
       bboxes = [self._msg_to_bbox(x) for x in msg_bounding_box_array.boxes]
 
-      self.video_tracker.update_trackers(bboxes, frame)
+      self.video_tracker.update_trackers(bboxes, frame)      
 
       detect_array_msg = Detection2DArray()
       detect_array_msg.header = msg_frame.header

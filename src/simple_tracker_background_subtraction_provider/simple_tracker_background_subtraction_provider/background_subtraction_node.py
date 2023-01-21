@@ -26,7 +26,7 @@ from .background_subtractor import BackgroundSubtractor
 class BackgroundSubtractionProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
-    super().__init__('sky360_foreground_mask_provider')
+    super().__init__('sky360_background_subtraction_provider')
 
     # setup services, publishers and subscribers
     self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)#, subscriber_qos_profile)

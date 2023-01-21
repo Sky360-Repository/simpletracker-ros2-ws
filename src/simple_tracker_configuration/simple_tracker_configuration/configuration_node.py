@@ -84,37 +84,44 @@ class SimpleTrackerConfigurationNode(Node):
         self.get_logger().info(f'Updating config.')
 
         updated = False
-        validated = True
         message = 'NoChange/Unknown/Failed'
         message_inner = ''
         keys = []
 
         for config_entry in request.entries:
-            previous_value = self.settings[config_entry.key]
-            updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
 
-            if previous_value is not None:
-                if type(previous_value).__name__ != type(updated_value).__name__:
-                    validated = False
-                    message_inner += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+            type_validated = True
 
-                if validated:
-                    for config_entry in request.entries:
-                        keys.append(config_entry.key)
-                        previous_value = self.settings[config_entry.key]
-                        updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+            if config_entry.key in self.settings:
+                previous_value = self.settings[config_entry.key]
+                updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                self.get_logger().info(f'Updating known config {config_entry.key} to {config_entry.value}.')
 
-                        if previous_value is None:
-                            self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                            self.get_logger().info(f'Updating config {config_entry.key}.')
-                            message_inner += f'Updated: {config_entry.key},'
-                            updated = True
-                        else:
-                            if previous_value != updated_value:
-                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                                self.get_logger().info(f'Updating config {config_entry.key}.')
-                                message_inner += f'Updated: {config_entry.key},'
-                                updated = True
+                if previous_value is not None:
+                    if type(previous_value).__name__ != type(updated_value).__name__:
+                        type_validated = False
+                        message_inner += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+                        self.get_logger().warn(message_inner)
+                else:
+                    self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                    self.get_logger().info(f'Updating config {config_entry.key}.')
+                    message_inner += f'Updated: {config_entry.key},'
+                    updated = True
+
+                if type_validated:
+                    keys.append(config_entry.key)
+                    previous_value = self.settings[config_entry.key]
+                    updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+
+                    if previous_value != updated_value:
+                        self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                        self.get_logger().info(f'Updating config {config_entry.key}.')
+                        message_inner += f'Updated: {config_entry.key},'
+                        updated = True
+                    else:
+                        self.get_logger().info(f'Ignoring config {config_entry.key} as values have not changed.')
+            else:
+                self.get_logger().warn(f'Unknown config {config_entry.key} key.')
 
         if updated:
             msg = ConfigEntryUpdatedArray()

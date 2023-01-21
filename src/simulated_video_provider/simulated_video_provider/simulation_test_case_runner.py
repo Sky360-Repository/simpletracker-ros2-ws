@@ -15,7 +15,7 @@ import os
 import numpy as np
 from simple_tracker_shared.utils import get_optimal_font_scale
 
-class SimulationRunner():
+class SimulationTestCaseRunner():
 
   def __init__(self, test_cases):
     self.test_cases = test_cases
@@ -23,10 +23,11 @@ class SimulationRunner():
     self.running_test_case = None
     self.counter = 0
     self.warmup_threshold = 0
-    if len(self.test_cases) > 0:
-        self.running_test_case = self.test_cases[0]
-        self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
     self.completed_frame = None
+    if len(self.test_cases) > 0:
+      self.running_test_case = self.test_cases[0]
+      self.running_test_case.notify_of_frame_change()
+      self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
 
   @property
   def active(self):

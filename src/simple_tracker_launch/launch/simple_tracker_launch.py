@@ -84,8 +84,8 @@ def generate_launch_description():
         Node(
             package='simple_tracker_background_subtraction_provider',
             #namespace='sky360',
-            executable='foreground_mask_provider',
-            name='foreground_mask_provider'
+            executable='background_subtraction_provider',
+            name='background_subtraction_provider'
         ),
         Node(
             package='simple_tracker_detection_provider',

@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'foreground_mask_provider = simple_tracker_background_subtraction_provider.background_subtraction_node:main',
+            'background_subtraction_provider = simple_tracker_background_subtraction_provider.background_subtraction_node:main',
         ],
     },
 )

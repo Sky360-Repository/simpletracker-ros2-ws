@@ -26,7 +26,7 @@ class SimulationTestCaseRunner():
     self.completed_frame = None
     if len(self.test_cases) > 0:
       self.running_test_case = self.test_cases[0]
-      self.running_test_case.notify_of_frame_change()
+      self.running_test_case.notify_of_frame_size_change()
       self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
 
   @property
@@ -49,7 +49,7 @@ class SimulationTestCaseRunner():
       if self.running_test_case is None:
         if len(self.test_cases) > 0:
           self.running_test_case = self.test_cases[0]
-          self.running_test_case.notify_of_frame_change()
+          self.running_test_case.notify_of_frame_size_change()
           self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
           self.counter = 0
 

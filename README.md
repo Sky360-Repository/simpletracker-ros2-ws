@@ -33,15 +33,15 @@ Run the simulation launch script to launch the project in simulation mode. This 
 
 * This will update the "frame_provider_resize_dimension_h" configuration entry to a value of 400
 
-`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: frame_provider_resize_dimension_h, type: int, value: 400}]}'`
+`ros2 service call '/sky360/config/entry/update' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: frame_provider_resize_dimension_h, type: int, value: 400}]}'`
 
-`ros2 service call '/sky360/config/entry/update/v1' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: controller_type, type: str, value: video}]}'`
+`ros2 service call '/sky360/config/entry/update' 'simple_tracker_interfaces/srv/ConfigEntryUpdate' '{entries:[{key: controller_type, type: str, value: video}]}'`
 
 ### Tracker status via command line
 
 * To keep an eye on the state of the tracker, using the following echo command
 
-`ros2 topic echo /sky360/tracker/tracking_state/v1`
+`ros2 topic echo /sky360/tracker/tracking_state`
 
 ### View more windows
 

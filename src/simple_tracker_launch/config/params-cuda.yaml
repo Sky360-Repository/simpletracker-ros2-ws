@@ -44,8 +44,6 @@ configuration_service:
     frame_provider_cuda_enable: True
 
     # Visualiser section
-    visualiser_font_size: 0.5
-    visualiser_font_thickness: 1
     visualiser_bbox_line_thickness: 1 # the line thickness of the bounding box
     visualiser_bbox_size: 64 # fix the size of the bounding box
     visualiser_log_status_to_console: False # log the status message to the console as well
@@ -69,12 +67,17 @@ configuration_service:
     # Background Subtractor Type
     #   one of: 'KNN', 'MOG', MOG2, 'BGS_FD', 'BGS_SFD', 'BGS_WMM', 'BGS_WMV', 'BGS_ABL', 'BGS_ASBL', 'BGS_MOG2',
     #           'BGS_PBAS', 'BGS_SD', 'BGS_SuBSENSE', 'BGS_LOBSTER', 'BGS_PAWCS', 'BGS_TP', 'BGS_VB', 'BGS_CB'
-    #           'SKY_WMV'
+    #           'SKY_WMV', 'SKY_VIBE'
     #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
     background_subtractor_type: "MOG2_CUDA"
     background_subtractor_sensitivity: 1
     background_subtractor_learning_rate: 0.05
     background_subtractor_cuda_enable: True
+
+    # Blob Detector Type
+    #   one of: 'simple', 'sky360'
+    blob_detector_type: "sky360"
+    blob_detector_min_distance_between_blobs: 64
 
     # Track section
     track_path_plotting_enabled: True # plot the line of the tracked object

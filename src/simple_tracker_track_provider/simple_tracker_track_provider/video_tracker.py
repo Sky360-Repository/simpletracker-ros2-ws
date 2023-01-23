@@ -11,8 +11,9 @@
 # all copies or substantial portions of the Software.
 
 import numpy as np
+import rclpy
 from threading import Thread
-from simple_tracker_shared.utils import is_bbox_being_tracked, calc_centre_point_distance
+from simple_tracker_shared.utils import is_bbox_being_tracked, calc_centre_point_distance, is_valid_bbox
 from .tracker import Tracker
 
 ################################################################################################
@@ -41,7 +42,6 @@ class VideoTracker():
     # function to create trackers from extracted keypoints
     def create_trackers_from_bboxes(self, tracker_type, bboxes, frame):
         for bbox in bboxes:
-            # print(bbox)
 
             # Initialize tracker with first frame and bounding box
             if not is_bbox_being_tracked(self.live_trackers, bbox):
@@ -101,10 +101,14 @@ class VideoTracker():
 
         # Add new detections to live tracker
         for new_bbox in unmatched_bboxes:
-            # Hit max trackers?
-            if len(self.live_trackers) < self.settings['tracker_max_active_trackers']:
-                if not is_bbox_being_tracked(self.live_trackers, new_bbox):
-                    self.create_and_add_tracker(frame, new_bbox)
+            if is_valid_bbox(new_bbox, frame):
+                # Hit max trackers?
+                if len(self.live_trackers) < self.settings['tracker_max_active_trackers']:
+                    if not is_bbox_being_tracked(self.live_trackers, new_bbox):
+                        self.create_and_add_tracker(frame, new_bbox)
+            else:
+                rclpy.logging.get_logger('video_tracker').warn(f'BBox failed size validation {new_bbox}')
+
 
     # Mike: Identifying tasks that can be called on seperate threads to try and speed this sucker up
     def update_tracker_task(self, tracker, frame, results, index):

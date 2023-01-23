@@ -39,8 +39,6 @@ class AppSettings():
                 ('frame_provider_blur_radius', 3),
                 ('frame_provider_cuda_enable', False),
 
-                ('visualiser_font_size', 0.5),
-                ('visualiser_font_thickness', 1),
                 ('visualiser_bbox_line_thickness', 1),
                 ('visualiser_bbox_size', 64),
                 ('visualiser_log_status_to_console', False),
@@ -63,6 +61,9 @@ class AppSettings():
                 ('background_subtractor_sensitivity', 1),
                 ('background_subtractor_learning_rate', 0.05),
                 ('background_subtractor_cuda_enable', False),
+
+                ('blob_detector_type', 'sky360'),
+                ('blob_detector_min_distance_between_blobs', 64),
 
                 ('track_path_plotting_enabled', True),
                 ('track_plotting_type', 'line'),
@@ -101,8 +102,6 @@ class AppSettings():
         app_settings['frame_provider_cuda_enable'] = node.get_parameter('frame_provider_cuda_enable').value
 
         # Visualiser node section
-        app_settings['visualiser_font_size'] = node.get_parameter('visualiser_font_size').value
-        app_settings['visualiser_font_thickness'] = node.get_parameter('visualiser_font_thickness').value
         app_settings['visualiser_bbox_line_thickness'] = node.get_parameter('visualiser_bbox_line_thickness').value
         app_settings['visualiser_bbox_size'] = node.get_parameter('visualiser_bbox_size').value
         app_settings['visualiser_log_status_to_console'] = node.get_parameter('visualiser_log_status_to_console').value
@@ -127,6 +126,10 @@ class AppSettings():
         app_settings['background_subtractor_sensitivity'] = node.get_parameter('background_subtractor_sensitivity').value
         app_settings['background_subtractor_learning_rate'] = node.get_parameter('background_subtractor_learning_rate').value
         app_settings['background_subtractor_cuda_enable'] = node.get_parameter('background_subtractor_cuda_enable').value
+
+        # Blob detector section
+        app_settings['blob_detector_type'] = node.get_parameter('blob_detector_type').value
+        app_settings['blob_detector_min_distance_between_blobs'] = node.get_parameter('blob_detector_min_distance_between_blobs').value
 
         # Track Plotting section
         app_settings['track_path_plotting_enabled'] = node.get_parameter('track_path_plotting_enabled').value

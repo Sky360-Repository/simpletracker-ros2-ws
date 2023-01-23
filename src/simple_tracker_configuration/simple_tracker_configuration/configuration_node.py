@@ -29,13 +29,13 @@ class SimpleTrackerConfigurationNode(Node):
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get(self)
 
-        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', 
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', 
             self.get_config_callback)
-        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', 
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', 
             self.get_config_array_callback)
-        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', 
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', 
             self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)#, publisher_qos_profile)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', 10)#, publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -84,41 +84,50 @@ class SimpleTrackerConfigurationNode(Node):
         self.get_logger().info(f'Updating config.')
 
         updated = False
-        validated = True
-        message = 'Success - '
+        message = 'NoChange/Unknown/Failed'
+        message_inner = ''
         keys = []
 
         for config_entry in request.entries:
-            previous_value = self.settings[config_entry.key]
-            updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
 
-            if previous_value is not None:
-                if type(previous_value).__name__ != type(updated_value).__name__:
-                    validated = False
-                    message += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+            type_validated = True
 
-                if validated:
-                    for config_entry in request.entries:
-                        keys.append(config_entry.key)
-                        previous_value = self.settings[config_entry.key]
-                        updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+            if config_entry.key in self.settings:
+                previous_value = self.settings[config_entry.key]
+                updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                self.get_logger().info(f'Updating known config {config_entry.key} to {config_entry.value}.')
 
-                        if previous_value is None:
-                            self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                            self.get_logger().info(f'Updating config {config_entry.key}.')
-                            message += f'Updated: {config_entry.key},'
-                            updated = True
-                        else:
-                            if previous_value != updated_value:
-                                self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
-                                self.get_logger().info(f'Updating config {config_entry.key}.')
-                                message += f'Updated: {config_entry.key},'
-                                updated = True
+                if previous_value is not None:
+                    if type(previous_value).__name__ != type(updated_value).__name__:
+                        type_validated = False
+                        message_inner += f'Updating [{config_entry.key}] failed. Type mismatch {type(previous_value).__name__} != {type(updated_value).__name__}.'
+                        self.get_logger().warn(message_inner)
+                else:
+                    self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                    self.get_logger().info(f'Updating config {config_entry.key}.')
+                    message_inner += f'Updated: {config_entry.key},'
+                    updated = True
+
+                if type_validated:
+                    keys.append(config_entry.key)
+                    previous_value = self.settings[config_entry.key]
+                    updated_value = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+
+                    if previous_value != updated_value:
+                        self.settings[config_entry.key] = ConfigEntryConvertor.Convert(config_entry.type, config_entry.value)
+                        self.get_logger().info(f'Updating config {config_entry.key}.')
+                        message_inner += f'Updated: {config_entry.key},'
+                        updated = True
+                    else:
+                        self.get_logger().info(f'Ignoring config {config_entry.key} as values have not changed.')
+            else:
+                self.get_logger().warn(f'Unknown config {config_entry.key} key.')
 
         if updated:
             msg = ConfigEntryUpdatedArray()
             msg.keys = keys
             self.config_change_publisher.publish(msg)
+            message = f'Success - {message_inner}'
 
         response.success = updated
         response.message = message

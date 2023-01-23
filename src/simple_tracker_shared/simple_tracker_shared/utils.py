@@ -162,6 +162,28 @@ def get_sized_bbox(bbox, settings):
 
     return return_bbox
 
+# Utility function to determine if a bbox is valid.
+# 
+# I had problems and used this to debug it, its a useful function to have so don't want to delete
+# it, but equally I don't want the processing overhead so quick return out of it until we need it again.
+def is_valid_bbox(bbox, frame):
+    #return True
+    # roi.x + roi.width <= m.cols 
+    # roi.y + roi.height <= m.rows
+    valid = False
+    x, y, w, h = bbox
+    f_h, f_w, _ = frame.shape
+    max_dim = int(f_w*0.15) # Make this 15% of the width of the frame
+
+    if w < max_dim > h:
+        if (x > 1 and y > 1 and w > 1 and h > 1):
+            f_h, f_w, _ = frame.shape
+            cols = x + w
+            rows = y + h
+            if (cols < f_w and rows < f_h):
+                valid = True
+    return valid
+
 # Utility function to take a frame and return a smaller one
 # (size divided by zoom level) centered on center
 def zoom_and_clip(frame, center, zoom_level):
@@ -219,3 +241,11 @@ def frame_resize(frame, width=None, height=None, inter=cv2.INTER_AREA):
 
     # return the resized frame
     return resized
+
+def get_optimal_font_scale(text, width):
+    for scale in reversed(range(0, 60, 1)):
+        textSize = cv2.getTextSize(text, fontFace=cv2.FONT_HERSHEY_SIMPLEX, fontScale=scale/10, thickness=1)
+        new_width = textSize[0][0]
+        if (new_width <= width):
+            return scale/10
+    return 1

@@ -30,13 +30,13 @@ class TrackProviderNode(ConfiguredNode):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
-    self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes/v1')#, subscriber_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked')#, subscriber_qos_profile)
+    self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes')#, subscriber_qos_profile)
     
-    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state/v1', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
-    self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections/v1', 10)#, publisher_qos_profile)
-    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory/v1', 10)#, publisher_qos_profile)
-    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction/v1', 10)#, publisher_qos_profile)
+    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
+    self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections', 10)#, publisher_qos_profile)
+    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory', 10)#, publisher_qos_profile)
+    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction', 10)#, publisher_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_detector_bounding_boxes], 10)
@@ -52,7 +52,7 @@ class TrackProviderNode(ConfiguredNode):
 
       bboxes = [self._msg_to_bbox(x) for x in msg_bounding_box_array.boxes]
 
-      self.video_tracker.update_trackers(bboxes, frame)
+      self.video_tracker.update_trackers(bboxes, frame)      
 
       detect_array_msg = Detection2DArray()
       detect_array_msg.header = msg_frame.header

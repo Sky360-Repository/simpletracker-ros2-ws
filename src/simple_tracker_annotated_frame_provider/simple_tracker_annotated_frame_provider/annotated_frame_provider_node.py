@@ -23,6 +23,7 @@ from vision_msgs.msg import BoundingBox2D, Detection2DArray
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
+from simple_tracker_shared.utils import get_optimal_font_scale
  
 class AnnotatedFrameProviderNode(ConfiguredNode):
 
@@ -34,13 +35,13 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
     super().__init__('annotated_frame_provider')
 
     # setup services, publishers and subscribers
-    self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated/v1', 10)#, publisher_qos_profile)
+    self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated', 10)#, publisher_qos_profile)
 
-    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
-    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state/v1')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
-    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections/v1')#, subscriber_qos_profile)
-    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory/v1')#, subscriber_qos_profile)
-    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction/v1')#, subscriber_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked')#, subscriber_qos_profile)
+    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
+    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections')#, subscriber_qos_profile)
+    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory')#, subscriber_qos_profile)
+    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction')#, subscriber_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, 
@@ -68,8 +69,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
       total_width = annotated_frame.shape[:2][1]
 
       status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
-
-      cv2.putText(annotated_frame, status_message, (25, 25), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, self.font_colour, self.font_thickness)
+      cv2.putText(annotated_frame, status_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, self.font_colour, 2)
 
       for detection in msg_detection_array.detections:
 
@@ -84,7 +84,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
         p2 = (int(x + w), int(y + h))
         color = self._color(tracking_state)
         cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
-        cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.font_size, color, self.font_thickness)
+        cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, color, 2)
 
         if enable_cropped_tracks and tracking_state == self.ACTIVE_TARGET:
           margin = 0 if cropped_track_counter == 0 else 10
@@ -128,19 +128,11 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
       self.pub_annotated_frame.publish(frame_annotated_msg)
 
   def config_list(self) -> List[str]:
-    return ['visualiser_frame_source','visualiser_font_size', 'visualiser_font_thickness', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size',
-      'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor']
+    return ['visualiser_frame_source', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor',
+    'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True
-    
-    if self.app_configuration['visualiser_font_size'] == None:
-      self.get_logger().error('The visualiser_font_size config entry is null')
-      valid = False
-
-    if self.app_configuration['visualiser_font_thickness'] == None:
-      self.get_logger().error('The visualiser_font_thickness config entry is null')
-      valid = False
 
     return valid          
 
@@ -151,13 +143,12 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
       self.prediction_radius = 1
       self.msg_frame: Image = None
       self.msg_tracking_state: TrackingState = None
-      self.msg_track_array: TrackArray = None
       self.br = CvBridge()      
 
-    self.font_size = self.app_configuration['visualiser_font_size']
-    self.font_thickness = self.app_configuration['visualiser_font_thickness']
     self.bbox_line_thickness = self.app_configuration['visualiser_bbox_line_thickness']
     self.frame_type = self.app_configuration['visualiser_frame_source']
+    self.fontScale = get_optimal_font_scale("(Sky360) Tracker Status: trackable:0, alive:0, started:0, ended:0", 
+      int(self.app_configuration['frame_provider_resize_dimension_w']*0.65))
 
   def _get_sized_bbox(self, bbox_msg: BoundingBox2D):
     x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), bbox_msg.size_x, bbox_msg.size_y)

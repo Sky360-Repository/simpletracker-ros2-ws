@@ -56,7 +56,7 @@ def generate_launch_description():
             package='camera_simulator',
             executable='camera_simulator',
             parameters = [config],
-            remappings=[('/camera/image', 'sky360/camera/original/v1')],
+            remappings=[('/camera/image', 'sky360/camera/original')],
             arguments=[
                 '--type', 'video', 
                 '--path', video_file, 
@@ -111,14 +111,14 @@ def generate_launch_description():
             executable='simple_visualiser',
             name='simple_visualiser',
             remappings=[
-                ('sky360/visualiser/annotated_frame', 'sky360/frames/annotated/v1'),
-                #('sky360/visualiser/original_camera_frame', 'sky360/camera/original/v1'),
-                #('sky360/visualiser/original_frame', 'sky360/frames/original/v1'),
-                #('sky360/visualiser/masked_frame', 'sky360/frames/masked/v1'),
-                #('sky360/visualiser/grey_frame', 'sky360/frames/grey/v1'),
-                #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow/v1'),
-                #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background/v1'),
-                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask/v1'),                
+                ('sky360/visualiser/annotated_frame', 'sky360/frames/annotated'),
+                #('sky360/visualiser/original_camera_frame', 'sky360/camera/original'),
+                #('sky360/visualiser/original_frame', 'sky360/frames/original'),
+                #('sky360/visualiser/masked_frame', 'sky360/frames/masked'),
+                #('sky360/visualiser/grey_frame', 'sky360/frames/grey'),
+                #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow'),
+                #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background'),
+                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask'),                
             ]
         ),
         #Node(

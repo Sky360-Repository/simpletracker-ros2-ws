@@ -29,13 +29,13 @@ class SimpleTrackerConfigurationNode(Node):
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get(self)
 
-        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry/v1', 
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', 
             self.get_config_callback)
-        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries/v1', 
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', 
             self.get_config_array_callback)
-        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update/v1', 
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', 
             self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 10)#, publisher_qos_profile)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', 10)#, publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 

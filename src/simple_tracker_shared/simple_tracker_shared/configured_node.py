@@ -28,7 +28,7 @@ class ConfiguredNode(BaseNode):
 
     self.app_configuration = {}
     self.configuration_svc = ConfigurationsClientAsync()
-    self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated/v1', 
+    self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated', 
       self.config_updated_callback, subscriber_qos_profile)
 
     self.configuration_loaded = self.load_and_validate_config(None)

@@ -30,10 +30,10 @@ class FrameProviderNode(ConfiguredNode):
     super().__init__('sky360_frame_provider')
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original/v1', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original/v1', 10)#, publisher_qos_profile)
-    self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked/v1', 10)#, publisher_qos_profile)
-    self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey/v1', 10)#, publisher_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, 10)#, subscriber_qos_profile)
+    self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original', 10)#, publisher_qos_profile)
+    self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked', 10)#, publisher_qos_profile)
+    self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey', 10)#, publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    

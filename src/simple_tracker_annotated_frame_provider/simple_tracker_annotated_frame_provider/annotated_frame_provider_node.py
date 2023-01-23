@@ -35,13 +35,13 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
     super().__init__('annotated_frame_provider')
 
     # setup services, publishers and subscribers
-    self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated/v1', 10)#, publisher_qos_profile)
+    self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated', 10)#, publisher_qos_profile)
 
-    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked/v1')#, subscriber_qos_profile)
-    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state/v1')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
-    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections/v1')#, subscriber_qos_profile)
-    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory/v1')#, subscriber_qos_profile)
-    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction/v1')#, subscriber_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked')#, subscriber_qos_profile)
+    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
+    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections')#, subscriber_qos_profile)
+    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory')#, subscriber_qos_profile)
+    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction')#, subscriber_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, 

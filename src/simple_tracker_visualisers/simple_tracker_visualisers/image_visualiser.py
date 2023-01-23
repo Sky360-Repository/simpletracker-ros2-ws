@@ -42,7 +42,7 @@ class ImageVisualiserNode(ConfiguredNode):
     self.forground_sub = self.create_subscription(Image, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, 10)#, subscriber_qos_profile) #sky360/frames/foreground_mask/v1
     self.masked_background_sub = self.create_subscription(Image, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, 10)#, subscriber_qos_profile)
     self.fp_annotated_sub = self.create_subscription(Image, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, 10)#, subscriber_qos_profile)
-    #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state/v1', self.tracking_state_callback, subscriber_qos_profile)
+    #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state', self.tracking_state_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    

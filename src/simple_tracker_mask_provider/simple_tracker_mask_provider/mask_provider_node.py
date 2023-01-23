@@ -27,8 +27,8 @@ class MaskProviderNode(ConfiguredNode):
     super().__init__('sky360_mask_provider')
 
     # setup services, publishers and subscribers
-    self.get_mask_service = self.create_service(Mask, 'sky360/mask/image/v1', self.get_mask_callback)
-    self.put_mask_service = self.create_service(MaskUpdate, 'sky360/mask/update/v1', self.put_mask_callback)
+    self.get_mask_service = self.create_service(Mask, 'sky360/mask/image', self.get_mask_callback)
+    self.put_mask_service = self.create_service(MaskUpdate, 'sky360/mask/update', self.put_mask_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
   

@@ -20,7 +20,7 @@ class MaskClientAsync(Node):
 
     def __init__(self):
         super().__init__('mask_client_async')
-        self.update_client = self.create_client(MaskUpdate, 'sky360/mask/update/v1')
+        self.update_client = self.create_client(MaskUpdate, 'sky360/mask/update')
         self.get_logger().info('created mask service update client...')
         while not self.update_client.wait_for_service(timeout_sec = 1.0):
             self.get_logger().info('mask service not available, waiting again...')

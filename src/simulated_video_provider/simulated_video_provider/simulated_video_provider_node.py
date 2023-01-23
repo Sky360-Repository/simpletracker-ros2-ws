@@ -34,7 +34,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
     super().__init__('sky360_simulated_video_provider')
 
     # setup services, publishers and subscribers
-    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation/v1', 10)#, publisher_qos_profile)
+    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation', 10)#, publisher_qos_profile)
 
     self.timer = self.create_timer(self.timer_period, self.timer_callback)  
 

@@ -54,6 +54,9 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
       self.pub_synthetic_frame.publish(frame_synthetic_msg)
 
+    else:
+      self.get_logger().info(f'{self.get_name()} Simulation complete.')
+
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
 

@@ -12,12 +12,11 @@
 
 import rclpy
 import message_filters
+from datetime import datetime
 from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from rclpy.serialization import serialize_message
 import rosbag2_py
-import cv2
-import numpy as np
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -42,6 +41,8 @@ class RosbagRecorderNode(ConfiguredNode):
     self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction], 10)
     self.time_synchronizer.registerCallback(self.synced_callback)
 
+    self.setup_rosbag()
+
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
   def synced_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
@@ -50,8 +51,39 @@ class RosbagRecorderNode(ConfiguredNode):
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:
       
       if msg_tracking_state.trackable > 0:
-        self.get_logger().info(f'{self.get_name()} we have a target that needs tracking ros bag recording goes here.')
+        ns = self.get_clock().now().nanoseconds
+        self.writer.write('masked_frame', serialize_message(masked_frame), ns)
+        self.writer.write('tracking_state', serialize_message(msg_tracking_state), ns)
+        self.writer.write('detection', serialize_message(msg_detection_array), ns)
+        self.writer.write('trajectory', serialize_message(msg_trajectory_array), ns)
+        self.writer.write('prediction', serialize_message(msg_prediction_array), ns)
 
+        status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
+        self.get_logger().info(f'{self.get_name()} - {status_message}.')
+
+  def setup_rosbag(self):
+
+    # setup the rosbag so that we can record into it
+    db_uri = f'sky360_recordings/{datetime.now().strftime("%Y_%m_%d-%H_%M_%S")}'
+    self.get_logger().info(f'Creating database {db_uri}.')
+
+    self.writer = rosbag2_py.SequentialWriter()
+    
+    storage_options = rosbag2_py._storage.StorageOptions(uri=db_uri, storage_id='sqlite3')
+    converter_options = rosbag2_py._storage.ConverterOptions('', '')
+    self.writer.open(storage_options, converter_options)
+
+    image_topic_info = rosbag2_py._storage.TopicMetadata(name='masked_frame', type='sensor_msgs/msg/Image', serialization_format='cdr')
+    tracking_state_topic_info = rosbag2_py._storage.TopicMetadata(name='tracking_state', type='simple_tracker_interfaces/msg/TrackingState', serialization_format='cdr')
+    detection_topic_info = rosbag2_py._storage.TopicMetadata(name='detection', type='vision_msgs/msg/Detection2DArray', serialization_format='cdr')
+    trajectory_topic_info = rosbag2_py._storage.TopicMetadata(name='trajectory', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
+    prediction_topic_info = rosbag2_py._storage.TopicMetadata(name='prediction', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
+
+    self.writer.create_topic(image_topic_info)
+    self.writer.create_topic(detection_topic_info)
+    self.writer.create_topic(tracking_state_topic_info)
+    self.writer.create_topic(trajectory_topic_info)
+    self.writer.create_topic(prediction_topic_info)
 
   def config_list(self) -> List[str]:
     return []

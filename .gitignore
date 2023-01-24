@@ -163,3 +163,5 @@ build/*
 install/*
 log/*
 site/*
+
+sky360_recordings/*

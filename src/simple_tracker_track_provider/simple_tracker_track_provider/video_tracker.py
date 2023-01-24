@@ -106,8 +106,8 @@ class VideoTracker():
                 if len(self.live_trackers) < self.settings['tracker_max_active_trackers']:
                     if not is_bbox_being_tracked(self.live_trackers, new_bbox):
                         self.create_and_add_tracker(frame, new_bbox)
-            else:
-                rclpy.logging.get_logger('video_tracker').warn(f'BBox failed size validation {new_bbox}')
+            #else:
+            #    rclpy.logging.get_logger('video_tracker').warn(f'BBox failed size validation {new_bbox}')
 
 
     # Mike: Identifying tasks that can be called on seperate threads to try and speed this sucker up

@@ -82,6 +82,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
           SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160), simulation_name='Drone & Plane'),
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880), simulation_name='Drone & Plane'),
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=15, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=15, loop=False)], (3600, 3600), simulation_name='Drone & Plane'),
+          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=25, loop=True)], (4520, 4520), simulation_name='AllSkyCam_Example'),
         ]
       )
 

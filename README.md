@@ -21,6 +21,11 @@ Run the launch script to launch the project. This will source the setup.bash fil
 Run the simulation launch script to launch the project in simulation mode. This will source the setup.bash file and launch the application
 `./launch_simulation.sh`
 
+##### Replay a rosbag recording
+
+* `ros2 bag play 2023_01_25-16_48_14/` where 2023_01_25-16_48_14/ is a folder that contains a rosbag recording
+* `./launch_rosbag_replay.sh`
+
 ### Updating configuration from the Visualiser window
 
 * When the visualiser is up and running, a number of key presses are currently handled as to allow you to change the configuration dynamically:

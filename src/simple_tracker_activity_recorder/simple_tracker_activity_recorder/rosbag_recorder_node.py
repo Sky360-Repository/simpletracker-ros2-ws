@@ -52,11 +52,11 @@ class RosbagRecorderNode(ConfiguredNode):
       
       if msg_tracking_state.trackable > 0:
         ns = self.get_clock().now().nanoseconds
-        self.writer.write('masked_frame', serialize_message(masked_frame), ns)
-        self.writer.write('tracking_state', serialize_message(msg_tracking_state), ns)
-        self.writer.write('detection', serialize_message(msg_detection_array), ns)
-        self.writer.write('trajectory', serialize_message(msg_trajectory_array), ns)
-        self.writer.write('prediction', serialize_message(msg_prediction_array), ns)
+        self.writer.write('sky360/frames/masked', serialize_message(masked_frame), ns)
+        self.writer.write('sky360/tracker/tracking_state', serialize_message(msg_tracking_state), ns)
+        self.writer.write('sky360/tracker/detections', serialize_message(msg_detection_array), ns)
+        self.writer.write('sky360/tracker/trajectory', serialize_message(msg_trajectory_array), ns)
+        self.writer.write('sky360/tracker/prediction', serialize_message(msg_prediction_array), ns)
 
         status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
         self.get_logger().info(f'{self.get_name()} - {status_message}.')
@@ -73,11 +73,11 @@ class RosbagRecorderNode(ConfiguredNode):
     converter_options = rosbag2_py._storage.ConverterOptions('', '')
     self.writer.open(storage_options, converter_options)
 
-    image_topic_info = rosbag2_py._storage.TopicMetadata(name='masked_frame', type='sensor_msgs/msg/Image', serialization_format='cdr')
-    tracking_state_topic_info = rosbag2_py._storage.TopicMetadata(name='tracking_state', type='simple_tracker_interfaces/msg/TrackingState', serialization_format='cdr')
-    detection_topic_info = rosbag2_py._storage.TopicMetadata(name='detection', type='vision_msgs/msg/Detection2DArray', serialization_format='cdr')
-    trajectory_topic_info = rosbag2_py._storage.TopicMetadata(name='trajectory', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
-    prediction_topic_info = rosbag2_py._storage.TopicMetadata(name='prediction', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
+    image_topic_info = rosbag2_py._storage.TopicMetadata(name='sky360/frames/masked', type='sensor_msgs/msg/Image', serialization_format='cdr')
+    tracking_state_topic_info = rosbag2_py._storage.TopicMetadata(name='sky360/tracker/tracking_state', type='simple_tracker_interfaces/msg/TrackingState', serialization_format='cdr')
+    detection_topic_info = rosbag2_py._storage.TopicMetadata(name='sky360/tracker/detections', type='vision_msgs/msg/Detection2DArray', serialization_format='cdr')
+    trajectory_topic_info = rosbag2_py._storage.TopicMetadata(name='sky360/tracker/trajectory', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
+    prediction_topic_info = rosbag2_py._storage.TopicMetadata(name='sky360/tracker/prediction', type='simple_tracker_interfaces/msg/TrackTrajectoryArray', serialization_format='cdr')
 
     self.writer.create_topic(image_topic_info)
     self.writer.create_topic(detection_topic_info)

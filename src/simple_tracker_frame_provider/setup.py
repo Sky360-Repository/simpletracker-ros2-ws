@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'frame_provider = simple_tracker_frame_provider.frame_provider_node:main',
+            'cloud_estimation_provider = simple_tracker_frame_provider.cloud_estimation_node:main',
         ],
     },
 )

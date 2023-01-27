@@ -14,15 +14,8 @@ import cv2
 import os
 import sys
 import numpy as np
-#from numpy import astype
-#import seaborn as sns; sns.set()
 import math
 
-####################################################################################################################################
-# Base class for various masking implementations. The idea here is that we have a standardised masking processing interface        #
-# that is used by the frame processor. We currently support several types which in turn support both CPU and GPU architectures.    #
-# If additonal architectures are to be supported in future, like VPI, then this is where the specialisation implementation will go.#
-####################################################################################################################################
 class CloudEstimator():
 
     @staticmethod
@@ -86,7 +79,6 @@ class CloudEstimator():
 
         iter = 1
         while True:
-            # print("Present iteration:", iter)
             t_int = t_n
         
             # Finding index of t_int
@@ -132,15 +124,10 @@ class CloudEstimator():
         height, width, _ = frame.shape
         x, y = np.ogrid[:width, :height]
         center_x, center_y = width // 2, height // 2
-        #radius = 900
         radius = int(width * 0.315)
         mask = (x - center_x)**2 + (y - center_y)**2 < radius**2
         return mask        
 
-#############################################################################################################
-# NoOp masking implementations. It's just a passthrough and does not perform any sort of masking operation. #
-# Its the fallback option and supports both CPU and GPU architectures.                                      #
-#############################################################################################################
 class DayTimeCloudEstimator(CloudEstimator):
 
     def __init__(self, settings):
@@ -155,8 +142,6 @@ class DayTimeCloudEstimator(CloudEstimator):
         lambda_n = self.br_norm(frame, mask)
 
         std = np.std(lambda_n[mask])
-        #print("Processing image: " + image_files[i])
-        # print("Standard deviation: " + str(std))
         if std > 0.03: # magic number
             #print("Bimodal distribution")
             threshold = self.find_threshold_mce(lambda_n)
@@ -165,18 +150,12 @@ class DayTimeCloudEstimator(CloudEstimator):
             #print("Unimodal distribution")
             _, ratio_mask = cv2.threshold(lambda_n, 0.25, 255, cv2.THRESH_BINARY)
 
-        #ax.imshow(ratio_mask, cmap='gray')
-        #ax.axis('off')  
-        #ax.set_title(image_files[i],fontsize=8)
-
         # Count the number of pixels in each part of the mask
         N_Cloud = np.count_nonzero(ratio_mask[mask] == 0)
         N_Sky = np.count_nonzero(ratio_mask[mask])
 
         # Cloud cover ratio
         ccr = (N_Cloud / (N_Cloud + N_Sky)) * 100
-        #print(f'Cloud cover: {round(ccr,2)}')
-        #print(f'')
         return round(ccr,2)
 
 class NightTimeCloudEstimator(CloudEstimator):
@@ -191,7 +170,6 @@ class NightTimeCloudEstimator(CloudEstimator):
         mask = self.get_mask(frame)
         frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-        #print("Processing image: " + image_files[i])
         otsu_threshold, image_result = cv2.threshold(frame, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU,)
 
         # Count the number of non zero pixels (white)
@@ -199,6 +177,4 @@ class NightTimeCloudEstimator(CloudEstimator):
         N_Sky = np.count_nonzero(image_result[mask] == 0)
     
         ccr = (N_Cloud / (N_Cloud + N_Sky)) * 100
-        #print(f'Cloud cover: {round(ccr,2)}%')
-        #print(f'')
         return round(ccr,2)

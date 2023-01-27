@@ -76,10 +76,10 @@ def generate_launch_description():
             name='frame_provider'
         ),
         Node(
-            package='simple_tracker_frame_provider',
+            package='simple_tracker_environment_data_provider',
             #namespace='sky360',
             executable='cloud_estimation_provider',
-            name='cloud_estimation_provider'
+            name='environment_data_provider'
         ),        
         #Node(
         #    package='simple_tracker_dense_optical_flow_provider',

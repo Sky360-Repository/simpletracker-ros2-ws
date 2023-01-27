@@ -22,13 +22,13 @@ from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .cloud_estimator import CloudEstimator
 
-class CloudEstimationNode(ConfiguredNode):
+class EnvironmentDataNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_cloud_estimation_provider')
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, 10)#, subscriber_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
 
     self.timer = self.create_timer(self.cloud_sampler_timer_period(), self.cloud_sampler)
 
@@ -42,11 +42,11 @@ class CloudEstimationNode(ConfiguredNode):
     if self.msg_image != None:
         estimation = self.datetime_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
         self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {estimation}')
-        #estimation = self.nighttime_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        #self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')        
+        estimation = self.nighttime_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+        self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')        
 
   def cloud_sampler_timer_period(self) -> int:
-    return 30
+    return 300
 
   def config_list(self) -> List[str]:
     return []
@@ -71,7 +71,7 @@ def main(args=None):
   subscriber_qos_profile = get_topic_subscriber_qos_profile()
   publisher_qos_profile = get_topic_publisher_qos_profile()
 
-  node = CloudEstimationNode(subscriber_qos_profile, publisher_qos_profile)
+  node = EnvironmentDataNode(subscriber_qos_profile, publisher_qos_profile)
 
   try:
     rclpy.spin(node)

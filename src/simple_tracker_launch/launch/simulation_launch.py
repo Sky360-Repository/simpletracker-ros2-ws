@@ -56,6 +56,12 @@ def generate_launch_description():
             name='frame_provider'
         ),
         #Node(
+        #    package='simple_tracker_environment_data_provider',
+        #    #namespace='sky360',
+        #    executable='cloud_estimation_provider',
+        #    name='environment_data_provider'
+        #),        
+        #Node(
         #    package='simple_tracker_dense_optical_flow_provider',
         #    #namespace='sky360',
         #    executable='dense_optical_flow_provider',
@@ -101,10 +107,4 @@ def generate_launch_description():
             ],
             name='simple_visualiser',
         ),
-        #Node(
-        #    package='rqt_image_view',
-        #    executable='rqt_image_view',
-        #    name='image_view',
-        #    arguments=['image']
-        #),
     ])

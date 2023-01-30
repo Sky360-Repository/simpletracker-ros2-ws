@@ -11,6 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
+from rclpy.time import Time
 import message_filters
 from datetime import datetime
 from rclpy.executors import ExternalShutdownException
@@ -51,7 +52,9 @@ class RosbagRecorderNode(ConfiguredNode):
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:
       
       if msg_tracking_state.trackable > 0:
-        ns = self.get_clock().now().nanoseconds
+        #ns = self.get_clock().now().nanoseconds
+        # grab the timestamp from the message
+        ns = Time.from_msg(masked_frame.header.stamp).nanoseconds
         self.writer.write('sky360/frames/masked', serialize_message(masked_frame), ns)
         self.writer.write('sky360/tracker/tracking_state', serialize_message(msg_tracking_state), ns)
         self.writer.write('sky360/tracker/detections', serialize_message(msg_detection_array), ns)

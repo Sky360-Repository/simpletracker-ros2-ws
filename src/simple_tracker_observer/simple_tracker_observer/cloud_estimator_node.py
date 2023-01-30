@@ -12,6 +12,7 @@
 
 import datetime
 import rclpy
+from rclpy.time import Time
 from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
@@ -23,12 +24,12 @@ from simple_tracker_interfaces.msg import EnvironmentData
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .cloud_estimator import CloudEstimator
 
-class EnvironmentDataNode(ConfiguredNode):
+class CloudEstimatorNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
-    super().__init__('sky360_cloud_estimation_provider')
+    super().__init__('sky360_cloud_estimator')
 
-    self.pub_environment_data = self.create_publisher(EnvironmentData, 'sky360/telemetry/environment', 10)#, publisher_qos_profile)
+    self.pub_environment_data = self.create_publisher(EnvironmentData, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
@@ -45,14 +46,20 @@ class EnvironmentDataNode(ConfiguredNode):
     if self.msg_image != None:
 
       # TODO: Determine when is day and when is night so that we use the correct version of the cloud estimator
+      # this will likely take the form of another topic subscription etc but for now, just use place holders.
 
-      day_estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-      #self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {day_estimation}')
-      #nigh_estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-      #self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {night_estimation}')
+      estimation: float
+      is_day = True
+
+      if is_day:
+        estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+        self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {estimation}')
+      else:
+        estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+        self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')
 
       environment_msg = EnvironmentData()
-      environment_msg.percentage_cloud_cover = day_estimation
+      environment_msg.percentage_cloud_cover = estimation
       self.pub_environment_data.publish(environment_msg)
 
   def cloud_sampler_timer_period(self) -> int:
@@ -81,7 +88,7 @@ def main(args=None):
   subscriber_qos_profile = get_topic_subscriber_qos_profile()
   publisher_qos_profile = get_topic_publisher_qos_profile()
 
-  node = EnvironmentDataNode(subscriber_qos_profile, publisher_qos_profile)
+  node = CloudEstimatorNode(subscriber_qos_profile, publisher_qos_profile)
 
   try:
     rclpy.spin(node)

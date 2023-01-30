@@ -39,8 +39,8 @@ configuration_service:
 
     # Frame provider section
     frame_provider_resize_frame: True
-    frame_provider_resize_dimension_h: 960
-    frame_provider_resize_dimension_w: 960
+    frame_provider_resize_dimension_h: 1440
+    frame_provider_resize_dimension_w: 1440
     frame_provider_blur: True
     frame_provider_blur_radius: 3
     frame_provider_cuda_enable: False

@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'simple_tracker_frame_provider'
+package_name = 'simple_tracker_observer'
 
 setup(
     name=package_name,
@@ -20,7 +20,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'frame_provider = simple_tracker_frame_provider.frame_provider_node:main'
+            'cloud_estimator = simple_tracker_observer.cloud_estimator_node:main',
         ],
     },
 )

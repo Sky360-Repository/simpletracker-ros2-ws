@@ -20,7 +20,7 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from simple_tracker_shared.configured_node import ConfiguredNode
-from simple_tracker_interfaces.msg import EnvironmentData
+from simple_tracker_interfaces.msg import ObserverCloudEstimation
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .cloud_estimator import CloudEstimator
 
@@ -29,7 +29,7 @@ class CloudEstimatorNode(ConfiguredNode):
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_cloud_estimator')
 
-    self.pub_environment_data = self.create_publisher(EnvironmentData, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
+    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
@@ -58,9 +58,9 @@ class CloudEstimatorNode(ConfiguredNode):
         estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
         self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')
 
-      environment_msg = EnvironmentData()
-      environment_msg.percentage_cloud_cover = estimation
-      self.pub_environment_data.publish(environment_msg)
+      cloud_estimation_msg = ObserverCloudEstimation()
+      cloud_estimation_msg.percentage_cloud_cover = estimation
+      self.pub_environment_data.publish(cloud_estimation_msg)
 
   def cloud_sampler_timer_period(self) -> int:
     return 300

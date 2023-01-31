@@ -15,11 +15,22 @@ Run the setup script to setup dev container
 Run the build script to build the project
 `./build.sh`
 
+#### Launch
+
 Run the launch script to launch the project. This will source the setup.bash file and launch the application
 `./launch.sh`
 
 Run the simulation launch script to launch the project in simulation mode. This will source the setup.bash file and launch the application
 `./launch_simulation.sh`
+
+#### Note: If you run into the following error:
+
+`[frame_provider-4] [INFO] [1675115712.958444773] [frame_provider]: frame_provider node is up and running.Simple visualiser-1 at.apa.xcb: could not connect to display 1 [simple visualiser-101 at.apa.plugin: Could not load the Ot platform plugin "xcb" in "" even though it was found`
+
+Then run the folllowing commands:
+
+1. `export DISPLAY=:0`
+2. `xhost +`
 
 ##### Replay a rosbag recording
 

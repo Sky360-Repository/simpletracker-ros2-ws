@@ -32,6 +32,12 @@ Then run the folllowing commands:
 1. `export DISPLAY=:0`
 2. `xhost +`
 
+If you are attempting to launch with a Windows host then above commands will not suffice. Since Windows does not run X a workaround is to: 
+- Install VcXsrv: https://sourceforge.net/projects/vcxsrv/
+- Start VcXsrv and configure it to allow connection from any host
+- Set the DISPLAY environment variable in the Docker container to the host IP address and display number of the VcXsrv server e.g. export DISPLAY=192.xxx.x.xxx:0
+- Run VcXsrv xlaunch.exe and then finally run launch.sh on the container 
+
 ##### Replay a rosbag recording
 
 * `ros2 bag play 2023_01_25-16_48_14/` where 2023_01_25-16_48_14/ is a folder that contains a rosbag recording

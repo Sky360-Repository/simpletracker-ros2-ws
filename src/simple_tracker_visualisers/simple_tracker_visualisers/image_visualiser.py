@@ -18,6 +18,7 @@ from typing import List
 from sensor_msgs.msg import Image
 from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
 from .key_handler import KeyHandler
@@ -121,14 +122,8 @@ def main(args=None):
 
   node = ImageVisualiserNode(subscriber_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-      #rclpy.rosshutdown()
+  runner = NodeRunner(node)
+  runner.run()
   
 if __name__ == '__main__':
   main()

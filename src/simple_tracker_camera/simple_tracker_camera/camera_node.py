@@ -22,7 +22,8 @@ from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from builtin_interfaces.msg import Time
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile
 from .controller import Controller
 
@@ -108,14 +109,8 @@ def main(args=None):
 
   node = ControllerNode(publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

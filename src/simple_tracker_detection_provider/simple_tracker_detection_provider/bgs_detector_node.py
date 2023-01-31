@@ -22,7 +22,8 @@ from .blob_detector import BlobDetector
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
 #from geometry_msgs.msg import Pose2D
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
 class BGSDetectorNode(ConfiguredNode):
@@ -100,13 +101,8 @@ def main(args=None):
 
   node = BGSDetectorNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

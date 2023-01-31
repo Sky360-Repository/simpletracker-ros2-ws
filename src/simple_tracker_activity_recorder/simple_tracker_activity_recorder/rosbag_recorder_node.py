@@ -23,7 +23,8 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, Detection2DArray
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
 class RosbagRecorderNode(ConfiguredNode):
@@ -110,14 +111,8 @@ def main(args=None):
 
   node = RosbagRecorderNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-      #rclpy.rosshutdown()
+  runner = NodeRunner(node)
+  runner.run()
 
 
 if __name__ == '__main__':

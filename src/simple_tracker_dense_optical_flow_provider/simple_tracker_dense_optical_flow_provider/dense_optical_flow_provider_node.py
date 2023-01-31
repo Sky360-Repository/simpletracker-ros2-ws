@@ -17,7 +17,8 @@ from rclpy.qos import QoSProfile
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .dense_optical_flow import DenseOpticalFlow
@@ -80,13 +81,8 @@ def main(args=None):
 
   node = DenseOpticalFlowProviderNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

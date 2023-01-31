@@ -20,6 +20,7 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.srv import Mask, MaskUpdate
 from simple_tracker_interfaces.msg import ConfigItem
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 
 class MaskProviderNode(ConfiguredNode):
 
@@ -104,14 +105,8 @@ def main(args=None):
 
   node = MaskProviderNode()
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-      #rclpy.rosshutdown()
+  runner = NodeRunner(node)
+  runner.run()
 
 
 if __name__ == '__main__':

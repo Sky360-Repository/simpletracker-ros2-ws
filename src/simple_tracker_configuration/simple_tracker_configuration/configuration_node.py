@@ -16,6 +16,7 @@ from rclpy.qos import QoSProfile
 from rclpy.node import Node
 from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray
 from simple_tracker_interfaces.srv import ConfigEntryUpdate, ConfigEntry, ConfigEntryArray
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
 from simple_tracker_shared.qos_profiles import get_config_publisher_qos_profile
 from .app_settings import AppSettings
@@ -147,14 +148,8 @@ def main(args=None):
 
     node = SimpleTrackerConfigurationNode(publisher_qos_profile)
 
-    try:
-        rclpy.spin(node)
-    except (KeyboardInterrupt, ExternalShutdownException):
-        pass
-    finally:
-        rclpy.try_shutdown()
-        node.destroy_node()
-        #rclpy.rosshutdown()
+    runner = NodeRunner(node)
+    runner.run()
 
 
 if __name__ == '__main__':

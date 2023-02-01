@@ -82,7 +82,7 @@ class SimpleTrackerConfigurationNode(Node):
 
     def get_config_update_callback(self, request, response):
 
-        self.get_logger().info(f'Updating config.')
+        #self.get_logger().info(f'Updating config.')
 
         updated = False
         message = 'NoChange/Unknown/Failed'

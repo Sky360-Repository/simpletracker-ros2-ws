@@ -80,7 +80,13 @@ def generate_launch_description():
             #namespace='sky360',
             executable='cloud_estimator',
             name='cloud_estimator'
-        ),        
+        ),  
+        Node(
+            package='simple_tracker_observer',
+            #namespace='sky360',
+            executable='day_night_classifier',
+            name='day_night_classifier'
+        ),                
         #Node(
         #    package='simple_tracker_dense_optical_flow_provider',
         #    #namespace='sky360',

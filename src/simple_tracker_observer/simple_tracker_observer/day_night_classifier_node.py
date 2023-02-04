@@ -10,10 +10,7 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
 import rclpy
-from rclpy.time import Time
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
@@ -21,49 +18,39 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
-from simple_tracker_interfaces.msg import ObserverCloudEstimation, ObserverDayNight
+from simple_tracker_interfaces.msg import ObserverDayNight
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
-from .cloud_estimator import CloudEstimator
+from .day_night_classifier import DayNightEstimator, DayNightEnum
 
-class CloudEstimatorNode(ConfiguredNode):
+class DayNightClassifierNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
-    super().__init__('sky360_cloud_estimator')
+    super().__init__('sky360_day_night_estimator')
 
-    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
+    self.pub_environment_data = self.create_publisher(ObserverDayNight, 'sky360/observer/day_night_classifier', 10)#, publisher_qos_profile)
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)    
 
-    self.timer = self.create_timer(self.cloud_sampler_timer_period(), self.cloud_sampler)
+    self.timer = self.create_timer(self.day_night_sampler_timer_period(), self.day_night_classifier)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, msg_image:Image):
     self.msg_image = msg_image
 
-  def day_night_callback(self, msg_day_night:ObserverDayNight):
-    self.is_night = msg_day_night.is_night
-
-  def cloud_sampler(self):
+  def day_night_classifier(self):
     
     if self.msg_image != None:
 
-      estimation: float
-      
-      if self.is_night:
-        estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')
-      else:
-        estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {estimation}')
+      result: DayNightEnum = self.day_night_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+      self.get_logger().info(f'{self.get_name()} Day/Night classifier --> {result}')
 
-      cloud_estimation_msg = ObserverCloudEstimation()
-      cloud_estimation_msg.percentage_cloud_cover = estimation
-      self.pub_environment_data.publish(cloud_estimation_msg)
+      day_night_msg = ObserverDayNight()
+      day_night_msg.is_night = result == DayNightEnum.Night
+      self.pub_environment_data.publish(day_night_msg)
 
-  def cloud_sampler_timer_period(self) -> int:
+  def day_night_sampler_timer_period(self) -> int:
     return 300
 
   def config_list(self) -> List[str]:
@@ -79,9 +66,7 @@ class CloudEstimatorNode(ConfiguredNode):
       self.br = CvBridge()
 
     self.msg_image = None
-    self.is_night = True
-    self.day_cloud_estimator = CloudEstimator.Day(self.app_configuration)
-    self.night_cloud_estimator = CloudEstimator.Night(self.app_configuration)
+    self.day_night_estimator = DayNightEstimator.Classifier(self.app_configuration)
 
 def main(args=None):
 
@@ -90,7 +75,7 @@ def main(args=None):
   subscriber_qos_profile = get_topic_subscriber_qos_profile()
   publisher_qos_profile = get_topic_publisher_qos_profile()
 
-  node = CloudEstimatorNode(subscriber_qos_profile, publisher_qos_profile)
+  node = DayNightClassifierNode(subscriber_qos_profile, publisher_qos_profile)
 
   runner = NodeRunner(node)
   runner.run()

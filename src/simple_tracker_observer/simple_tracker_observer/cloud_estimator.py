@@ -15,6 +15,8 @@ import os
 import sys
 import numpy as np
 import math
+import rclpy
+import rclpy.logging
 
 class CloudEstimator():
 
@@ -27,7 +29,7 @@ class CloudEstimator():
         return NightTimeCloudEstimator(settings)
 
     def __init__(self, settings):
-        pass
+        self.logger = rclpy.logging.get_logger('cloud_estimator')# .info(f'Running node {self.node.get_name()} via the node runner')
     
     # Method to estimate the cloudyness of the frame
     def estimate(self, frame):

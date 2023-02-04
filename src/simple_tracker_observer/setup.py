@@ -21,6 +21,7 @@ setup(
     entry_points={
         'console_scripts': [
             'cloud_estimator = simple_tracker_observer.cloud_estimator_node:main',
+            'day_night_classifier = simple_tracker_observer.day_night_classifier_node:main',
         ],
     },
 )

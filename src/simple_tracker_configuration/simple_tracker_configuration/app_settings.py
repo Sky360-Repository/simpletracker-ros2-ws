@@ -80,6 +80,7 @@ class AppSettings():
                 ('dense_optical_flow_w', 480),
                 ('dense_optical_cuda_enable', False),
 
+                ('observer_timer_interval', 30),
                 ('observer_day_night_brightness_threshold', 95)
             ]
         )
@@ -153,6 +154,7 @@ class AppSettings():
         app_settings['dense_optical_flow_w'] = node.get_parameter('dense_optical_flow_w').value
 
         # Observer section
+        app_settings['observer_timer_interval'] = node.get_parameter('observer_timer_interval').value
         app_settings['observer_day_night_brightness_threshold'] = node.get_parameter('observer_day_night_brightness_threshold').value
 
         return app_settings

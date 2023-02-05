@@ -69,4 +69,5 @@ configuration_service:
     dense_optical_flow_w: 480
     dense_optical_cuda_enable: False
 
+    observer_timer_interval: 300
     observer_day_night_brightness_threshold: 95

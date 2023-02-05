@@ -36,8 +36,6 @@ class CloudEstimatorNode(ConfiguredNode):
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
     self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)    
 
-    self.timer = self.create_timer(self.cloud_sampler_timer_period(), self.cloud_sampler)
-
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, msg_image:Image):
@@ -63,11 +61,8 @@ class CloudEstimatorNode(ConfiguredNode):
       cloud_estimation_msg.percentage_cloud_cover = estimation
       self.pub_environment_data.publish(cloud_estimation_msg)
 
-  def cloud_sampler_timer_period(self) -> int:
-    return 30
-
   def config_list(self) -> List[str]:
-    return []
+    return ['observer_timer_interval']
 
   def validate_config(self) -> bool:
     valid = True
@@ -75,13 +70,20 @@ class CloudEstimatorNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
+      self.timer = None
       self.counter = 0
       self.br = CvBridge()
 
+    self.timer_interval = self.app_configuration['observer_timer_interval']
     self.msg_image = None
-    self.is_night = True
+    self.is_night = True    
     self.day_cloud_estimator = CloudEstimator.Day(self.app_configuration)
     self.night_cloud_estimator = CloudEstimator.Night(self.app_configuration)
+
+    if self.timer is not None:
+      self.destroy_timer(self.timer)
+
+    self.timer = self.create_timer(self.timer_interval, self.cloud_sampler)
 
 def main(args=None):
 

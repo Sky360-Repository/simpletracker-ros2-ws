@@ -32,8 +32,6 @@ class DayNightClassifierNode(ConfiguredNode):
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
 
-    self.timer = self.create_timer(self.day_night_sampler_timer_period(), self.day_night_classifier)
-
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, msg_image:Image):
@@ -51,11 +49,8 @@ class DayNightClassifierNode(ConfiguredNode):
       day_night_msg.avg_brightness = average_brightness
       self.pub_environment_data.publish(day_night_msg)
 
-  def day_night_sampler_timer_period(self) -> int:
-    return 30
-
   def config_list(self) -> List[str]:
-    return ['observer_day_night_brightness_threshold']
+    return ['observer_timer_interval', 'observer_day_night_brightness_threshold']
 
   def validate_config(self) -> bool:
     valid = True
@@ -63,11 +58,18 @@ class DayNightClassifierNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
+      self.timer = None
       self.counter = 0
       self.br = CvBridge()
 
+    self.timer_interval = self.app_configuration['observer_timer_interval']
     self.msg_image = None
     self.day_night_estimator = DayNightEstimator.Classifier(self.app_configuration)
+
+    if self.timer is not None:
+      self.destroy_timer(self.timer)
+
+    self.timer = self.create_timer(self.timer_interval, self.day_night_classifier)
 
 def main(args=None):
 

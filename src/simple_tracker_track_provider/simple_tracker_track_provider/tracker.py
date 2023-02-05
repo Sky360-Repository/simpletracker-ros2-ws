@@ -13,9 +13,14 @@
 import cv2
 import time
 import math
-import rclpy
+from enum import IntEnum
 from simple_tracker_shared.utils import bbox_overlap, bbox1_contain_bbox2, get_cv_version
 from .track_prediction import TrackPrediction
+
+class TrackingStateEnum(IntEnum):
+    PROVISIONARY_TARGET = 1
+    ACTIVE_TARGET = 2
+    LOST_TARGET = 3
 
 ########################################################################################################################
 # This class represents a single target/blob that has been identified on the frame and is currently being tracked      #
@@ -26,10 +31,6 @@ from .track_prediction import TrackPrediction
 ########################################################################################################################
 class Tracker():
 
-    PROVISIONARY_TARGET = 1
-    ACTIVE_TARGET = 2
-    LOST_TARGET = 3
-
     def __init__(self, settings, id, frame, bbox):
 
         self.settings = settings
@@ -39,7 +40,7 @@ class Tracker():
         self.bboxes = [bbox]
         self.stationary_track_counter = 0
         self.active_track_counter = 0
-        self.tracking_state = Tracker.PROVISIONARY_TARGET
+        self.tracking_state = TrackingStateEnum.PROVISIONARY_TARGET
         self.bbox_to_check = bbox
         
         self.start = time.time()
@@ -141,8 +142,8 @@ class Tracker():
                 if len(self.tracked_boxes) > 1:
                     # Mike: if the item being tracked has moved out of its initial bounds, then it's an active target
                     if bbox_overlap(self.bbox_to_check, bbox) == 0.0:
-                        if self.tracking_state != Tracker.ACTIVE_TARGET:
-                            self.tracking_state = Tracker.ACTIVE_TARGET
+                        if self.tracking_state != TrackingStateEnum.ACTIVE_TARGET:
+                            self.tracking_state = TrackingStateEnum.ACTIVE_TARGET
                             self.bbox_to_check = bbox
                             self.stationary_track_counter = 0
 
@@ -158,7 +159,7 @@ class Tracker():
                 # Mike: If the target has not moved for a period of time, we classify the target as lost
                 if stationary_track_threshold <= self.stationary_track_counter < stationary_scavanage_threshold:
                     # Mike: If its not moved enough then mark it as red for potential scavenging
-                    self.tracking_state = Tracker.LOST_TARGET
+                    self.tracking_state = TrackingStateEnum.LOST_TARGET
                     # print(f'>> updating tracker {self.id} state to LOST_TARGET')
                 elif self.stationary_track_counter >= stationary_scavanage_threshold:
                     # print(f'Scavenging tracker {self.id}')
@@ -166,7 +167,7 @@ class Tracker():
                     ok = False
 
                 #Mike: If its an active target then update counters at the popint of validation
-                if self.tracking_state == Tracker.ACTIVE_TARGET:
+                if self.tracking_state == TrackingStateEnum.ACTIVE_TARGET:
                     self.active_track_counter += 1
                     if self.active_track_counter > orphaned_track_thold:
                         self.bbox_to_check = bbox
@@ -176,7 +177,7 @@ class Tracker():
 
     # Utility function to determine is this tracker has an active target
     def is_tracking(self):
-        return self.tracking_state == Tracker.ACTIVE_TARGET
+        return self.tracking_state == TrackingStateEnum.ACTIVE_TARGET
 
     # Utility function to determine if there is overlap between existing and new bboxes
     def does_bbox_overlap(self, bbox):

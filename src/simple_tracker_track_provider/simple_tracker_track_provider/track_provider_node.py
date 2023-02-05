@@ -113,7 +113,7 @@ class TrackProviderNode(ConfiguredNode):
       point = TrackPoint()
       point.center.x = float(x)
       point.center.y = float(y)
-      point.tracking_state = state
+      point.tracking_state = int(state)
       track_msg.trajectory.append(point)
 
     return track_msg

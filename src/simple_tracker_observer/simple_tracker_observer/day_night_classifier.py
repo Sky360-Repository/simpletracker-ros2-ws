@@ -12,11 +12,11 @@
 
 import cv2
 import numpy as np
-from enum import Enum
+from enum import IntEnum
 import rclpy
 import rclpy.logging
 
-class DayNightEnum(Enum):
+class DayNightEnum(IntEnum):
     Night = 0
     Day = 1
 

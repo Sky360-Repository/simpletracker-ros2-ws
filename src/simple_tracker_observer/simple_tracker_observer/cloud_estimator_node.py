@@ -64,7 +64,7 @@ class CloudEstimatorNode(ConfiguredNode):
       self.pub_environment_data.publish(cloud_estimation_msg)
 
   def cloud_sampler_timer_period(self) -> int:
-    return 300
+    return 30
 
   def config_list(self) -> List[str]:
     return []

@@ -2,3 +2,4 @@
 
 # Is it currently day or night
 bool is_night
+int32 avg_brightness

@@ -43,18 +43,19 @@ class DayNightClassifierNode(ConfiguredNode):
     
     if self.msg_image != None:
 
-      result: DayNightEnum = self.day_night_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-      self.get_logger().info(f'{self.get_name()} Day/Night classifier --> {result}')
+      result, average_brightness = self.day_night_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+      self.get_logger().info(f'{self.get_name()} Day/Night classifier --> {result}, {average_brightness}')
 
       day_night_msg = ObserverDayNight()
       day_night_msg.is_night = result == DayNightEnum.Night
+      day_night_msg.avg_brightness = average_brightness
       self.pub_environment_data.publish(day_night_msg)
 
   def day_night_sampler_timer_period(self) -> int:
-    return 300
+    return 30
 
   def config_list(self) -> List[str]:
-    return []
+    return ['observer_day_night_brightness_threshold']
 
   def validate_config(self) -> bool:
     valid = True

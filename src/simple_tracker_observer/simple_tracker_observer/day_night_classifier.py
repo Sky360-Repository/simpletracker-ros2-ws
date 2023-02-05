@@ -27,6 +27,7 @@ class DayNightEstimator():
         return DayNightClassifier(settings)
 
     def __init__(self, settings):
+        self.settings = settings
         self.logger = rclpy.logging.get_logger('day_night_classifier')# .info(f'Running node {self.node.get_name()} via the node runner')
     
     # Method to estimate the cloudyness of the frame
@@ -39,10 +40,10 @@ class DayNightClassifier(DayNightEstimator):
 
     def __init__(self, settings):
         super().__init__(settings)
-        self.threshold = 95 # TODO: make this configurable
+        self.threshold = self.settings['observer_day_night_brightness_threshold']
 
     # This function should take in RGB image input
-    def estimate(self, frame) -> DayNightEnum:
+    def estimate(self, frame):
 
         result: DayNightEnum = DayNightEnum.Night
 
@@ -55,12 +56,12 @@ class DayNightClassifier(DayNightEstimator):
 
         # Extract average brightness feature from an HSV image
         # Find the average Value or brightness of an image
-        avg = sum_brightness/area
+        avg_brightness = int(sum_brightness/area)
 
-        if(avg > self.threshold):
+        if(avg_brightness > self.threshold):
         # if the average brightness is above the threshold value, we classify it as "day"
             result = DayNightEnum.Day
 
-        #self.logger.info(f'Average brightness: {avg}, threshhold: {self.threshold}, classifier: {result}')
+        #self.logger.info(f'Average brightness: {avg_brightness}, threshhold: {self.threshold}, classifier: {result}')
 
-        return result    
+        return result, avg_brightness

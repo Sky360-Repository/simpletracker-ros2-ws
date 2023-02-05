@@ -49,17 +49,22 @@ class CloudEstimatorNode(ConfiguredNode):
     if self.msg_image != None:
 
       estimation: float
-      
-      if self.is_night:
-        estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')
-      else:
-        estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {estimation}')
 
-      cloud_estimation_msg = ObserverCloudEstimation()
-      cloud_estimation_msg.percentage_cloud_cover = estimation
-      self.pub_environment_data.publish(cloud_estimation_msg)
+      try:
+      
+        if self.is_night:
+          estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+          self.get_logger().debug(f'{self.get_name()} Night time cloud estimation --> {estimation}')
+        else:
+          estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+          self.get_logger().debug(f'{self.get_name()} Day time cloud estimation --> {estimation}')
+
+        cloud_estimation_msg = ObserverCloudEstimation()
+        cloud_estimation_msg.percentage_cloud_cover = estimation
+        self.pub_environment_data.publish(cloud_estimation_msg)
+
+      except Exception as e:
+        self.get_logger().error(f"Exception during cloud estimation sampler. Error: {e}.")
 
   def config_list(self) -> List[str]:
     return ['observer_timer_interval']

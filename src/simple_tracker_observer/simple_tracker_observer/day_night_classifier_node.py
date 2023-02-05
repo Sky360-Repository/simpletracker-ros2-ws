@@ -41,13 +41,18 @@ class DayNightClassifierNode(ConfiguredNode):
     
     if self.msg_image != None:
 
-      result, average_brightness = self.day_night_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-      self.get_logger().info(f'{self.get_name()} Day/Night classifier --> {result}, {average_brightness}')
+      try:
 
-      day_night_msg = ObserverDayNight()
-      day_night_msg.is_night = result == DayNightEnum.Night
-      day_night_msg.avg_brightness = average_brightness
-      self.pub_environment_data.publish(day_night_msg)
+        result, average_brightness = self.day_night_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+        self.get_logger().debug(f'{self.get_name()} Day/Night classifier --> {result}, {average_brightness}')
+
+        day_night_msg = ObserverDayNight()
+        day_night_msg.is_night = result == DayNightEnum.Night
+        day_night_msg.avg_brightness = average_brightness
+        self.pub_environment_data.publish(day_night_msg)
+
+      except Exception as e:
+        self.get_logger().error(f"Exception during day night classification. Error: {e}.")
 
   def config_list(self) -> List[str]:
     return ['observer_timer_interval', 'observer_day_night_brightness_threshold']

@@ -40,19 +40,22 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
 
     if msg_frame != None:
 
-      frame_grey = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame_grey = self.br.imgmsg_to_cv2(msg_frame)
+        frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
+          self.background_subtractor, frame_grey, None)
+        
+        frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
+        frame_foreground_mask_msg.header = msg_frame.header
+        
+        frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
+        frame_masked_background_msg.header = msg_frame.header
+        
+        self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
+        self.pub_masked_background_frame.publish(frame_masked_background_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during the background subtraction provider. Error: {e}.")
 
-      frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
-        self.background_subtractor, frame_grey, None)
-
-      frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
-      frame_foreground_mask_msg.header = msg_frame.header
-
-      frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
-      frame_masked_background_msg.header = msg_frame.header
-
-      self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
-      self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
     return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_learning_rate', 'background_subtractor_cuda_enable',

@@ -42,14 +42,17 @@ class BGSDetectorNode(ConfiguredNode):
 
     if msg_frame != None:
 
-      frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
 
-      bboxes = self.blob_detector.detect(frame_foreground_mask)
+        bboxes = self.blob_detector.detect(frame_foreground_mask)
 
-      bbox_array_msg = BoundingBox2DArray()
-      bbox_array_msg.header = msg_frame.header
-      [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
-      self.pub_bounding_boxes.publish(bbox_array_msg)
+        bbox_array_msg = BoundingBox2DArray()
+        bbox_array_msg.header = msg_frame.header
+        [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
+        self.pub_bounding_boxes.publish(bbox_array_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during BGS detection. Error: {e}.")
 
   def _bbox_to_bbox_msg(self, bbox):
 

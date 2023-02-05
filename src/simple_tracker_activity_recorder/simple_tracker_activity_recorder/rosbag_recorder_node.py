@@ -46,7 +46,12 @@ class RosbagRecorderNode(ConfiguredNode):
 
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:      
       if msg_tracking_state.trackable > 0:
-        self.recorder.record(masked_frame, msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
+
+        try:
+          self.recorder.record(masked_frame, msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
+        except Exception as e:
+          self.get_logger().error(f"Exception during activity recorder. Error: {e}.")
+
 
   def config_list(self) -> List[str]:
     return []

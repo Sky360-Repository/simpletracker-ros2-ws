@@ -49,35 +49,38 @@ class TrackProviderNode(ConfiguredNode):
 
     if msg_frame is not None and msg_bounding_box_array is not None:
 
-      frame = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame = self.br.imgmsg_to_cv2(msg_frame)
 
-      bboxes = [self._msg_to_bbox(x) for x in msg_bounding_box_array.boxes]
+        bboxes = [self._msg_to_bbox(x) for x in msg_bounding_box_array.boxes]
 
-      self.video_tracker.update_trackers(bboxes, frame)      
+        self.video_tracker.update_trackers(bboxes, frame)      
 
-      detect_array_msg = Detection2DArray()
-      detect_array_msg.header = msg_frame.header
-      detect_array_msg.detections = [self._detects_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+        detect_array_msg = Detection2DArray()
+        detect_array_msg.header = msg_frame.header
+        detect_array_msg.detections = [self._detects_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
 
-      trajectory_array_msg = TrackTrajectoryArray()
-      trajectory_array_msg.header = msg_frame.header
-      trajectory_array_msg.trajectories = [self._trajectories_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+        trajectory_array_msg = TrackTrajectoryArray()
+        trajectory_array_msg.header = msg_frame.header
+        trajectory_array_msg.trajectories = [self._trajectories_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
 
-      prediction_array_msg = TrackTrajectoryArray()
-      prediction_array_msg.header = msg_frame.header
-      prediction_array_msg.trajectories = [self._predictions_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
+        prediction_array_msg = TrackTrajectoryArray()
+        prediction_array_msg.header = msg_frame.header
+        prediction_array_msg.trajectories = [self._predictions_to_msg(tracker) for tracker in self.video_tracker.live_trackers]
 
-      tracking_msg = TrackingState()
-      tracking_msg.header = msg_frame.header
-      tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
-      tracking_msg.alive = len(self.video_tracker.live_trackers)
-      tracking_msg.started = self.video_tracker.total_trackers_started
-      tracking_msg.ended = self.video_tracker.total_trackers_finished
+        tracking_msg = TrackingState()
+        tracking_msg.header = msg_frame.header
+        tracking_msg.trackable = sum(map(lambda x: x.is_tracking(), self.video_tracker.live_trackers))
+        tracking_msg.alive = len(self.video_tracker.live_trackers)
+        tracking_msg.started = self.video_tracker.total_trackers_started
+        tracking_msg.ended = self.video_tracker.total_trackers_finished
 
-      self.pub_tracker_detects.publish(detect_array_msg)
-      self.pub_tracker_trajectory.publish(trajectory_array_msg)
-      self.pub_tracker_prediction.publish(prediction_array_msg)
-      self.pub_tracker_tracking_state.publish(tracking_msg)
+        self.pub_tracker_detects.publish(detect_array_msg)
+        self.pub_tracker_trajectory.publish(trajectory_array_msg)
+        self.pub_tracker_prediction.publish(prediction_array_msg)
+        self.pub_tracker_tracking_state.publish(tracking_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during track provider. Error: {e}.")
 
   def _msg_to_bbox(self, bbox_msg: BoundingBox2D):
     x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), int(bbox_msg.size_x), int(bbox_msg.size_y))

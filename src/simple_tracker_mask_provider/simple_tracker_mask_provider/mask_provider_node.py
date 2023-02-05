@@ -35,18 +35,30 @@ class MaskProviderNode(ConfiguredNode):
   
   def get_mask_callback(self, request, response):
 
-    masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
-    mask_file_path = os.path.join(masks_folder, request.file_name)
+    try:
+      masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
+      mask_file_path = os.path.join(masks_folder, request.file_name)
 
-    if os.path.exists(mask_file_path) == False:
-      self.get_logger().error(f'Mask path {request.file_name} does not exist.')
+      if os.path.exists(mask_file_path) == False:
+        self.get_logger().error(f'Mask path {request.file_name} does not exist.')
 
-    mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
-    response.mask = self.br.cv2_to_imgmsg(mask_image)
+      mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
+      response.mask = self.br.cv2_to_imgmsg(mask_image)
+    except Exception as e:
+      self.get_logger().error(f"Exception getting mask. Error: {e}.")
 
     return response
 
   def put_mask_callback(self, request, response):
+
+    try:
+      self.write_mask_file(request, response)
+    except Exception as e:
+      self.get_logger().error(f"Exception during writing mask file. Error: {e}.")
+
+    return response
+
+  def write_mask_file(self, request, response):
 
     mask_image = self.br.imgmsg_to_cv2(request.mask)
     masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')

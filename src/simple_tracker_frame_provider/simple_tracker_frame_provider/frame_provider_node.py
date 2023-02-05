@@ -42,23 +42,26 @@ class FrameProviderNode(ConfiguredNode):
 
     if msg_image != None:
 
-      self.counter += 1
+      try:
+        self.counter += 1
 
-      frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
-        self.br.imgmsg_to_cv2(msg_image), stream=None)
+        frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
+          self.br.imgmsg_to_cv2(msg_image), stream=None)
 
-      frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=msg_image.encoding)
-      frame_original_msg.header = msg_image.header
+        frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=msg_image.encoding)
+        frame_original_msg.header = msg_image.header
 
-      frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=msg_image.encoding)
-      frame_original_masked_msg.header = msg_image.header
+        frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=msg_image.encoding)
+        frame_original_masked_msg.header = msg_image.header
 
-      frame_grey_msg = self.br.cv2_to_imgmsg(frame_grey, encoding="mono8")
-      frame_grey_msg.header = msg_image.header
+        frame_grey_msg = self.br.cv2_to_imgmsg(frame_grey, encoding="mono8")
+        frame_grey_msg.header = msg_image.header
 
-      self.pub_original_frame.publish(frame_original_msg)
-      self.pub_masked_frame.publish(frame_original_masked_msg)
-      self.pub_grey_frame.publish(frame_grey_msg)
+        self.pub_original_frame.publish(frame_original_msg)
+        self.pub_masked_frame.publish(frame_original_masked_msg)
+        self.pub_grey_frame.publish(frame_grey_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during frame provider. Error: {e}.")
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 

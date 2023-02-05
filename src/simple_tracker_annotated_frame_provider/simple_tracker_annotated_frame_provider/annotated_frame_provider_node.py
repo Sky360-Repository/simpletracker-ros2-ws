@@ -49,10 +49,13 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
     if msg_masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:
 
-      annotated_frame = self.creator.create(self.br.imgmsg_to_cv2(msg_masked_frame), msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
-      frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, msg_masked_frame.encoding)
-      frame_annotated_msg.header = msg_masked_frame.header
-      self.pub_annotated_frame.publish(frame_annotated_msg)
+      try:
+        annotated_frame = self.creator.create(self.br.imgmsg_to_cv2(msg_masked_frame), msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
+        frame_annotated_msg = self.br.cv2_to_imgmsg(annotated_frame, msg_masked_frame.encoding)
+        frame_annotated_msg.header = msg_masked_frame.header
+        self.pub_annotated_frame.publish(frame_annotated_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during the annotated frame provider. Error: {e}.")
 
   def config_list(self) -> List[str]:
     return ['visualiser_frame_source', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor',

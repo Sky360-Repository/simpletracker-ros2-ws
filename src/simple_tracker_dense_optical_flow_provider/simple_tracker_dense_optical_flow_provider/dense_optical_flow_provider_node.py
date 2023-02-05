@@ -38,15 +38,17 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
 
     if msg_frame != None:
 
-      frame_grey = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame_grey = self.br.imgmsg_to_cv2(msg_frame)
 
-      optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, frame_grey, None)
+        optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, frame_grey, None)
       
-      frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
-      frame_optical_flow_msg.header = msg_frame.header
+        frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
+        frame_optical_flow_msg.header = msg_frame.header
 
-      self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
-
+        self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during the dense optical flow. Error: {e}.")
 
   def config_list(self) -> List[str]:
     return ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']

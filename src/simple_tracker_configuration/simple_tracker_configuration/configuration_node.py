@@ -10,8 +10,8 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from rclpy.node import Node
 from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray

@@ -10,9 +10,8 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
 from cv_bridge import CvBridge
@@ -49,6 +48,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
         self.pub_dense_optical_flow_frame.publish(frame_optical_flow_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during the dense optical flow. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
     return ['dense_optical_flow_h', 'dense_optical_flow_w', 'dense_optical_cuda_enable']

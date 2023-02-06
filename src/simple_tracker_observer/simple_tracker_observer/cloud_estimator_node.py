@@ -10,10 +10,8 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.time import Time
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
@@ -65,6 +63,7 @@ class CloudEstimatorNode(ConfiguredNode):
 
       except Exception as e:
         self.get_logger().error(f"Exception during cloud estimation sampler. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
     return ['observer_timer_interval']

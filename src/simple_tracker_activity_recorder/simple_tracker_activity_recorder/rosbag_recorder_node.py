@@ -10,6 +10,7 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import rclpy
 import message_filters
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
@@ -51,6 +52,7 @@ class RosbagRecorderNode(ConfiguredNode):
           self.recorder.record(masked_frame, msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
         except Exception as e:
           self.get_logger().error(f"Exception during activity recorder. Error: {e}.")
+          self.get_logger().error(tb.format_exc())
 
 
   def config_list(self) -> List[str]:

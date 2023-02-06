@@ -10,18 +10,14 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
-import cv2
 from typing import List
 from cv_bridge import CvBridge
 from .blob_detector import BlobDetector
-#from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
-#from geometry_msgs.msg import Pose2D
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
@@ -53,6 +49,7 @@ class BGSDetectorNode(ConfiguredNode):
         self.pub_bounding_boxes.publish(bbox_array_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during BGS detection. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def _bbox_to_bbox_msg(self, bbox):
 

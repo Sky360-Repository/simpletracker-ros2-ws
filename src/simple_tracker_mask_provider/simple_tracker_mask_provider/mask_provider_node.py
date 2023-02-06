@@ -10,9 +10,9 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import os
 import rclpy
-from rclpy.executors import ExternalShutdownException
 import cv2
 from typing import List
 from ament_index_python.packages import get_package_share_directory
@@ -46,6 +46,7 @@ class MaskProviderNode(ConfiguredNode):
       response.mask = self.br.cv2_to_imgmsg(mask_image)
     except Exception as e:
       self.get_logger().error(f"Exception getting mask. Error: {e}.")
+      self.get_logger().error(tb.format_exc())
 
     return response
 

@@ -10,6 +10,7 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import rclpy
 import message_filters
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
@@ -56,6 +57,7 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
         self.pub_annotated_frame.publish(frame_annotated_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during the annotated frame provider. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
     return ['visualiser_frame_source', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor',

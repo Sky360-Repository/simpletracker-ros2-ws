@@ -10,6 +10,7 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import rclpy
 from rclpy.qos import QoSProfile
 from typing import List
@@ -53,6 +54,7 @@ class DayNightClassifierNode(ConfiguredNode):
 
       except Exception as e:
         self.get_logger().error(f"Exception during day night classification. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
     return ['observer_timer_interval', 'observer_day_night_brightness_threshold']

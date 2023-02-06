@@ -10,9 +10,8 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
 from typing import List
 from sensor_msgs.msg import Image
@@ -62,6 +61,7 @@ class FrameProviderNode(ConfiguredNode):
         self.pub_grey_frame.publish(frame_grey_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during frame provider. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 

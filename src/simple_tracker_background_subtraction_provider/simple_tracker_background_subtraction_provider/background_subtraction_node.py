@@ -10,11 +10,9 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile
-import cv2
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -55,6 +53,7 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
         self.pub_masked_background_frame.publish(frame_masked_background_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during the background subtraction provider. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
 
   def config_list(self) -> List[str]:

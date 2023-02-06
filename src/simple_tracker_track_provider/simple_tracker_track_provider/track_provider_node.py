@@ -10,10 +10,9 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
 import message_filters
-from rclpy.executors import ExternalShutdownException
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy
 from typing import List
 from cv_bridge import CvBridge
@@ -81,6 +80,7 @@ class TrackProviderNode(ConfiguredNode):
         self.pub_tracker_tracking_state.publish(tracking_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during track provider. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def _msg_to_bbox(self, bbox_msg: BoundingBox2D):
     x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), int(bbox_msg.size_x), int(bbox_msg.size_y))

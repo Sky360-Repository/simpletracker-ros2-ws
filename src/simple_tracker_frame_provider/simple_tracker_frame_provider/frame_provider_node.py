@@ -21,7 +21,10 @@ from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
+from simple_tracker_shared.enumerations import DayNightEnum
+from simple_tracker_interfaces.msg import ObserverDayNight
 from .mask import Mask
+from .astro_mask import AstroMask
 from .mask_client_async import MaskClientAsync
 
 class FrameProviderNode(ConfiguredNode):
@@ -31,6 +34,8 @@ class FrameProviderNode(ConfiguredNode):
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, 10)#, subscriber_qos_profile)
+    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)
+
     self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original', 10)#, publisher_qos_profile)
     self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked', 10)#, publisher_qos_profile)
     self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey', 10)#, publisher_qos_profile)
@@ -44,8 +49,12 @@ class FrameProviderNode(ConfiguredNode):
       try:
         self.counter += 1
 
+        camera_frame = self.br.imgmsg_to_cv2(msg_image);
+
         frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
-          self.br.imgmsg_to_cv2(msg_image), stream=None)
+          camera_frame, stream=None)
+
+        frame_masked = self._do_astro_masking(frame_original, frame_masked)
 
         frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=msg_image.encoding)
         frame_original_msg.header = msg_image.header
@@ -62,6 +71,9 @@ class FrameProviderNode(ConfiguredNode):
       except Exception as e:
         self.get_logger().error(f"Exception during frame provider. Error: {e}.")
         self.get_logger().error(tb.format_exc())
+
+  def day_night_callback(self, msg_day_night:ObserverDayNight):
+    self.day_night = DayNightEnum(msg_day_night.day_night)
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
@@ -88,6 +100,7 @@ class FrameProviderNode(ConfiguredNode):
       self.counter = 0
       self.br = CvBridge()
       self.mask_svc = MaskClientAsync()
+      self.day_night: DayNightEnum = DayNightEnum.Unknown
 
     self.frame_processor = FrameProcessor.Select(self.app_configuration, 'frame_provider_cuda_enable')
 
@@ -97,7 +110,26 @@ class FrameProviderNode(ConfiguredNode):
       self.app_configuration['mask_overlay_image'] = self.br.imgmsg_to_cv2(response.mask)
 
     self.mask = Mask.Select(self.app_configuration)
+    
+    self.solar_mask = AstroMask.Solar(self.app_configuration)
+    self.lunar_mask = AstroMask.Lunar(self.app_configuration)
 
+  def _do_astro_masking(self, frame_original, frame_masked):
+    if not self.solar_mask.initialised:
+      self.solar_mask.initialise(frame_original, stream=None)
+
+    if not self.lunar_mask.initialised:
+      self.lunar_mask.initialise(frame_original, stream=None)
+
+    match self.day_night:
+      case DayNightEnum.Day:
+        frame_masked = self.solar_mask.apply(frame_masked)
+      case DayNightEnum.Night:
+        frame_masked = self.lunar_mask.apply(frame_masked)
+      case _:
+        pass
+
+    return frame_masked
 
 def main(args=None):
 

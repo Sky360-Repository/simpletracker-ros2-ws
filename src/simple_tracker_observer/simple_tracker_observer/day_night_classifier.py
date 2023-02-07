@@ -12,13 +12,9 @@
 
 import cv2
 import numpy as np
-from enum import IntEnum
 import rclpy
 import rclpy.logging
-
-class DayNightEnum(IntEnum):
-    Night = 0
-    Day = 1
+from simple_tracker_shared.enumerations import DayNightEnum
 
 class DayNightEstimator():
 

@@ -1,5 +1,5 @@
 # Defines the message for the environmental data supplied by the station
 
 # Is it currently day or night
-bool is_night
+int32 day_night
 int32 avg_brightness

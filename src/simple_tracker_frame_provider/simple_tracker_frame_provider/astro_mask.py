@@ -1,6 +1,7 @@
 import cv2
 import datetime
 import dateutil
+from dateutil import tz
 import math
 import numpy as np
 import ephem #pip install ephem
@@ -12,6 +13,14 @@ from .mask import Mask
 #############################################################################################################
 class AstroMask(Mask):
 
+    @staticmethod
+    def Lunar(settings):
+        return LunarMask(settings)
+
+    @staticmethod
+    def Solar(settings):
+        return SolarMask(settings)
+
     def __init__(self, settings):
         super().__init__(settings)
 
@@ -22,8 +31,8 @@ class AstroMask(Mask):
         self.width = self.shape[1]
 
         # Location of camera
-        self.latitude = 48.1
-        self.longitude = 16.3
+        self.latitude = 51.7
+        self.longitude = -4.3
 
         # Fisheye info
         self.fisheye_fov = 180 # degrees
@@ -40,9 +49,17 @@ class AstroMask(Mask):
         # In Sky360 dataset south is approx 9 degrees off the top
         self.theta = math.radians(-5)
 
-        self.timezone = 'Europe/Vienna'
+        self.timezone = 'Europe/London'
 
         return (self.width, self.height)
+
+    def alphaBlend(self, img1, img2, mask):
+        if mask.ndim==3 and mask.shape[-1] == 3:
+            alpha = mask/255.0
+        else:
+            alpha = cv2.cvtColor(mask, cv2.COLOR_GRAY2BGR)/255.0
+        blended = cv2.convertScaleAbs(img1*(1-alpha) + img2*alpha)
+        return blended
 
 class SolarMask(AstroMask):
 
@@ -77,14 +94,14 @@ class SolarMask(AstroMask):
         y_rotated = x_centered * math.sin(self.theta) + y_centered * math.cos(self.theta) + cy
 
         # Draw circle at sun's position on the video frame
-        frame_masked = frame.copy()
-        #frame_masked = frame
+        #frame_masked = frame.copy()
+        frame_masked = frame
         cv2.circle(frame_masked, (int(x_rotated), int(y_rotated)), self.solar_mask_radius, (178, 110, 67), -1);
 
         # Indicate where south is on the frame
-        x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
-        y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
-        cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        #x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
+        #y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
+        #cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
         # Copy of frame but blurred
         blurred = cv2.GaussianBlur(frame_masked, (61,61), 11)
@@ -108,7 +125,7 @@ class LunarMask(AstroMask):
         cx = self.width / 2
         cy = self.height / 2
 
-        tz = dateutil.tz.gettz('Europe/Vienna')  
+        tz = dateutil.tz.gettz(self.timezone)
         observer = ephem.Observer()
         observer.lat = str(self.latitude)
         observer.lon = str(self.longitude)
@@ -129,14 +146,14 @@ class LunarMask(AstroMask):
         y_rotated = x_center * math.sin(self.theta) + y_center * math.cos(self.theta) + cy
 
         # Draw circle at moon's position on the video frame
-        frame_masked = frame.copy()
-        #frame_masked = frame
+        #frame_masked = frame.copy()
+        frame_masked = frame
         cv2.circle(frame_masked, (int(x_rotated), int(y_rotated)), self.moon_mask_radius, (22,22,22), -1)
 
         # Indicate where south is on the frame
-        x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
-        y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
-        cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        #x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
+        #y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
+        #cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
 
         # Blur
         blured = cv2.GaussianBlur(frame_masked, (61,61), 11)

@@ -19,6 +19,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
+from simple_tracker_shared.enumerations import DayNightEnum
 from simple_tracker_interfaces.msg import ObserverCloudEstimation, ObserverDayNight
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .cloud_estimator import CloudEstimator
@@ -32,7 +33,7 @@ class CloudEstimatorNode(ConfiguredNode):
 
     # setup services, publishers and subscribers    
     self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)    
+    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -40,26 +41,31 @@ class CloudEstimatorNode(ConfiguredNode):
     self.msg_image = msg_image
 
   def day_night_callback(self, msg_day_night:ObserverDayNight):
-    self.is_night = msg_day_night.is_night
+    self.day_night = DayNightEnum(msg_day_night.day_night)
 
   def cloud_sampler(self):
     
     if self.msg_image != None:
 
-      estimation: float
+      estimation: float = None
 
       try:
-      
-        if self.is_night:
-          estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-          self.get_logger().debug(f'{self.get_name()} Night time cloud estimation --> {estimation}')
-        else:
-          estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-          self.get_logger().debug(f'{self.get_name()} Day time cloud estimation --> {estimation}')
 
-        cloud_estimation_msg = ObserverCloudEstimation()
-        cloud_estimation_msg.percentage_cloud_cover = estimation
-        self.pub_environment_data.publish(cloud_estimation_msg)
+        match self.day_night:
+          case DayNightEnum.Day:
+            estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+            self.get_logger().debug(f'{self.get_name()} Day time cloud estimation --> {estimation}')
+          case DayNightEnum.Night:
+            estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+            self.get_logger().debug(f'{self.get_name()} Night time cloud estimation --> {estimation}')
+          case _:
+            self.get_logger().debug(f'{self.get_name()} Unknown Day/Night classifier, ignore for now')
+            pass
+        
+        if estimation != None:
+          cloud_estimation_msg = ObserverCloudEstimation()
+          cloud_estimation_msg.percentage_cloud_cover = estimation
+          self.pub_environment_data.publish(cloud_estimation_msg)
 
       except Exception as e:
         self.get_logger().error(f"Exception during cloud estimation sampler. Error: {e}.")
@@ -80,7 +86,7 @@ class CloudEstimatorNode(ConfiguredNode):
 
     self.timer_interval = self.app_configuration['observer_timer_interval']
     self.msg_image = None
-    self.is_night = True    
+    self.day_night: DayNightEnum = DayNightEnum.Unknown
     self.day_cloud_estimator = CloudEstimator.Day(self.app_configuration)
     self.night_cloud_estimator = CloudEstimator.Night(self.app_configuration)
 

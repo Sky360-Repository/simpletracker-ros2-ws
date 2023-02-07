@@ -21,7 +21,7 @@ from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_interfaces.msg import ObserverDayNight
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
-from .day_night_classifier import DayNightEstimator, DayNightEnum
+from .day_night_classifier import DayNightEstimator
 
 class DayNightClassifierNode(ConfiguredNode):
 
@@ -48,7 +48,7 @@ class DayNightClassifierNode(ConfiguredNode):
         self.get_logger().debug(f'{self.get_name()} Day/Night classifier --> {result}, {average_brightness}')
 
         day_night_msg = ObserverDayNight()
-        day_night_msg.is_night = result == DayNightEnum.Night
+        day_night_msg.day_night = int(result)
         day_night_msg.avg_brightness = average_brightness
         self.pub_environment_data.publish(day_night_msg)
 

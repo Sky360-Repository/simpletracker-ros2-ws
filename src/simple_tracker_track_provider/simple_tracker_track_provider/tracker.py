@@ -13,14 +13,9 @@
 import cv2
 import time
 import math
-from enum import IntEnum
 from simple_tracker_shared.utils import bbox_overlap, bbox1_contain_bbox2, get_cv_version
 from .track_prediction import TrackPrediction
-
-class TrackingStateEnum(IntEnum):
-    PROVISIONARY_TARGET = 1
-    ACTIVE_TARGET = 2
-    LOST_TARGET = 3
+from simple_tracker_shared.enumerations import TrackingStateEnum
 
 ########################################################################################################################
 # This class represents a single target/blob that has been identified on the frame and is currently being tracked      #

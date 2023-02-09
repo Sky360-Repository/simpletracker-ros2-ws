@@ -16,3 +16,8 @@ class DayNightEnum(IntEnum):
     Unknown = 0
     Day = 1
     Night = 2
+
+class TrackingStateEnum(IntEnum):
+    PROVISIONARY_TARGET = 1
+    ACTIVE_TARGET = 2
+    LOST_TARGET = 3

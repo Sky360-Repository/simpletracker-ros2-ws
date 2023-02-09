@@ -75,6 +75,7 @@ class AppSettings():
                 ('mask_type', 'overlay_inverse'),
                 ('mask_pct', 10),
                 ('mask_overlay_image_file_name', 'mask-shrubs-inverse-overlay.jpg'),
+                ('astro_mask_enable', False),
                 
                 ('dense_optical_flow_h', 400),
                 ('dense_optical_flow_w', 480),
@@ -147,6 +148,7 @@ class AppSettings():
         app_settings['mask_pct'] = node.get_parameter('mask_pct').value
         app_settings['mask_overlay_image_file_name'] = node.get_parameter('mask_overlay_image_file_name').value
         app_settings['mask_overlay_image'] = None # Don't configure this as it's used as temporary storage
+        app_settings['astro_mask_enable'] = node.get_parameter('astro_mask_enable').value
 
         # Dense optical flow
         app_settings['dense_optical_cuda_enable'] = node.get_parameter('dense_optical_cuda_enable').value

@@ -15,12 +15,9 @@ import cv2
 from vision_msgs.msg import BoundingBox2D, Detection2DArray
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.utils import get_optimal_font_scale
+from simple_tracker_shared.enumerations import TrackingStateEnum
 
 class AnnotatedFrameCreator():
-
-  PROVISIONARY_TARGET = 1
-  ACTIVE_TARGET = 2
-  LOST_TARGET = 3
 
   def __init__(self, settings):
     self.settings = settings
@@ -56,7 +53,7 @@ class AnnotatedFrameCreator():
       id_arr = detection.id.split("-")
 
       id = id_arr[0]
-      tracking_state = int(id_arr[1])
+      tracking_state = TrackingStateEnum(int(id_arr[1]))
 
       (x, y, w, h) = self._get_sized_bbox(detection.bbox)
       detections[detection.id] = (x, y, w, h)
@@ -66,7 +63,7 @@ class AnnotatedFrameCreator():
       cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
       cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, color, 2)
 
-      if enable_cropped_tracks and tracking_state == self.ACTIVE_TARGET:
+      if enable_cropped_tracks and tracking_state == TrackingStateEnum.ACTIVE_TARGET:
         margin = 0 if cropped_track_counter == 0 else 10
         zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
         cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
@@ -86,7 +83,7 @@ class AnnotatedFrameCreator():
           #if not self._is_point_contained_in_bbox(detections[trajectory.id], (trajectory_point.center.x, trajectory_point.center.y)):
             cv2.line(annotated_frame, 
               (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)), 
-              color = self._color(trajectory_point.tracking_state), thickness = self.bbox_line_thickness)
+              color = self._color(TrackingStateEnum(trajectory_point.tracking_state)), thickness = self.bbox_line_thickness)
         previous_trajectory_point = trajectory_point
         final_trajectory_points[trajectory.id] = previous_trajectory_point
 
@@ -121,9 +118,9 @@ class AnnotatedFrameCreator():
     x0, y0 = point
     return x <= x0 < x + w and y <= y0 < y + h
 
-  def _color(self, tracking_state):
+  def _color(self, tracking_state: TrackingStateEnum):
     return {
-            self.PROVISIONARY_TARGET: (25, 175, 175),
-            self.ACTIVE_TARGET: (50, 170, 50),
-            self.LOST_TARGET: (50, 50, 225)
+            TrackingStateEnum.PROVISIONARY_TARGET: (25, 175, 175),
+            TrackingStateEnum.ACTIVE_TARGET: (50, 170, 50),
+            TrackingStateEnum.LOST_TARGET: (50, 50, 225)
         }[tracking_state]

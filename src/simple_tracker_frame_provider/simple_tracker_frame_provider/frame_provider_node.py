@@ -54,7 +54,7 @@ class FrameProviderNode(ConfiguredNode):
         frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
           camera_frame, stream=None)
 
-        frame_masked = self._do_astro_masking(frame_original, frame_masked)
+        frame_masked = self.process_astro_mask(frame_original, frame_masked)
 
         frame_original_msg = self.br.cv2_to_imgmsg(frame_original, encoding=msg_image.encoding)
         frame_original_msg.header = msg_image.header
@@ -78,7 +78,7 @@ class FrameProviderNode(ConfiguredNode):
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 
       'frame_provider_blur', 'frame_provider_blur_radius', 'frame_provider_cuda_enable', 'mask_type', 'mask_pct', 'mask_overlay_image_file_name',
-      'controller_type']
+      'controller_type', 'astro_mask_enable']
 
   def validate_config(self) -> bool:
     valid = True
@@ -111,23 +111,25 @@ class FrameProviderNode(ConfiguredNode):
 
     self.mask = Mask.Select(self.app_configuration)
     
-    self.solar_mask = AstroMask.Solar(self.app_configuration)
-    self.lunar_mask = AstroMask.Lunar(self.app_configuration)
+    if self.app_configuration['astro_mask_enable']:
+      self.solar_mask = AstroMask.Solar(self.app_configuration)
+      self.lunar_mask = AstroMask.Lunar(self.app_configuration)
 
-  def _do_astro_masking(self, frame_original, frame_masked):
-    if not self.solar_mask.initialised:
-      self.solar_mask.initialise(frame_original, stream=None)
+  def process_astro_mask(self, frame_original, frame_masked):
+    if self.app_configuration['astro_mask_enable']:
+      if not self.solar_mask.initialised:
+        self.solar_mask.initialise(frame_original, stream=None)
 
-    if not self.lunar_mask.initialised:
-      self.lunar_mask.initialise(frame_original, stream=None)
+      if not self.lunar_mask.initialised:
+        self.lunar_mask.initialise(frame_original, stream=None)
 
-    match self.day_night:
-      case DayNightEnum.Day:
-        frame_masked = self.solar_mask.apply(frame_masked)
-      case DayNightEnum.Night:
-        frame_masked = self.lunar_mask.apply(frame_masked)
-      case _:
-        pass
+      match self.day_night:
+        case DayNightEnum.Day:
+          frame_masked = self.solar_mask.apply(frame_masked)
+        case DayNightEnum.Night:
+          frame_masked = self.lunar_mask.apply(frame_masked)
+        case _:
+          pass
 
     return frame_masked
 

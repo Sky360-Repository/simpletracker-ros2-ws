@@ -1,5 +1,6 @@
 import cv2
 import datetime
+from datetime import datetime
 import dateutil
 from dateutil import tz
 import math
@@ -30,6 +31,9 @@ class AstroMask(Mask):
         self.height = self.shape[0]
         self.width = self.shape[1]
 
+        self.center_x = self.width / 2
+        self.center_y = self.height / 2
+
         # Location of camera
         self.latitude = 51.7
         self.longitude = -4.3
@@ -49,7 +53,7 @@ class AstroMask(Mask):
         # In Sky360 dataset south is approx 9 degrees off the top
         self.theta = math.radians(-5)
 
-        self.timezone = 'Europe/London'
+        #self.timezone = 'Europe/Vienna'
 
         return (self.width, self.height)
 
@@ -61,6 +65,41 @@ class AstroMask(Mask):
         blended = cv2.convertScaleAbs(img1*(1-alpha) + img2*alpha)
         return blended
 
+    def drawCardinals(self, frame_masked):
+        text_colour = (50, 170, 50)
+        loc = self.fisheye_radius-150
+
+        # Indicate where north is on the frame
+        x_north = int(self.center_x + loc * np.cos(np.radians(+90)+self.theta))
+        y_north = int(self.center_y + loc * np.sin(np.radians(+90)+self.theta))
+        cv2.putText(frame_masked, "N", (int(x_north), int(y_north)), cv2.FONT_HERSHEY_SIMPLEX, 2, text_colour, 2)
+
+        # Indicate where east is on the frame
+        x_east = int(self.center_x + loc * np.cos(np.radians(+180)+self.theta))
+        y_east = int(self.center_y + loc * np.sin(np.radians(+180)+self.theta))
+        cv2.putText(frame_masked, "E", (int(x_east), int(y_east)), cv2.FONT_HERSHEY_SIMPLEX, 2, text_colour, 2)
+
+        # Indicate where south is on the frame
+        x_south = int(self.center_x + loc * np.cos(np.radians(-90)+self.theta))
+        y_south = int(self.center_y + loc * np.sin(np.radians(-90)+self.theta))
+        cv2.putText(frame_masked, "S", (int(x_south), int(y_south)), cv2.FONT_HERSHEY_SIMPLEX, 2, text_colour, 2)
+
+        # Indicate where west is on the frame
+        x_west = int(self.center_x + loc * np.cos(self.theta))
+        y_west = int(self.center_y + loc * np.sin(self.theta))
+        cv2.putText(frame_masked, "W", (int(x_west), int(y_west)), cv2.FONT_HERSHEY_SIMPLEX, 2, text_colour, 2)                
+
+    @property
+    def get_observer(self) -> ephem.Observer: 
+        #tz = dateutil.tz.gettz(self.timezone)
+        observer = ephem.Observer()
+        observer.lat = str(self.latitude)
+        observer.lon = str(self.longitude)
+        #observer.date = datetime.datetime(2022, 2, 7, 20, 50, 51, tzinfo = tz) # <-- add time of frame here
+        observer.date = datetime.now()
+
+        return observer
+
 class SolarMask(AstroMask):
 
     def __init__(self, settings):
@@ -69,11 +108,7 @@ class SolarMask(AstroMask):
     def apply(self, frame, stream=None):
         self.guard_initialise()
         
-        tz = dateutil.tz.gettz(self.timezone)  
-        observer = ephem.Observer()
-        observer.lat = str(self.latitude)
-        observer.lon = str(self.longitude)
-        observer.date = datetime.datetime(2021, 5, 15, 13, 54, 17, tzinfo = tz) # <-- add time of frame here
+        observer = self.get_observer
 
         sun = ephem.Sun()
         sun.compute(observer)
@@ -81,27 +116,22 @@ class SolarMask(AstroMask):
         azimuth_rad = float(sun.az)
         zenith_rad = math.radians(90) - float(sun.alt)
 
-        cx = self.width / 2
-        cy = self.height / 2
-
-        x_pos = cx - self.fisheye_radius * math.sin(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov) * -1
-        y_pos = cy + self.fisheye_radius * math.cos(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov)
+        x_pos = self.center_x - self.fisheye_radius * math.sin(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov) * -1
+        y_pos = self.center_y + self.fisheye_radius * math.cos(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov)
 
         # Correct for orientation of camera (south is assumed to be top of the frame)
-        x_centered = x_pos - cx
-        y_centered = y_pos - cy
-        x_rotated = x_centered * math.cos(self.theta) - y_centered * math.sin(self.theta) + cx
-        y_rotated = x_centered * math.sin(self.theta) + y_centered * math.cos(self.theta) + cy
+        x_centered = x_pos - self.center_x
+        y_centered = y_pos - self.center_y
+        x_rotated = x_centered * math.cos(self.theta) - y_centered * math.sin(self.theta) + self.center_x
+        y_rotated = x_centered * math.sin(self.theta) + y_centered * math.cos(self.theta) + self.center_y
 
         # Draw circle at sun's position on the video frame
         #frame_masked = frame.copy()
         frame_masked = frame
         cv2.circle(frame_masked, (int(x_rotated), int(y_rotated)), self.solar_mask_radius, (178, 110, 67), -1);
 
-        # Indicate where south is on the frame
-        #x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
-        #y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
-        #cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        # draw cardinal directions
+        self.drawCardinals(frame_masked)
 
         # Copy of frame but blurred
         blurred = cv2.GaussianBlur(frame_masked, (61,61), 11)
@@ -122,14 +152,7 @@ class LunarMask(AstroMask):
     def apply(self, frame, stream=None):
         self.guard_initialise()
         
-        cx = self.width / 2
-        cy = self.height / 2
-
-        tz = dateutil.tz.gettz(self.timezone)
-        observer = ephem.Observer()
-        observer.lat = str(self.latitude)
-        observer.lon = str(self.longitude)
-        observer.date = datetime.datetime(2022, 2, 7, 20, 50, 51, tzinfo = tz) # <-- add time of frame here
+        observer = self.get_observer
 
         moon = ephem.Moon()
         moon.compute(observer)
@@ -137,23 +160,21 @@ class LunarMask(AstroMask):
         azimuth_rad = float(moon.az)
         zenith_rad = math.radians(90) - float(moon.alt)
 
-        x_pos = cx - self.fisheye_radius * math.sin(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov) * -1
-        y_pos = cy + self.fisheye_radius * math.cos(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov)
+        x_pos = self.center_x - self.fisheye_radius * math.sin(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov) * -1
+        y_pos = self.center_y + self.fisheye_radius * math.cos(azimuth_rad) * zenith_rad / math.radians(self.fisheye_half_fov)
 
-        x_center = x_pos - cx
-        y_center = y_pos - cy
-        x_rotated = x_center * math.cos(self.theta) - y_center * math.sin(self.theta) + cx
-        y_rotated = x_center * math.sin(self.theta) + y_center * math.cos(self.theta) + cy
+        x_center = x_pos - self.center_x
+        y_center = y_pos - self.center_y
+        x_rotated = x_center * math.cos(self.theta) - y_center * math.sin(self.theta) + self.center_x
+        y_rotated = x_center * math.sin(self.theta) + y_center * math.cos(self.theta) + self.center_y
 
         # Draw circle at moon's position on the video frame
         #frame_masked = frame.copy()
         frame_masked = frame
         cv2.circle(frame_masked, (int(x_rotated), int(y_rotated)), self.moon_mask_radius, (22,22,22), -1)
 
-        # Indicate where south is on the frame
-        #x_text = int(cx + (self.fisheye_radius-150) * np.cos(np.radians(-90)+self.theta))
-        #y_text = int(cy + (self.fisheye_radius-150) * np.sin(np.radians(-90)+self.theta))
-        #cv2.putText(frame_masked, "S", (int(x_text), int(y_text)), cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 255), 2, cv2.LINE_AA)
+        # draw cardinal directions
+        self.drawCardinals(frame_masked)
 
         # Blur
         blured = cv2.GaussianBlur(frame_masked, (61,61), 11)

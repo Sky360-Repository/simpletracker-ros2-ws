@@ -73,7 +73,7 @@ class FrameProviderNode(ConfiguredNode):
         self.get_logger().error(tb.format_exc())
 
   def day_night_callback(self, msg_day_night:ObserverDayNight):
-    self.day_night = DayNightEnum(msg_day_night.day_night)
+    self.day_night = DayNightEnum(msg_day_night.day_night_enum)
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_frame', 'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w', 

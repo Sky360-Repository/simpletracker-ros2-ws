@@ -48,7 +48,7 @@ class DayNightClassifierNode(ConfiguredNode):
         self.get_logger().debug(f'{self.get_name()} Day/Night classifier --> {result}, {average_brightness}')
 
         day_night_msg = ObserverDayNight()
-        day_night_msg.day_night = int(result)
+        day_night_msg.day_night_enum = int(result)
         day_night_msg.avg_brightness = average_brightness
         self.pub_environment_data.publish(day_night_msg)
 

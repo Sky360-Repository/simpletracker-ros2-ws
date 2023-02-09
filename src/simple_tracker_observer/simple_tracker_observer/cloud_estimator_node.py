@@ -41,7 +41,7 @@ class CloudEstimatorNode(ConfiguredNode):
     self.msg_image = msg_image
 
   def day_night_callback(self, msg_day_night:ObserverDayNight):
-    self.day_night = DayNightEnum(msg_day_night.day_night)
+    self.day_night = DayNightEnum(msg_day_night.day_night_enum)
 
   def cloud_sampler(self):
     

@@ -65,5 +65,7 @@ Message end point for the publishing whether the tracker is tracking
 ## Observer
 
 ### sky360/observer/day_night_classifier - ObserverDayNight.msg
+Message end point for the publishing of a day night classifier result
 
 ### sky360/observer/cloud_estimation - ObserverCloudEstimation.msg
+Message end point for the publishing of a cloud cover estimation result

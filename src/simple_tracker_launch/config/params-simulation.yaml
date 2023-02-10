@@ -36,7 +36,7 @@ configuration_service:
     #           'SKY_WMV', 'SKY_VIBE'
     #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
     background_subtractor_type: "SKY_WMV"
-    background_subtractor_sensitivity: 1
+    background_subtractor_sensitivity: 2
     background_subtractor_learning_rate: 0.05
     background_subtractor_cuda_enable: False
 

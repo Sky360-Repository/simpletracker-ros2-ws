@@ -27,8 +27,8 @@ class AnnotatedFrameCreator():
     self.prediction_radius = 1
     self.bbox_line_thickness = self.settings['visualiser_bbox_line_thickness']
     self.frame_type = self.settings['visualiser_frame_source']
-    self.fontScale = get_optimal_font_scale("(Sky360) Tracker Status: trackable:0, alive:0, started:0, ended:0", 
-      int(self.settings['frame_provider_resize_dimension_w']*0.65))    
+    self.fontScaleWidth = 0
+    self.fontScale = 1
 
   def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
     msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray):
@@ -46,6 +46,10 @@ class AnnotatedFrameCreator():
     total_width = annotated_frame.shape[:2][1]
 
     status_message = f"(Sky360) Tracker Status: trackable:{msg_tracking_state.trackable}, alive:{msg_tracking_state.alive}, started:{msg_tracking_state.started}, ended:{msg_tracking_state.ended}"
+    if total_width != self.fontScaleWidth:
+      self.fontScale = get_optimal_font_scale(status_message, total_width*0.65)
+      self.fontScaleWidth = total_width
+
     cv2.putText(annotated_frame, status_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, self.font_colour, 2)
 
     for detection in msg_detection_array.detections:

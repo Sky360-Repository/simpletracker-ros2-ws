@@ -63,7 +63,7 @@ class AnnotatedFrameCreator():
       cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
       cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, color, 2)
 
-      if enable_cropped_tracks and tracking_state == TrackingStateEnum.ACTIVE_TARGET:
+      if enable_cropped_tracks and tracking_state == TrackingStateEnum.ActiveTarget:
         margin = 0 if cropped_track_counter == 0 else 10
         zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
         cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
@@ -120,7 +120,7 @@ class AnnotatedFrameCreator():
 
   def _color(self, tracking_state: TrackingStateEnum):
     return {
-            TrackingStateEnum.PROVISIONARY_TARGET: (25, 175, 175),
-            TrackingStateEnum.ACTIVE_TARGET: (50, 170, 50),
-            TrackingStateEnum.LOST_TARGET: (50, 50, 225)
+            TrackingStateEnum.ProvisionaryTarget: (25, 175, 175),
+            TrackingStateEnum.ActiveTarget: (50, 170, 50),
+            TrackingStateEnum.LostTarget: (50, 50, 225)
         }[tracking_state]

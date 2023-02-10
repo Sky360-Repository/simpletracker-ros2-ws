@@ -12,7 +12,7 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -28,8 +28,8 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
     super().__init__('sky360_dense_optical_flow_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey', self.grey_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_dense_optical_flow_frame = self.create_publisher(Image, 'sky360/frames/dense_optical_flow', 10)#, publisher_qos_profile)
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey', self.grey_frame_callback, subscriber_qos_profile)
+    self.pub_dense_optical_flow_frame = self.create_publisher(Image, 'sky360/frames/dense_optical_flow', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -78,8 +78,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = DenseOpticalFlowProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

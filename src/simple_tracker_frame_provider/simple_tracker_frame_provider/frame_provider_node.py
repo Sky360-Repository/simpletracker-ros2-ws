@@ -12,7 +12,7 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -33,12 +33,13 @@ class FrameProviderNode(ConfiguredNode):
     super().__init__('sky360_frame_provider')
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, subscriber_qos_profile)
+    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', 
+      self.day_night_callback, subscriber_qos_profile)
 
-    self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original', 10)#, publisher_qos_profile)
-    self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked', 10)#, publisher_qos_profile)
-    self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey', 10)#, publisher_qos_profile)
+    self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original', publisher_qos_profile)
+    self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked', publisher_qos_profile)
+    self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -137,8 +138,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = FrameProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

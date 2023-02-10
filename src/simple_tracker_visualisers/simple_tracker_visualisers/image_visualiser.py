@@ -10,10 +10,8 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import os
 import rclpy
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from sensor_msgs.msg import Image
 from simple_tracker_interfaces.msg import TrackingState
@@ -22,28 +20,23 @@ from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.utils import frame_resize
 from simple_tracker_shared.qos_profiles import get_topic_subscriber_qos_profile
 from .key_handler import KeyHandler
-
 from cv_bridge import CvBridge
 import cv2
  
 class ImageVisualiserNode(ConfiguredNode):
 
-  PROVISIONARY_TARGET = 1
-  ACTIVE_TARGET = 2
-  LOST_TARGET = 3
-
   def __init__(self, subscriber_qos_profile: QoSProfile):
     super().__init__('image_visualiser_node')
 
-    self.camera_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, 10)#, subscriber_qos_profile)
-    self.fp_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_frame', self.fp_original_callback, 10)#, subscriber_qos_profile)
-    self.fp_original_masked_sub = self.create_subscription(Image, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, 10)#, subscriber_qos_profile)
-    self.fp_grey_sub = self.create_subscription(Image, 'sky360/visualiser/grey_frame', self.fp_grey_callback, 10)#, subscriber_qos_profile)
-    self.dof_sub = self.create_subscription(Image, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, 10)#, subscriber_qos_profile)
-    self.forground_sub = self.create_subscription(Image, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, 10)#, subscriber_qos_profile) #sky360/frames/foreground_mask/v1
-    self.masked_background_sub = self.create_subscription(Image, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, 10)#, subscriber_qos_profile)
-    self.fp_annotated_sub = self.create_subscription(Image, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, 10)#, subscriber_qos_profile)
-    #self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state', self.tracking_state_callback, subscriber_qos_profile)
+    self.camera_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_camera_frame', self.camera_original_callback, subscriber_qos_profile)
+    self.fp_original_sub = self.create_subscription(Image, 'sky360/visualiser/original_frame', self.fp_original_callback, subscriber_qos_profile)
+    self.fp_original_masked_sub = self.create_subscription(Image, 'sky360/visualiser/masked_frame', self.fp_original_masked_callback, subscriber_qos_profile)
+    self.fp_grey_sub = self.create_subscription(Image, 'sky360/visualiser/grey_frame', self.fp_grey_callback, subscriber_qos_profile)
+    self.dof_sub = self.create_subscription(Image, 'sky360/visualiser/dense_optical_flow_frame', self.dof_callback, subscriber_qos_profile)
+    self.forground_sub = self.create_subscription(Image, 'sky360/visualiser/foreground_mask_frame', self.foreground_callback, subscriber_qos_profile)
+    self.masked_background_sub = self.create_subscription(Image, 'sky360/visualiser/masked_background_frame', self.masked_background_callback, subscriber_qos_profile)
+    self.fp_annotated_sub = self.create_subscription(Image, 'sky360/visualiser/annotated_frame', self.fp_annotated_callback, subscriber_qos_profile)
+    self.tracking_state_sub = self.create_subscription(TrackingState, 'sky360/visualiser/tracking_state', self.tracking_state_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -118,7 +111,7 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT)
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
 
   node = ImageVisualiserNode(subscriber_qos_profile)
 

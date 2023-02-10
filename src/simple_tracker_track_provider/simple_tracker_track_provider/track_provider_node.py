@@ -13,7 +13,7 @@
 import traceback as tb
 import rclpy
 import message_filters
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -30,13 +30,13 @@ class TrackProviderNode(ConfiguredNode):
     super().__init__('sky360_track_provider')
 
     # setup services, publishers and subscribers
-    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked')#, subscriber_qos_profile)
-    self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes')#, subscriber_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked', qos_profile=subscriber_qos_profile)
+    self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', qos_profile=subscriber_qos_profile)
     
-    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state', 10)#, get_topic_publisher_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))
-    self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections', 10)#, publisher_qos_profile)
-    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory', 10)#, publisher_qos_profile)
-    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction', 10)#, publisher_qos_profile)
+    self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state', publisher_qos_profile)
+    self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections', publisher_qos_profile)
+    self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory', publisher_qos_profile)
+    self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction', publisher_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_detector_bounding_boxes], 10)
@@ -157,8 +157,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = TrackProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

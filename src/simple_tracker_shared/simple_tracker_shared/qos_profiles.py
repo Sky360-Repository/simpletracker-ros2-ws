@@ -13,7 +13,7 @@ from rclpy.qos_event import PublisherEventCallbacks, SubscriptionEventCallbacks
 #subscription_callbacks = SubscriptionEventCallbacks(liveliness=lambda event: get_logger('Listener').info(str(event)))
 
 def get_config_publisher_qos_profile() -> QoSProfile:
-    qos_profile = QoSProfile(depth=10)
+    qos_profile = QoSProfile(depth=1)
     qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
     qos_profile.durability = QoSDurabilityPolicy.VOLATILE
     return qos_profile
@@ -39,7 +39,7 @@ def get_config_publisher_qos_profile() -> QoSProfile:
     #return QoSPresetProfiles.SYSTEM_DEFAULT.value    
 
 def get_config_subscriber_qos_profile() -> QoSProfile:
-    qos_profile = QoSProfile(depth=10)
+    qos_profile = QoSProfile(depth=1)
     qos_profile.reliability = QoSReliabilityPolicy.RELIABLE
     qos_profile.durability = QoSDurabilityPolicy.VOLATILE
     return qos_profile

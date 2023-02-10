@@ -13,7 +13,7 @@
 import traceback as tb
 import rclpy
 import message_filters
-from rclpy.qos import QoSProfile, QoSReliabilityPolicy
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -26,18 +26,18 @@ from .rosbag_recorder import RosbagRecorder
 
 class RosbagRecorderNode(ConfiguredNode):
 
-  def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
+  def __init__(self, subscriber_qos_profile: QoSProfile):
     super().__init__('rosbag_recorder')
 
-    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked')#, subscriber_qos_profile)
-    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state')#, get_topic_subscriber_qos_profile(QoSReliabilityPolicy.BEST_EFFORT))    
-    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections')#, subscriber_qos_profile)
-    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory')#, subscriber_qos_profile)
-    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction')#, subscriber_qos_profile)
+    self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked', qos_profile=subscriber_qos_profile)
+    self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state', qos_profile=subscriber_qos_profile)    
+    self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections', qos_profile=subscriber_qos_profile)
+    self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory', qos_profile=subscriber_qos_profile)
+    self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction', qos_profile=subscriber_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, 
-    self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction], 10)
+      self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction], 10)
     self.time_synchronizer.registerCallback(self.synced_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
@@ -74,10 +74,9 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
 
-  node = RosbagRecorderNode(subscriber_qos_profile, publisher_qos_profile)
+  node = RosbagRecorderNode(subscriber_qos_profile)
 
   runner = NodeRunner(node)
   runner.run()

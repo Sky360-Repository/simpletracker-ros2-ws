@@ -12,7 +12,7 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -29,11 +29,12 @@ class CloudEstimatorNode(ConfiguredNode):
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_cloud_estimator')
 
-    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
+    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', publisher_qos_profile)
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
-    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', self.day_night_callback, 10)#, subscriber_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, subscriber_qos_profile)
+    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', 
+      self.day_night_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -99,8 +100,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = CloudEstimatorNode(subscriber_qos_profile, publisher_qos_profile)
 

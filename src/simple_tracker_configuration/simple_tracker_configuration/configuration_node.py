@@ -12,8 +12,8 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray
 from simple_tracker_interfaces.srv import ConfigEntryUpdate, ConfigEntry, ConfigEntryArray
 from simple_tracker_shared.node_runner import NodeRunner
@@ -30,13 +30,10 @@ class SimpleTrackerConfigurationNode(Node):
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get(self)
 
-        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', 
-            self.get_config_callback)
-        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', 
-            self.get_config_array_callback)
-        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', 
-            self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', 10)#, publisher_qos_profile)
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', self.get_config_callback)
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', self.get_config_array_callback)
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', self.get_config_update_callback)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -144,7 +141,7 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    publisher_qos_profile = get_config_publisher_qos_profile()
+    publisher_qos_profile = qos_profile_sensor_data #get_config_publisher_qos_profile()
 
     node = SimpleTrackerConfigurationNode(publisher_qos_profile)
 

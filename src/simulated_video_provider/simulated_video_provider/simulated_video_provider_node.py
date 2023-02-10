@@ -11,13 +11,10 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from builtin_interfaces.msg import Time
-import cv2
 from cv_bridge import CvBridge
-import os
-from rclpy.executors import ExternalShutdownException
 from typing import List
 from sensor_msgs.msg import Image
 from simple_tracker_shared.configured_node import ConfiguredNode
@@ -34,7 +31,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
     super().__init__('sky360_simulated_video_provider')
 
     # setup services, publishers and subscribers
-    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation', 10)#, publisher_qos_profile)
+    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation', publisher_qos_profile)
 
     self.timer = self.create_timer(self.timer_period, self.timer_callback)  
 
@@ -98,8 +95,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = SimulatedVideoProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

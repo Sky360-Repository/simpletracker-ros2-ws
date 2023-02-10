@@ -12,7 +12,7 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from .blob_detector import BlobDetector
@@ -29,8 +29,8 @@ class BGSDetectorNode(ConfiguredNode):
 
     # setup services, publishers and subscribers
     self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background', 
-      self.masked_background_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', 10)#, publisher_qos_profile)   
+      self.masked_background_frame_callback, subscriber_qos_profile)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -96,8 +96,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = BGSDetectorNode(subscriber_qos_profile, publisher_qos_profile)
 

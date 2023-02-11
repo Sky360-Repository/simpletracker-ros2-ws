@@ -1,3 +1,8 @@
+camera_simulator:
+  ros__parameters:
+    image_topic: "/camera/image"
+    camera_name: "test_camera"
+
 configuration_service:
   ros__parameters:
 

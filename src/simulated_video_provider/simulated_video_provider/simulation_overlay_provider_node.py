@@ -26,32 +26,37 @@ from .simulation_test import SimulationTest
 from .simulation_test_case import SimulationTestCase
 from .simulation_test_case_runner import SimulationTestCaseRunner
 
-class SimulatedVideoProviderNode(ConfiguredNode):
+class SimulationOverlayProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
-    super().__init__('sky360_simulated_video_provider')
+    super().__init__('sky360_overlayed_video_provider')
 
     # setup services, publishers and subscribers
+    self.sub_camera = self.create_subscription(Image, 'sky360/simulation/input_frame', self.camera_callback, subscriber_qos_profile)
     self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation/output_frame', publisher_qos_profile)
-
-    self.timer = self.create_timer(self.timer_period, self.timer_callback)  
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
-  def timer_callback(self):
+  def camera_callback(self, msg_image:Image):
 
-    if self.test_case_runner.active:
+    if not msg_image is None:
 
-      frame_synthetic = self.test_case_runner.run()
+      if self.test_case_runner.active:
 
-      frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding="bgr8")
-      frame_synthetic_msg.header.stamp = self.get_time_msg()
-      frame_synthetic_msg.header.frame_id = 'synthetic'
+        try:
+          input_frame = self.br.imgmsg_to_cv2(msg_image)
+          frame_synthetic = self.test_case_runner.run(input_frame)
 
-      self.pub_synthetic_frame.publish(frame_synthetic_msg)
+          frame_synthetic_msg = self.br.cv2_to_imgmsg(frame_synthetic, encoding=msg_image.encoding)
+          frame_synthetic_msg.header = msg_image.header
 
-    else:
-      self.get_logger().info(f'{self.get_name()} Simulation complete.')
+          self.pub_synthetic_frame.publish(frame_synthetic_msg)        
+        except Exception as e:
+          self.get_logger().error(f"Exception during frame overlay simulation. Error: {e}.")
+          self.get_logger().error(tb.format_exc())
+      
+      else:
+        self.get_logger().info(f'{self.get_name()} Overlay simulation complete.')
 
   def config_list(self) -> List[str]:
     return ['frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
@@ -62,18 +67,16 @@ class SimulatedVideoProviderNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.timer_period = 0.05
       self.br = CvBridge()
-      self.still_frame_image = None
 
       self.test_case_runner = SimulationTestCaseRunner(
         [
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone'),
-          #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Plane'),
+          SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Plane'),
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone & Plane'),
 
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), simulation_name='Drone'),
-          #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), simulation_name='Plane'),
+          #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=True)], (1440, 1440), simulation_name='Plane'),
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), simulation_name='Drone & Plane'),
           
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160), simulation_name='Drone'),
@@ -81,7 +84,7 @@ class SimulatedVideoProviderNode(ConfiguredNode):
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=8, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=8, loop=False)], (2160, 2160), simulation_name='Drone & Plane'),
 
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880), simulation_name='Drone'),
-          SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880), simulation_name='Plane'),
+          #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880), simulation_name='Plane'),
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=11, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=11, loop=False)], (2880, 2880), simulation_name='Drone & Plane'),
 
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=15, loop=False)], (3600, 3600), simulation_name='Drone'),
@@ -90,14 +93,6 @@ class SimulatedVideoProviderNode(ConfiguredNode):
         ]
       )
 
-  def get_time_msg(self):
-    time_msg = Time()
-    msg_time = self.get_clock().now().seconds_nanoseconds()
-
-    time_msg.sec = int(msg_time[0])
-    time_msg.nanosec = int(msg_time[1])
-    return time_msg
-
 def main(args=None):
 
   rclpy.init(args=args)
@@ -105,7 +100,7 @@ def main(args=None):
   subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
   publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
-  node = SimulatedVideoProviderNode(subscriber_qos_profile, publisher_qos_profile)
+  node = SimulationOverlayProviderNode(subscriber_qos_profile, publisher_qos_profile)
 
   runner = NodeRunner(node)
   runner.run()

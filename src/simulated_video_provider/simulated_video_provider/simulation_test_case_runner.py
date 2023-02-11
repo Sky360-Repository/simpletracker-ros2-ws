@@ -21,8 +21,6 @@ class SimulationTestCaseRunner():
     self.test_cases = test_cases
     self.completed_test_cases = []
     self.running_test_case = None
-    self.counter = 0
-    self.warmup_threshold = 0
     self.completed_frame = None
     if len(self.test_cases) > 0:
       self.running_test_case = self.test_cases[0]
@@ -37,7 +35,7 @@ class SimulationTestCaseRunner():
   def image(self):
     return self.running_test_case.image
 
-  def run(self):
+  def run(self, frame_input = None):
 
     if not self.running_test_case is None:
 
@@ -51,14 +49,9 @@ class SimulationTestCaseRunner():
           self.running_test_case = self.test_cases[0]
           self.running_test_case.notify_of_frame_size_change()
           self.completed_frame_dimensions = self.running_test_case.dimensions #(w,h)
-          self.counter = 0
 
       if not self.running_test_case is None:
-        if self.counter > self.warmup_threshold:
-          return self.running_test_case.run()
-        else:
-          self.counter += 1
-          return self.running_test_case.image
+        return self.running_test_case.run(frame_input = frame_input)
 
     return self._completed_frame()
 

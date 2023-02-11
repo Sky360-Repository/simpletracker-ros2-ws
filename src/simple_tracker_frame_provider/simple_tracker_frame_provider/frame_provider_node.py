@@ -50,7 +50,7 @@ class FrameProviderNode(ConfiguredNode):
       try:
         self.counter += 1
 
-        camera_frame = self.br.imgmsg_to_cv2(msg_image);
+        camera_frame = self.br.imgmsg_to_cv2(msg_image)
 
         frame_original, frame_grey, frame_masked = self.frame_processor.process_for_frame_provider(self.mask, 
           camera_frame, stream=None)

@@ -10,19 +10,16 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile
-import cv2
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from .blob_detector import BlobDetector
-#from std_msgs.msg import Header
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray
-#from geometry_msgs.msg import Pose2D
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
 class BGSDetectorNode(ConfiguredNode):
@@ -32,8 +29,8 @@ class BGSDetectorNode(ConfiguredNode):
 
     # setup services, publishers and subscribers
     self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background', 
-      self.masked_background_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', 10)#, publisher_qos_profile)   
+      self.masked_background_frame_callback, subscriber_qos_profile)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
@@ -41,14 +38,18 @@ class BGSDetectorNode(ConfiguredNode):
 
     if msg_frame != None:
 
-      frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame_foreground_mask = self.br.imgmsg_to_cv2(msg_frame)
 
-      bboxes = self.blob_detector.detect(frame_foreground_mask)
+        bboxes = self.blob_detector.detect(frame_foreground_mask)
 
-      bbox_array_msg = BoundingBox2DArray()
-      bbox_array_msg.header = msg_frame.header
-      [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
-      self.pub_bounding_boxes.publish(bbox_array_msg)
+        bbox_array_msg = BoundingBox2DArray()
+        bbox_array_msg.header = msg_frame.header
+        [bbox_array_msg.boxes.append(self._bbox_to_bbox_msg(x)) for x in bboxes]
+        self.pub_bounding_boxes.publish(bbox_array_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during BGS detection. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def _bbox_to_bbox_msg(self, bbox):
 
@@ -95,18 +96,13 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = BGSDetectorNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

@@ -10,17 +10,17 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.time import Time
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from simple_tracker_shared.configured_node import ConfiguredNode
-from simple_tracker_interfaces.msg import ObserverCloudEstimation
+from simple_tracker_shared.node_runner import NodeRunner
+from simple_tracker_shared.enumerations import DayNightEnum
+from simple_tracker_interfaces.msg import ObserverCloudEstimation, ObserverDayNight
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .cloud_estimator import CloudEstimator
 
@@ -29,44 +29,51 @@ class CloudEstimatorNode(ConfiguredNode):
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_cloud_estimator')
 
-    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', 10)#, publisher_qos_profile)
+    self.pub_environment_data = self.create_publisher(ObserverCloudEstimation, 'sky360/observer/cloud_estimation', publisher_qos_profile)
 
     # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, 10)#, subscriber_qos_profile)
-
-    self.timer = self.create_timer(self.cloud_sampler_timer_period(), self.cloud_sampler)
+    self.sub_camera = self.create_subscription(Image, 'sky360/frames/original', self.camera_callback, subscriber_qos_profile)
+    self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', 
+      self.day_night_callback, subscriber_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def camera_callback(self, msg_image:Image):
     self.msg_image = msg_image
 
+  def day_night_callback(self, msg_day_night:ObserverDayNight):
+    self.day_night = DayNightEnum(msg_day_night.day_night_enum)
+
   def cloud_sampler(self):
     
     if self.msg_image != None:
 
-      # TODO: Determine when is day and when is night so that we use the correct version of the cloud estimator
-      # this will likely take the form of another topic subscription etc but for now, just use place holders.
+      estimation: float = None
 
-      estimation: float
-      is_day = True
+      try:
 
-      if is_day:
-        estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Day time cloud estimation --> {estimation}')
-      else:
-        estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
-        self.get_logger().info(f'{self.get_name()} Night time cloud estimation --> {estimation}')
+        match self.day_night:
+          case DayNightEnum.Day:
+            estimation = self.day_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+            self.get_logger().debug(f'{self.get_name()} Day time cloud estimation --> {estimation}')
+          case DayNightEnum.Night:
+            estimation = self.night_cloud_estimator.estimate(self.br.imgmsg_to_cv2(self.msg_image))
+            self.get_logger().debug(f'{self.get_name()} Night time cloud estimation --> {estimation}')
+          case _:
+            self.get_logger().debug(f'{self.get_name()} Unknown Day/Night classifier, ignore for now')
+            pass
+        
+        if estimation != None:
+          cloud_estimation_msg = ObserverCloudEstimation()
+          cloud_estimation_msg.percentage_cloud_cover = estimation
+          self.pub_environment_data.publish(cloud_estimation_msg)
 
-      cloud_estimation_msg = ObserverCloudEstimation()
-      cloud_estimation_msg.percentage_cloud_cover = estimation
-      self.pub_environment_data.publish(cloud_estimation_msg)
-
-  def cloud_sampler_timer_period(self) -> int:
-    return 300
+      except Exception as e:
+        self.get_logger().error(f"Exception during cloud estimation sampler. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
-    return []
+    return ['observer_timer_interval']
 
   def validate_config(self) -> bool:
     valid = True
@@ -74,29 +81,32 @@ class CloudEstimatorNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
+      self.timer = None
       self.counter = 0
       self.br = CvBridge()
 
+    self.timer_interval = self.app_configuration['observer_timer_interval']
     self.msg_image = None
+    self.day_night: DayNightEnum = DayNightEnum.Unknown
     self.day_cloud_estimator = CloudEstimator.Day(self.app_configuration)
     self.night_cloud_estimator = CloudEstimator.Night(self.app_configuration)
+
+    if self.timer is not None:
+      self.destroy_timer(self.timer)
+
+    self.timer = self.create_timer(self.timer_interval, self.cloud_sampler)
 
 def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = CloudEstimatorNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
+  runner = NodeRunner(node)
+  runner.run()
 
 
 if __name__ == '__main__':

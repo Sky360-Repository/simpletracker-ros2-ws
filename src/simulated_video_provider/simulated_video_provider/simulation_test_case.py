@@ -17,12 +17,11 @@ from datetime import date
 from simple_tracker_shared.control_loop_node import ConfiguredNode
 from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
 from simple_tracker_interfaces.msg import ConfigItem
-from ament_index_python.packages import get_package_share_directory
 from simple_tracker_shared.utils import frame_resize, get_optimal_font_scale
 
 class SimulationTestCase():
 
-  def __init__(self, node:ConfiguredNode, tests, dimensions, simulation_name:str='Sky360', file_name=None):    
+  def __init__(self, node:ConfiguredNode, tests, dimensions, simulation_name:str='Sky360'):    
     self.node = node
     self.logger = node.get_logger()
     self.tests = tests
@@ -32,16 +31,6 @@ class SimulationTestCase():
     self.frame = None
     self.today = date.today()
     self.todayStr = self.today.strftime('%b-%d-%Y')
-
-    if not file_name is None and len(file_name) > 0:
-      frames_folder = self.videos_folder = os.path.join(get_package_share_directory('simulated_video_provider'), 'still_frames')
-      frame_file_path = os.path.join(frames_folder, self.file_name)
-
-      if os.path.exists(frame_file_path):
-        self.frame = cv2.imread(frame_file_path, cv2.IMREAD_COLOR)
-        self.frame = frame_resize(self.frame, width=self.w, height=self.h)
-      else:
-        self.logger.info(f'Still frame path {frame_file_path} does not exist.')      
 
     if self.frame is None:
       self.frame = np.full((self.h, self.w, 3) , (255, 255, 255), np.uint8)
@@ -63,10 +52,14 @@ class SimulationTestCase():
   def dimensions(self):
     return (self.w, self.h)
 
-  def run(self):
+  def run(self, frame_input = None):
     if self.running:
       running = False
-      frame_synthetic = self.frame.copy()
+
+      if frame_input is None:
+        frame_synthetic = self.frame.copy()
+      else:
+        frame_synthetic = frame_resize(frame_input, width=self.w, height=self.h)
 
       for test in self.tests:
         if test.running:

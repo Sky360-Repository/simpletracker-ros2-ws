@@ -10,9 +10,9 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import os
 import rclpy
-from rclpy.executors import ExternalShutdownException
 import cv2
 from typing import List
 from ament_index_python.packages import get_package_share_directory
@@ -20,6 +20,7 @@ from cv_bridge import CvBridge
 from simple_tracker_interfaces.srv import Mask, MaskUpdate
 from simple_tracker_interfaces.msg import ConfigItem
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 
 class MaskProviderNode(ConfiguredNode):
 
@@ -34,18 +35,31 @@ class MaskProviderNode(ConfiguredNode):
   
   def get_mask_callback(self, request, response):
 
-    masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
-    mask_file_path = os.path.join(masks_folder, request.file_name)
+    try:
+      masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
+      mask_file_path = os.path.join(masks_folder, request.file_name)
 
-    if os.path.exists(mask_file_path) == False:
-      self.get_logger().error(f'Mask path {request.file_name} does not exist.')
+      if os.path.exists(mask_file_path) == False:
+        self.get_logger().error(f'Mask path {request.file_name} does not exist.')
 
-    mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
-    response.mask = self.br.cv2_to_imgmsg(mask_image)
+      mask_image = cv2.imread(mask_file_path, cv2.IMREAD_GRAYSCALE)
+      response.mask = self.br.cv2_to_imgmsg(mask_image)
+    except Exception as e:
+      self.get_logger().error(f"Exception getting mask. Error: {e}.")
+      self.get_logger().error(tb.format_exc())
 
     return response
 
   def put_mask_callback(self, request, response):
+
+    try:
+      self.write_mask_file(request, response)
+    except Exception as e:
+      self.get_logger().error(f"Exception during writing mask file. Error: {e}.")
+
+    return response
+
+  def write_mask_file(self, request, response):
 
     mask_image = self.br.imgmsg_to_cv2(request.mask)
     masks_folder = self.videos_folder = os.path.join(get_package_share_directory('simple_tracker_mask_provider'), 'masks')
@@ -104,14 +118,8 @@ def main(args=None):
 
   node = MaskProviderNode()
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-      #rclpy.rosshutdown()
+  runner = NodeRunner(node)
+  runner.run()
 
 
 if __name__ == '__main__':

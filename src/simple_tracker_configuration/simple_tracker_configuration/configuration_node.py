@@ -10,12 +10,13 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile
 from rclpy.node import Node
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray
 from simple_tracker_interfaces.srv import ConfigEntryUpdate, ConfigEntry, ConfigEntryArray
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
 from simple_tracker_shared.qos_profiles import get_config_publisher_qos_profile
 from .app_settings import AppSettings
@@ -29,13 +30,10 @@ class SimpleTrackerConfigurationNode(Node):
         # Mike: Not sure of these things are thread safe, but this is just a proof of concept etc
         self.settings = AppSettings.Get(self)
 
-        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', 
-            self.get_config_callback)
-        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', 
-            self.get_config_array_callback)
-        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', 
-            self.get_config_update_callback)
-        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', 10)#, publisher_qos_profile)
+        self.config_service = self.create_service(ConfigEntry, 'sky360/config/entry', self.get_config_callback)
+        self.config_service = self.create_service(ConfigEntryArray, 'sky360/config/entries', self.get_config_array_callback)
+        self.config_change_service = self.create_service(ConfigEntryUpdate, 'sky360/config/entry/update', self.get_config_update_callback)
+        self.config_change_publisher = self.create_publisher(ConfigEntryUpdatedArray, 'sky360/config/updated', publisher_qos_profile)
 
         self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -81,7 +79,7 @@ class SimpleTrackerConfigurationNode(Node):
 
     def get_config_update_callback(self, request, response):
 
-        self.get_logger().info(f'Updating config.')
+        #self.get_logger().info(f'Updating config.')
 
         updated = False
         message = 'NoChange/Unknown/Failed'
@@ -143,18 +141,12 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    publisher_qos_profile = get_config_publisher_qos_profile()
+    publisher_qos_profile = qos_profile_sensor_data #get_config_publisher_qos_profile()
 
     node = SimpleTrackerConfigurationNode(publisher_qos_profile)
 
-    try:
-        rclpy.spin(node)
-    except (KeyboardInterrupt, ExternalShutdownException):
-        pass
-    finally:
-        rclpy.try_shutdown()
-        node.destroy_node()
-        #rclpy.rosshutdown()
+    runner = NodeRunner(node)
+    runner.run()
 
 
 if __name__ == '__main__':

@@ -21,6 +21,7 @@ from simple_tracker_interfaces.msg import KeyPointArray
 from simple_tracker_interfaces.msg import BoundingBox
 from simple_tracker_interfaces.msg import BoundingBoxArray
 from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.utils import perform_blob_detection
 
 class CannyDetectorNode(ConfiguredNode):
@@ -63,10 +64,11 @@ class CannyDetectorNode(ConfiguredNode):
 def main(args=None):
 
   rclpy.init(args=args)
-  detector_node = CannyDetectorNode()
-  rclpy.spin(detector_node)
-  detector_node.destroy_node()
-  rclpy.rosshutdown()
+  node = CannyDetectorNode()
+
+  runner = NodeRunner(node)
+  runner.run()
+
 
 if __name__ == '__main__':
   main()

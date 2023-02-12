@@ -12,7 +12,6 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'still_frames'), glob('still_frames/*.jpg')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'simulated_video_provider = simulated_video_provider.simulated_video_provider_node:main',
+            'simulation_overlay_provider = simulated_video_provider.simulation_overlay_provider_node:main',
         ],
     },
 )

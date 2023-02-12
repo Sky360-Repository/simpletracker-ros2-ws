@@ -18,6 +18,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     
+    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
     camera_info_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'camera_info.yaml')
     config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params-simulation.yaml')
 
@@ -39,15 +40,37 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),
+        Node(
+            name='camera_simulator',
+            package='camera_simulator',
+            executable='camera_simulator',
+            parameters = [config],
+            remappings=[('/camera/image', 'sky360/simulation/input_frame')],
+            arguments=[
+                '--type', 'video', 
+                '--path', video_file, 
+                '--calibration_file', camera_info_file,
+                '--loop']
+        ),        
+        #Node(            
+        #    package='simulated_video_provider',
+        #    ##namespace='sky360',
+        #    executable='simulated_video_provider',
+        #    parameters = [config],
+        #    remappings=[
+        #        ('sky360/simulation/output_frame', 'sky360/camera/original'),
+        #    ],
+        #    name='simulated_video_provider',
+        #),
         Node(            
             package='simulated_video_provider',
             ##namespace='sky360',
-            executable='simulated_video_provider',
+            executable='simulation_overlay_provider',
             parameters = [config],
             remappings=[
-                ('sky360/simulation', 'sky360/camera/original'),
+                ('sky360/simulation/output_frame', 'sky360/camera/original'),
             ],
-            name='simulated_video_provider',
+            name='simulation_overlay_provider',
         ),
         Node(
             package='simple_tracker_frame_provider',

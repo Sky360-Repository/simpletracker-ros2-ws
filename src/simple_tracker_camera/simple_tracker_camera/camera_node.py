@@ -10,19 +10,17 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
 import rclpy
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 import cv2
-import time
 import os
 from typing import List
 from ament_index_python.packages import get_package_share_directory
 from cv_bridge import CvBridge
 from builtin_interfaces.msg import Time
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile
 from .controller import Controller
 
@@ -32,7 +30,7 @@ class ControllerNode(ConfiguredNode):
     super().__init__('sky360_camera')
 
     # setup services, publishers and subscribers
-    self.pub_frame = self.create_publisher(Image, 'sky360/camera/original', 10)#, publisher_qos_profile)   
+    self.pub_frame = self.create_publisher(Image, 'sky360/camera/original', publisher_qos_profile)   
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -104,18 +102,12 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = ControllerNode(publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
-
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

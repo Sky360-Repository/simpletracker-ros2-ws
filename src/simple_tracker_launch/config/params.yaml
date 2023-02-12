@@ -38,7 +38,7 @@ configuration_service:
     camera_video_loop: True
 
     # Frame provider section
-    frame_provider_resize_frame: True
+    frame_provider_resize_frame: False
     frame_provider_resize_dimension_h: 1440
     frame_provider_resize_dimension_w: 1440
     frame_provider_blur: True
@@ -72,7 +72,7 @@ configuration_service:
     #           'SKY_WMV', 'SKY_VIBE'
     #   If CUDA is enabled then one if: 'MOG_CUDA', 'MOG2_CUDA'
     background_subtractor_type: "SKY_WMV"
-    background_subtractor_sensitivity: 1
+    background_subtractor_sensitivity: 2
     background_subtractor_learning_rate: 0.05
     background_subtractor_cuda_enable: False
 
@@ -100,7 +100,12 @@ configuration_service:
     #    "mask-shrubs-inverse-overlay.jpg"
     #    "mikes-camera-mask-overlay.jpg"
     mask_overlay_image_file_name: "mask-shrubs-inverse-overlay.jpg"
+    astro_mask_enable: False
     
     dense_optical_flow_h: 400
     dense_optical_flow_w: 480
     dense_optical_cuda_enable: False
+
+    observer_timer_interval: 30
+    observer_day_night_brightness_threshold: 95
+    

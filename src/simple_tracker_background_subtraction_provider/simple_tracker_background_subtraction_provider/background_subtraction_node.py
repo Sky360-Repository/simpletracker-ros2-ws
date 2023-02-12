@@ -10,15 +10,14 @@
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 
-import datetime
+import traceback as tb
 import rclpy
-from rclpy.executors import ExternalShutdownException
-from rclpy.qos import QoSProfile
-import cv2
+from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from simple_tracker_shared.control_loop_node import ConfiguredNode
+from simple_tracker_shared.configured_node import ConfiguredNode
+from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .background_subtractor import BackgroundSubtractor
@@ -29,9 +28,9 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
     super().__init__('sky360_background_subtraction_provider')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey', self.grey_frame_callback, 10)#, subscriber_qos_profile)
-    self.pub_foreground_mask_frame = self.create_publisher(Image, 'sky360/frames/foreground_mask', 10)#, publisher_qos_profile)
-    self.pub_masked_background_frame = self.create_publisher(Image, 'sky360/frames/masked_background', 10)#, publisher_qos_profile)
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey', self.grey_frame_callback, subscriber_qos_profile)
+    self.pub_foreground_mask_frame = self.create_publisher(Image, 'sky360/frames/foreground_mask', publisher_qos_profile)
+    self.pub_masked_background_frame = self.create_publisher(Image, 'sky360/frames/masked_background', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -39,19 +38,23 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
 
     if msg_frame != None:
 
-      frame_grey = self.br.imgmsg_to_cv2(msg_frame)
+      try:
+        frame_grey = self.br.imgmsg_to_cv2(msg_frame)
+        frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
+          self.background_subtractor, frame_grey, None)
+        
+        frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
+        frame_foreground_mask_msg.header = msg_frame.header
+        
+        frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
+        frame_masked_background_msg.header = msg_frame.header
+        
+        self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
+        self.pub_masked_background_frame.publish(frame_masked_background_msg)
+      except Exception as e:
+        self.get_logger().error(f"Exception during the background subtraction provider. Error: {e}.")
+        self.get_logger().error(tb.format_exc())
 
-      frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
-        self.background_subtractor, frame_grey, None)
-
-      frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
-      frame_foreground_mask_msg.header = msg_frame.header
-
-      frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
-      frame_masked_background_msg.header = msg_frame.header
-
-      self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
-      self.pub_masked_background_frame.publish(frame_masked_background_msg)
 
   def config_list(self) -> List[str]:
     return ['background_subtractor_sensitivity', 'background_subtractor_type', 'background_subtractor_learning_rate', 'background_subtractor_cuda_enable',
@@ -90,18 +93,13 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = get_topic_subscriber_qos_profile()
-  publisher_qos_profile = get_topic_publisher_qos_profile()
+  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
 
   node = BackgroundSubtractionProviderNode(subscriber_qos_profile, publisher_qos_profile)
 
-  try:
-    rclpy.spin(node)
-  except (KeyboardInterrupt, ExternalShutdownException):
-      pass
-  finally:
-      rclpy.try_shutdown()
-      node.destroy_node()
+  runner = NodeRunner(node)
+  runner.run()
 
 if __name__ == '__main__':
   main()

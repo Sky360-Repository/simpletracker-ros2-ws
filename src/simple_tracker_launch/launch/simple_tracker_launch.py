@@ -44,13 +44,13 @@ def generate_launch_description():
             executable='mask_provider',
             name='mask_provider'
         ),
-        #Node(
-        #    name='usb_cam',
-        #    package='usb_cam',
-        #    executable='usb_cam_node_exe',
-        #    parameters = [config],
-        #    remappings=[('image_raw', 'sky360/camera/original/v1')]
-        #),
+        ##Node(
+        ##    name='usb_cam',
+        ##    package='usb_cam',
+        ##    executable='usb_cam_node_exe',
+        ##    parameters = [config],
+        ##    remappings=[('image_raw', 'sky360/camera/original/v1')]
+        ##),
         Node(
             name='camera_simulator',
             package='camera_simulator',
@@ -63,12 +63,12 @@ def generate_launch_description():
                 '--calibration_file', camera_info_file,
                 '--loop']
         ),
-        #Node(
-        #    package='simple_tracker_camera',
-        #    #namespace='sky360',
-        #    executable='camera',
-        #    name='camera'
-        #),
+        ##Node(
+        ##    package='simple_tracker_camera',
+        ##    #namespace='sky360',
+        ##    executable='camera',
+        ##    name='camera'
+        ##),
         Node(
             package='simple_tracker_frame_provider',
             #namespace='sky360',
@@ -80,7 +80,13 @@ def generate_launch_description():
             #namespace='sky360',
             executable='cloud_estimator',
             name='cloud_estimator'
-        ),        
+        ),  
+        Node(
+            package='simple_tracker_observer',
+            #namespace='sky360',
+            executable='day_night_classifier',
+            name='day_night_classifier'
+        ),                
         #Node(
         #    package='simple_tracker_dense_optical_flow_provider',
         #    #namespace='sky360',
@@ -111,6 +117,12 @@ def generate_launch_description():
             executable='annotated_frame_provider',
             name='annotated_frame_provider'
         ),
+        #Node(
+        #    package='simple_tracker_activity_recorder',
+        #    #namespace='sky360',
+        #    executable='rosbag_recorder',
+        #    name='rosbag_recorder'
+        #),        
         Node(            
             package='simple_tracker_visualisers',
             #namespace='sky360',
@@ -127,10 +139,4 @@ def generate_launch_description():
                 #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask'),                
             ]
         ),
-        #Node(
-        #    package='rqt_image_view',
-        #    executable='rqt_image_view',
-        #    name='image_view',
-        #    arguments=['image']
-        #),
     ])

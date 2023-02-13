@@ -10,8 +10,10 @@ RUN apt-get update \
    && pip3 install setuptools==58.2.0 \
    && export PYTHONWARNINGS=ignore:::setuptools.command.install \
    && apt-get autoremove -y \
-   && apt-get clean -y
-   #&& rm -rf /var/lib/apt/lists/*
+   && apt-get clean -y \
+   # && rm -rf /var/lib/apt/lists/*
+   # Move this into the container ASAP
+   && pip3 install ephem
 
 ENV DEBIAN_FRONTEND=dialog
 

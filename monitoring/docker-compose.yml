@@ -1,13 +1,13 @@
 version: "3.5"
 
 services:
-  api:
-    image: sky360/simpletracker-ros2:1.0.2
-    ports:
-      - '8080:8080'
-    #networks:
-    #  - sky360
-    network_mode: host
+  #simpletracker:
+  #  image: sky360/simpletracker-ros2:1.0.2
+  #  ports:
+  #    - '8080:8080'
+  #  #networks:
+  #  #  - sky360
+  #  network_mode: host
 
   grafana:
     image: grafana/grafana

@@ -2,7 +2,7 @@ version: "3.5"
 
 services:
   api:
-    image: sky360/simpletracker-ros2:1.0.3
+    image: sky360/simpletracker-ros2:1.0.2
     ports:
       - '8080:8080'
     #networks:

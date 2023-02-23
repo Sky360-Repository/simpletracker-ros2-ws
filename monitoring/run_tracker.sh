@@ -1,4 +1,4 @@
-docker compose up
+#!/bin/bash
 
 docker run -it \
   --user ros:ros \
@@ -14,8 +14,3 @@ docker run -it \
   -e DISPLAY=$DISPLAY \
   sky360/simpletracker-ros2:1.0.2 \
   bash
-
-
-https://grafana.com/grafana/dashboards/12486-node-exporter-full/
-
-https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html

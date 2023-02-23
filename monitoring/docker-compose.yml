@@ -1,5 +1,9 @@
 version: "3.5"
 
+#networks:
+#  sky360-monitoring:
+#    driver: bridge
+
 services:
   #simpletracker:
   #  image: sky360/simpletracker-ros2:1.0.2
@@ -9,13 +13,35 @@ services:
   #  #  - sky360
   #  network_mode: host
 
+  #https://grafana.com/docs/grafana-cloud/quickstart/docker-compose-linux/
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    restart: unless-stopped
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    #expose:
+    #  - 9100
+    ports:
+      - 9100:9100      
+    #networks:
+    #  - sky360-monitoring
+    network_mode: host
+
   grafana:
     image: grafana/grafana
     container_name: grafana
     ports:
       - 3000:3000
     #networks:
-    #  - sky360
+    #  - sky360-monitoring
     network_mode: host
     volumes:
       - grafana:/var/lib/grafana
@@ -26,18 +52,15 @@ services:
     ports:
       - '9090:9090'
     #networks:
-    #  - sky360
+    #  - sky360-monitoring
     network_mode: host
     volumes:
       - prometheus:/prometheus
       - ${PWD}/prometheus.yml:/etc/prometheus/prometheus.yml
 
-#networks:
-#  sky360:
-#    name: sky360-network
-#    external: true
-
 volumes:
+  node-exporter:
+    driver: local
   grafana:
     driver: local
   prometheus:

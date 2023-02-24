@@ -1,8 +1,11 @@
 version: "3.5"
 
-#networks:
-#  sky360:
-#    driver: bridge
+# examples
+# https://github.com/docker/awesome-compose/
+
+networks:
+  sky360:
+    driver: bridge
 
 services:
   #sky360-tracker:
@@ -17,13 +20,14 @@ services:
   #    - 8080:8080
   #  networks:
   #    - sky360
+  #  network_mode: host
   #  devices:
   #    - /dev/video0:/dev/video0
   #  volumes:
   #    - /dev:/dev
   #    - /tmp/.X11-unix:/tmp/.X11-unix
   #  entrypoint: 
-  #    - /home/ros/simpletracker-ros2-ws/launch_monitoring.sh
+  #    - /home/ros/simpletracker-ros2-ws/setup_build_launch.sh
   #  security_opt:
   #    - seccomp:unconfined
   #    - apparmor:unconfined

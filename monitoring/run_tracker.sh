@@ -15,6 +15,7 @@
 #--network sky360 \
 
 docker run -it \
+  --rm \
   --user ros:ros \
   --privileged \
   --name sky360-tracker \

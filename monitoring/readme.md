@@ -1,9 +1,19 @@
 docker compose up
 
+docker network create \
+  --driver=bridge \
+  --attachable \
+  --scope local \
+  --subnet=10.0.0.0/16 \
+  --ip-range=10.0.0.0/24 \
+  --gateway=10.0.0.1 \
+  sky360 || true
+
 docker run -it \
   --user ros:ros \
   --privileged \
-  --network=host \
+  --name sky360-tracker \
+  --network sky360 \
   --cap-add=SYS_PTRACE \
   --security-opt=seccomp:unconfined \
   --security-opt=apparmor:unconfined \
@@ -15,7 +25,14 @@ docker run -it \
   sky360/simpletracker-ros2:1.0.2 \
   bash
 
-
 https://grafana.com/grafana/dashboards/12486-node-exporter-full/
 
 https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html
+
+docker network connect sky360 sky360-tracker
+
+#### Detach from a running container
+Ctrl-p + Ctrl-q
+
+#### Attach to a running container
+docker attach sky360-tracker

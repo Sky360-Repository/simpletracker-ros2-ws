@@ -1,8 +1,23 @@
 #!/bin/bash
 
+#docker container rm /sky360-tracker
+
+#docker network rm sky360
+
+#docker network create \
+#  --driver=bridge \
+#  --attachable \
+#  --scope local \
+#  --subnet=10.0.43.0/24 \
+#  --ip-range=10.0.43.128/25 \
+#  sky360
+
+#--network sky360 \
+
 docker run -it \
   --user ros:ros \
   --privileged \
+  --name sky360-tracker \
   --network=host \
   --cap-add=SYS_PTRACE \
   --security-opt=seccomp:unconfined \

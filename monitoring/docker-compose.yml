@@ -18,6 +18,7 @@ services:
   #    - FASTDDS_STATISTICS=HISTORY_LATENCY_TOPIC;PUBLICATION_THROUGHPUT_TOPIC;PHYSICAL_DATA_TOPIC
   #  ports:
   #    - 8080:8080
+  #    - 7070:7070
   #  networks:
   #    - sky360
   #  network_mode: host

@@ -82,7 +82,6 @@ class CloudEstimatorNode(ConfiguredNode):
   def on_config_loaded(self, init: bool):
     if init:
       self.timer = None
-      self.counter = 0
       self.br = CvBridge()
 
     self.timer_interval = self.app_configuration['observer_timer_interval']

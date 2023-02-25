@@ -27,6 +27,7 @@ docker run -it \
   --volume=/dev:/dev \
   --volume=/tmp/.X11-unix:/tmp/.X11-unix \
   -p 8080:8080 \
+  -p 7070:7070 \
   -e DISPLAY=$DISPLAY \
   sky360/simpletracker-ros2:1.0.2 \
   bash

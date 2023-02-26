@@ -8,8 +8,8 @@
     
     <p>To see this page update:</p>
     <ul>
-      <li>Run a Rosbridge connection at <code>ws://localhost:7070</code></li>
-      <li>Start publishing ROS messages to <code>/my_topic</code></li>
+      <li>Run a Rosbridge connection at <code>ws://localhost:8081</code></li>
+      <li>Start publishing ROS messages to <code>/sky360/tracker/tracking_state/json"</code></li>
     </ul>
     
     <p>View the full tutorial at <a href="https://foxglove.dev/blog/using-rosbridge-with-ros1" target="_blank">Using Rosbridge with ROS 1</a> or <a href="https://foxglove.dev/blog/using-rosbridge-with-ros2" target="_blank">Using Rosbridge with ROS 2</a>.</p>
@@ -17,13 +17,13 @@
     <hr/>
     
     <p>Connection: <span id="status" style="font-weight: bold;">N/A</span></p>
-    <p><code>/my_topic</code> messages received: <ul id="messages" style="font-weight: bold;"></ul></p>
+    <p><code>/sky360/tracker/tracking_state/json"</code> messages received: <ul id="messages" style="font-weight: bold;"></ul></p>
 
     <script type="text/javascript" src="https://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
 
     <script type="text/javascript" type="text/javascript">
       // Create ros object to communicate over your Rosbridge connection
-      const ros = new ROSLIB.Ros({ url : 'ws://localhost:7070' });
+      const ros = new ROSLIB.Ros({ url : 'ws://localhost:8081' });
 
      // When the Rosbridge server connects, fill the span with id “status" with “successful"
      ros.on('connection', () => {
@@ -49,6 +49,7 @@
 
       // When we receive a message on /my_topic, add its data as a list item to the “messages" ul
       my_topic_listener.subscribe((msg_string) => {
+        console.log(msg_string.data);
         const ul = document. getElementById("messages");
         const newMessage = document. createElement("li");
         newMessage. appendChild(document. createTextNode(msg_string.data));

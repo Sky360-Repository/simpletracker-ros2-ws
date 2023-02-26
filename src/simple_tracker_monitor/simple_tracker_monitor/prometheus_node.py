@@ -11,6 +11,8 @@
 # all copies or substantial portions of the Software.
 
 import traceback as tb
+from fastapi import FastAPI
+import time
 import rclpy
 from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
 from typing import List
@@ -33,6 +35,7 @@ class PrometheusNode(ConfiguredNode):
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def state_callback(self, msg_tracking_state:TrackingState):
+    self.msg_tracking_state = msg_tracking_state
     string_msg = String()
     string_msg.data = f"{{\"trackable\":{msg_tracking_state.trackable}, \"alive\":{msg_tracking_state.alive}, \"started\":{msg_tracking_state.started}, \"ended\":{msg_tracking_state.ended}}}"
     self.pub_tracking_state_json.publish(string_msg)
@@ -48,6 +51,23 @@ class PrometheusNode(ConfiguredNode):
     if init:
       pass
 
+  def get_metrics():
+    return 
+    f"""
+    <html>
+      <head>
+      </head>
+      <body>
+        <pre>
+          sky360_tracker_trackable_count {self.msg_tracking_state.trackable}
+          sky360_tracker_alive_count {self.msg_tracking_state.alive}
+          sky360_tracker_started_total {self.msg_tracking_state.started}
+          sky360_tracker_ended_total {self.msg_tracking_state.ended}
+        <pre>
+      </body>
+    </html>
+    """
+
 def main(args=None):
 
   rclpy.init(args=args)
@@ -59,7 +79,6 @@ def main(args=None):
 
   runner = NodeRunner(node)
   runner.run()
-
 
 if __name__ == '__main__':
   main()

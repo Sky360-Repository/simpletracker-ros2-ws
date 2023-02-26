@@ -40,6 +40,4 @@ docker attach sky360-tracker
 
 https://www.ross-robotics.co.uk/news/w79zhjoey8k0univkzvr1qyqorgqbf
 https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
-
-
-ros2 launch rosbridge_server rosbridge_websocket_launch.xml
+https://github.com/foxglove/tutorials/blob/main/ros2/rosbridge/index.html

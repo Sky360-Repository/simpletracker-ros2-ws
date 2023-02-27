@@ -11,7 +11,6 @@
 # all copies or substantial portions of the Software.
 
 import traceback as tb
-from fastapi import FastAPI
 import time
 import rclpy
 from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
@@ -22,23 +21,26 @@ from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 
+from .metrics_server import MetricsServer
+
 class PrometheusNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
-    super().__init__('sky360_prometheus')
+    super().__init__('sky360_prometheus')    
 
     # setup services, publishers and subscribers    
     self.sub_status = self.create_subscription(TrackingState, 'sky360/tracker/tracking_state', self.state_callback, subscriber_qos_profile)
-
     self.pub_tracking_state_json = self.create_publisher(String, 'sky360/tracker/tracking_state/json', publisher_qos_profile)
-
     self.get_logger().info(f'{self.get_name()} node is up and running.')
    
   def state_callback(self, msg_tracking_state:TrackingState):
     self.msg_tracking_state = msg_tracking_state
+
     string_msg = String()
-    string_msg.data = f"{{\"trackable\":{msg_tracking_state.trackable}, \"alive\":{msg_tracking_state.alive}, \"started\":{msg_tracking_state.started}, \"ended\":{msg_tracking_state.ended}}}"
+    string_msg.data = f"{{\"trackable\":{msg_tracking_state.trackable}, \"alive\":{msg_tracking_state.alive}, \"started\":{msg_tracking_state.started}, \"ended\":{msg_tracking_state.ended}}}"    
     self.pub_tracking_state_json.publish(string_msg)
+
+    self.init_web_server()
 
   def config_list(self) -> List[str]:
     return []
@@ -49,24 +51,19 @@ class PrometheusNode(ConfiguredNode):
 
   def on_config_loaded(self, init: bool):
     if init:
-      pass
+      self.web_server_init = False
 
-  def get_metrics():
-    return 
-    f"""
-    <html>
-      <head>
-      </head>
-      <body>
-        <pre>
-          sky360_tracker_trackable_count {self.msg_tracking_state.trackable}
-          sky360_tracker_alive_count {self.msg_tracking_state.alive}
-          sky360_tracker_started_total {self.msg_tracking_state.started}
-          sky360_tracker_ended_total {self.msg_tracking_state.ended}
-        <pre>
-      </body>
-    </html>
-    """
+  def init_web_server(self):
+    if self.web_server_init == False:
+      self.metrics_server = MetricsServer(self)
+      self.metrics_server.start()
+      self.web_server_init = True
+
+  def get_metrics(self):
+    stats = "Sky 360 metrics initialising"
+    if self.msg_tracking_state != None:
+      stats = f"sky360_tracker_trackable_count {self.msg_tracking_state.trackable}\nsky360_tracker_alive_count {self.msg_tracking_state.alive}\nsky360_tracker_started_total {self.msg_tracking_state.started}\nsky360_tracker_ended_total {self.msg_tracking_state.ended}"
+    return stats
 
 def main(args=None):
 

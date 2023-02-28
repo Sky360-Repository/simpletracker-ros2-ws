@@ -42,7 +42,6 @@ class PrometheusNode(object):
 
     # tornado event loop stuff
     self.event_loop = None
-    self.tornado_application = self.metrics_server.tornado_application
     asyncio.set_event_loop(asyncio.new_event_loop())
     self.event_loop = tornado.ioloop.IOLoop()
     self.metrics_server.start()

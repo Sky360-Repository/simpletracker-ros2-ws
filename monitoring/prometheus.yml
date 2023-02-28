@@ -10,7 +10,11 @@ scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
-  - job_name: 'sky360-tracker-dds'
+  - job_name: 'sky360-tracker'
     scrape_interval: 5s
     static_configs:
-      - targets: ['localhost:8080']      
+      - targets: ['localhost:8082']
+  - job_name: 'sky360-dds'
+    scrape_interval: 5s
+    static_configs:
+      - targets: ['localhost:8080']         

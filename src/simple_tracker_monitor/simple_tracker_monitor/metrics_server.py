@@ -8,7 +8,7 @@ from .handlers import NoCacheStaticFileHandler, PrometheusMetricsHandler
 
 class MetricsServer():
 
-  def __init__(self, node, port=8082):
+  def __init__(self, port=8082):
 
     tornado_settings = {
       'debug': True, 
@@ -16,9 +16,7 @@ class MetricsServer():
     }
 
     tornado_handlers = [
-      (r"/metrics", PrometheusMetricsHandler, {
-        "node": node,
-      }),
+      (r"/metrics", PrometheusMetricsHandler, { }),
       (r"/(.*)", NoCacheStaticFileHandler, {
         "path": tornado_settings.get("static_path"),
         "default_filename": "index.html"
@@ -29,13 +27,5 @@ class MetricsServer():
     self.port = port    
 
   def start(self):
-    asyncio.run(self._start())
-
-  async def _start(self):
     self.tornado_application.listen(self.port)
-    await asyncio.Event().wait()
-
-  def stop(self):
-    pass
-
     

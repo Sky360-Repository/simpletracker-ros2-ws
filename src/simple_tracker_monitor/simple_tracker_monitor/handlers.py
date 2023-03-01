@@ -17,11 +17,23 @@ class PrometheusMetricsHandler(tornado.web.RequestHandler):
     pass
 
   def get(self):
-    self.write(f"<html><head></head><body><pre>{self.get_metrics()}<pre></body></html>")
+    self.write(self.get_metrics())
   
+  #https://prometheus.io/docs/instrumenting/exposition_formats/#comments-help-text-and-type-information
   def get_metrics(self):
-    metrics = f"Sky 360 metrics initialising"
+
     if PrometheusMetricsHandler.state != None:
-      metrics = f"sky360_tracker_trackable_count {PrometheusMetricsHandler.state.trackable}\nsky360_tracker_alive_count {PrometheusMetricsHandler.state.alive}\nsky360_tracker_started_total {PrometheusMetricsHandler.state.started}\nsky360_tracker_ended_total {PrometheusMetricsHandler.state.ended}"
-    return metrics
- 
+      metrics = {
+        "sky360_tracker_trackable_count": PrometheusMetricsHandler.state.trackable,
+        "sky360_tracker_alive_count": PrometheusMetricsHandler.state.alive,
+        "sky360_tracker_started_total": PrometheusMetricsHandler.state.started,
+        "sky360_tracker_ended_total": PrometheusMetricsHandler.state.ended
+        }
+    
+    # Add additional metrics to the dictionary here:
+
+    metric_str = ""
+    for m in metrics:
+      metric_str += f"{m} {metrics[m]}\n"
+
+    return metric_str 

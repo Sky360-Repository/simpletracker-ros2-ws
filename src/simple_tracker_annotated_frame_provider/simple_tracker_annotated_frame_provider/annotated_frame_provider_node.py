@@ -13,7 +13,7 @@
 import traceback as tb
 import rclpy
 import message_filters
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
@@ -77,8 +77,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
-  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
 
   node = AnnotatedFrameProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

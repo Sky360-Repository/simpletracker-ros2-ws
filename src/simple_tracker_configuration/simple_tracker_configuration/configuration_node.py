@@ -13,7 +13,7 @@
 import traceback as tb
 import rclpy
 from rclpy.node import Node
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 from simple_tracker_interfaces.msg import ConfigItem, ConfigEntryUpdatedArray
 from simple_tracker_interfaces.srv import ConfigEntryUpdate, ConfigEntry, ConfigEntryArray
 from simple_tracker_shared.node_runner import NodeRunner
@@ -141,7 +141,7 @@ def main(args=None):
 
     rclpy.init(args=args)
 
-    publisher_qos_profile = qos_profile_sensor_data #get_config_publisher_qos_profile()
+    publisher_qos_profile = get_config_publisher_qos_profile()
 
     node = SimpleTrackerConfigurationNode(publisher_qos_profile)
 

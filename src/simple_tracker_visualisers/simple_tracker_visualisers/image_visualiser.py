@@ -11,7 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from sensor_msgs.msg import Image
 from simple_tracker_interfaces.msg import TrackingState
@@ -111,7 +111,7 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
 
   node = ImageVisualiserNode(subscriber_qos_profile)
 

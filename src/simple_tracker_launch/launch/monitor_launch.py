@@ -13,137 +13,27 @@
 import os
 import yaml
 from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
     
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'plane_flying_past2.mkv')
-    video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Test_Trimmed.mp4')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'uap_texas_skyhub.mp4')
-    #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Syn_ISS_Tracking.mp4')
-    camera_info_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'camera_info.yaml')
-    config = os.path.join(get_package_share_directory('simple_tracker_launch'), 'config', 'params.yaml')
-
-    #with open(config, 'r') as f:
-    #    configuration = yaml.safe_load(f)
-    #    print(f'Loaded configuration: {configuration}')
+    launch_package_dir = get_package_share_directory('simple_tracker_launch')
 
     return LaunchDescription([
-        Node(
-            package='simple_tracker_configuration',
-            ##namespace='sky360',
-            executable='configuration_service',
-            parameters = [config],
-            name='configuration_service',
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([
+                launch_package_dir, 
+                '/simple_tracker_launch.py'])
         ),
-        Node(
-            package='simple_tracker_mask_provider',
-            ##namespace='sky360',
-            executable='mask_provider',
-            name='mask_provider'
-        ),
-        ##Node(
-        ##    name='usb_cam',
-        ##    package='usb_cam',
-        ##    executable='usb_cam_node_exe',
-        ##    parameters = [config],
-        ##    remappings=[('image_raw', 'sky360/camera/original/v1')]
-        ##),
-        Node(
-            name='camera_simulator',
-            package='camera_simulator',
-            executable='camera_simulator',
-            parameters = [config],
-            remappings=[('/camera/image', 'sky360/camera/original')],
-            arguments=[
-                '--type', 'video', 
-                '--path', video_file, 
-                '--calibration_file', camera_info_file,
-                '--loop']
-        ),
-        ##Node(
-        ##    package='simple_tracker_camera',
-        ##    #namespace='sky360',
-        ##    executable='camera',
-        ##    name='camera'
-        ##),
-        Node(
-            package='simple_tracker_frame_provider',
-            #namespace='sky360',
-            executable='frame_provider',
-            name='frame_provider'
-        ),
-        Node(
-            package='simple_tracker_observer',
-            #namespace='sky360',
-            executable='cloud_estimator',
-            name='cloud_estimator'
-        ),  
-        Node(
-            package='simple_tracker_observer',
-            #namespace='sky360',
-            executable='day_night_classifier',
-            name='day_night_classifier'
-        ),                
-        #Node(
-        #    package='simple_tracker_dense_optical_flow_provider',
-        #    #namespace='sky360',
-        #    executable='dense_optical_flow_provider',
-        #    name='dense_optical_flow_provider'
-        #),
-        Node(
-            package='simple_tracker_background_subtraction_provider',
-            #namespace='sky360',
-            executable='background_subtraction_provider',
-            name='background_subtraction_provider'
-        ),
-        Node(
-            package='simple_tracker_detection_provider',
-            #namespace='sky360',
-            executable='bgs_detection_provider',
-            name='detection_provider'
-        ),
-        Node(
-            package='simple_tracker_track_provider',
-            #namespace='sky360',
-            executable='track_provider',
-            name='track_provider'
-        ),
-        Node(
-            package='simple_tracker_annotated_frame_provider',
-            #namespace='sky360',
-            executable='annotated_frame_provider',
-            name='annotated_frame_provider'
-        ),
-        #Node(
-        #    package='simple_tracker_activity_recorder',
-        #    #namespace='sky360',
-        #    executable='rosbag_recorder',
-        #    name='rosbag_recorder'
-        #),
+
         Node(
             package='simple_tracker_monitor',
             #namespace='sky360',
             executable='prometheus_metrics',
             name='prometheus_metrics'
-        ),
-        #Nod        
-        Node(            
-            package='simple_tracker_visualisers',
-            #namespace='sky360',
-            executable='simple_visualiser',
-            name='simple_visualiser',
-            remappings=[
-                ('sky360/visualiser/annotated_frame', 'sky360/frames/annotated'),
-                #('sky360/visualiser/original_camera_frame', 'sky360/camera/original'),
-                #('sky360/visualiser/original_frame', 'sky360/frames/original'),
-                #('sky360/visualiser/masked_frame', 'sky360/frames/masked'),
-                #('sky360/visualiser/grey_frame', 'sky360/frames/grey'),
-                #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow'),
-                #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background'),
-                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask'),                
-            ]
         ),
     ])

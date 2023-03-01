@@ -11,7 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import rclpy
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 import cv2
 import os
 from typing import List
@@ -102,7 +102,7 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
 
   node = ControllerNode(publisher_qos_profile)
 

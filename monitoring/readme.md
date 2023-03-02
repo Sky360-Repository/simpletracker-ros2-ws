@@ -2,14 +2,14 @@
 
 You will need to have docker compose installed and working
 
-In the first terminal window, first command is to start the required containers
+In the first terminal window navigate to this monitoring folder and then the command to stat the containers is:
 ```bash
 docker compose up
 ```
 If you would like to exit the docker compose application type **Ctrl-c**
 
 
-In the second terminal window, launch docker interactively
+In the second terminal window, launch the sky360/simpletracker-ros2:1.0.3 docker container interactively
 ```bash
 docker run -it \
   --user ros:ros \
@@ -38,15 +38,15 @@ In the interactive terminal run the follow commands in sequence
 
 If you would like to exit the application type **Ctrl-c** The ROS2Prometheus application does not exit smoothly so please open System Monitor (Ubuntu) and kill the ROS2Prometheus process as it opens and occupies the 8080 port.
 
-ROS2Prometheus is a sample application to export DDS metrics to Prometheus. More info [here](https://docs.vulcanexus.org/en/latest/rst/tutorials/tools/prometheus/prometheus.html). Here is a list of [Statistics Topic names](https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html)
+ROS2Prometheus is a sample application to export DDS metrics to Prometheus. More info regarding this application can be found [here](https://docs.vulcanexus.org/en/latest/rst/tutorials/tools/prometheus/prometheus.html). Here is the full list of [DDS Statistics Topic names](https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html)
 
 #### Dashboards
 
-To verify that Prometheus is running open the [Prometheus Targets](http://localhost:9090/targets) page
+To verify that Prometheus is running open the [Prometheus Targets](http://localhost:9090/targets) page. You should see 4 targets and they should all be up.
 
 In [Grafana](http://localhost:3000) you will need to install the [Node Exporter Full](https://grafana.com/grafana/dashboards/12486-node-exporter-full/) dashboard.
 
-Currently suggested dashboard is
+Currently suggested dashboards are:
 - [Node Exporter Full](https://grafana.com/grafana/dashboards/12486-node-exporter-full/)
 - More to follow
 

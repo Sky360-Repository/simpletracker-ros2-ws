@@ -14,7 +14,7 @@ scrape_configs:
     scrape_interval: 5s
     static_configs:
       - targets: ['localhost:8082']
-  - job_name: 'sky360-dds'
+  - job_name: 'sky360-DDS'
     scrape_interval: 5s
     static_configs:
       - targets: ['localhost:8080']         

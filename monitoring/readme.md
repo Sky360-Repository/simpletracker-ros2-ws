@@ -1,14 +1,16 @@
+## To get the monitoring stuff up and running, do the following
+
+You will need to have docker compose installed and working
+
+In the first terminal window, first command is to start the required containers
+```bash
 docker compose up
+```
+If you would like to exit the docker compose application type **Ctrl-c**
 
-docker network create \
-  --driver=bridge \
-  --attachable \
-  --scope local \
-  --subnet=10.0.0.0/16 \
-  --ip-range=10.0.0.0/24 \
-  --gateway=10.0.0.1 \
-  sky360 || true
 
+In the second terminal window, launch docker interactively
+```bash
 docker run -it \
   --user ros:ros \
   --privileged \
@@ -26,10 +28,42 @@ docker run -it \
   -e DISPLAY=$DISPLAY \
   sky360/simpletracker-ros2:1.0.3 \
   bash
+```
+In the interactive terminal run the follow commands in sequence
+```bash
+./setup.sh
+./build.sh
+./launch_monitoring.sh
+```
 
-https://grafana.com/grafana/dashboards/12486-node-exporter-full/
+If you would like to exit the application type **Ctrl-c** The ROS2Prometheus application does not exit smoothly so please open System Monitor (Ubuntu) and kill the ROS2Prometheus process as it opens and occupies the 8080 port.
 
-https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html
+ROS2Prometheus is a sample application to export DDS metrics to Prometheus. More info [here](https://docs.vulcanexus.org/en/latest/rst/tutorials/tools/prometheus/prometheus.html). Here is a list of [Statistics Topic names](https://fast-dds.docs.eprosima.com/en/latest/fastdds/statistics/dds_layer/topic_names.html)
+
+#### Dashboards
+
+To verify that Prometheus is running open the [Prometheus Targets](http://localhost:9090/targets) page
+
+In [Grafana](http://localhost:3000) you will need to install the [Node Exporter Full](https://grafana.com/grafana/dashboards/12486-node-exporter-full/) dashboard.
+
+Currently suggested dashboard is
+- [Node Exporter Full](https://grafana.com/grafana/dashboards/12486-node-exporter-full/)
+- More to follow
+
+Sky360 Prometheus Metrics End Points are:
+- [Sky360-DDS](http://localhost:8080/metrics)
+- [sky360-tracker](http://localhost:8082/metrics)
+
+## This section is here for reference, please ignore
+
+docker network create \
+  --driver=bridge \
+  --attachable \
+  --scope local \
+  --subnet=10.0.0.0/16 \
+  --ip-range=10.0.0.0/24 \
+  --gateway=10.0.0.1 \
+  sky360 || true
 
 docker network connect sky360 sky360-tracker
 
@@ -38,8 +72,3 @@ Ctrl-p + Ctrl-q
 
 #### Attach to a running container
 docker attach sky360-tracker
-
-
-https://www.ross-robotics.co.uk/news/w79zhjoey8k0univkzvr1qyqorgqbf
-https://github.com/RobotWebTools/rosbridge_suite/blob/ros2/ROSBRIDGE_PROTOCOL.md
-https://github.com/foxglove/tutorials/blob/main/ros2/rosbridge/index.html

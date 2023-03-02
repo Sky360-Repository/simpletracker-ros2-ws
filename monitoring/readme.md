@@ -13,7 +13,7 @@ docker run -it \
   --user ros:ros \
   --privileged \
   --name sky360-tracker \
-  --network sky360 \
+  --network=host \
   --cap-add=SYS_PTRACE \
   --security-opt=seccomp:unconfined \
   --security-opt=apparmor:unconfined \
@@ -21,8 +21,10 @@ docker run -it \
   --volume=/dev:/dev \
   --volume=/tmp/.X11-unix:/tmp/.X11-unix \
   -p 8080:8080 \
+  -p 8081:8081 \
+  -p 8082:8082 \
   -e DISPLAY=$DISPLAY \
-  sky360/simpletracker-ros2:1.0.2 \
+  sky360/simpletracker-ros2:1.0.3 \
   bash
 
 https://grafana.com/grafana/dashboards/12486-node-exporter-full/

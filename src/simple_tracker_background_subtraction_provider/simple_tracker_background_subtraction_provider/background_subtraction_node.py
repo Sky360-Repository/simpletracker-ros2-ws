@@ -30,7 +30,6 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
     # setup services, publishers and subscribers
     self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey', self.grey_frame_callback, subscriber_qos_profile)
     self.pub_foreground_mask_frame = self.create_publisher(Image, 'sky360/frames/foreground_mask', publisher_qos_profile)
-    self.pub_masked_background_frame = self.create_publisher(Image, 'sky360/frames/masked_background', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -40,17 +39,12 @@ class BackgroundSubtractionProviderNode(ConfiguredNode):
 
       try:
         frame_grey = self.br.imgmsg_to_cv2(msg_frame)
-        frame_foreground_mask, frame_masked_background = self.frame_processor.process_bg_subtraction(
-          self.background_subtractor, frame_grey, None)
+        frame_foreground_mask = self.frame_processor.process_bg_subtraction(self.background_subtractor, frame_grey, None)
         
         frame_foreground_mask_msg = self.br.cv2_to_imgmsg(frame_foreground_mask, msg_frame.encoding)
         frame_foreground_mask_msg.header = msg_frame.header
         
-        frame_masked_background_msg = self.br.cv2_to_imgmsg(frame_masked_background, msg_frame.encoding)
-        frame_masked_background_msg.header = msg_frame.header
-        
         self.pub_foreground_mask_frame.publish(frame_foreground_mask_msg)
-        self.pub_masked_background_frame.publish(frame_masked_background_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during the background subtraction provider. Error: {e}.")
         self.get_logger().error(tb.format_exc())

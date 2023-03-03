@@ -28,7 +28,7 @@ class BGSDetectorNode(ConfiguredNode):
     super().__init__('sky360_bgs_detector')
 
     # setup services, publishers and subscribers
-    self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/masked_background', 
+    self.sub_masked_background_frame = self.create_subscription(Image, 'sky360/frames/foreground_mask', 
       self.masked_background_frame_callback, subscriber_qos_profile)
     self.pub_bounding_boxes = self.create_publisher(BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', publisher_qos_profile)   
 

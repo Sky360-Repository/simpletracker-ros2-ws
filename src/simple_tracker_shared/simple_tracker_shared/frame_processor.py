@@ -116,8 +116,7 @@ class CpuFrameProcessor(FrameProcessor):
 
     def process_bg_subtraction(self, background_subtractor, frame_grey, stream):
         foreground_mask_frame = background_subtractor.apply(frame_grey)
-        frame_masked_background = cv2.bitwise_and(frame_grey, frame_grey, mask=foreground_mask_frame)
-        return foreground_mask_frame, frame_masked_background
+        return foreground_mask_frame
 
     def process_optical_flow(self, dense_optical_flow, frame_grey, stream):
         dof_frame = dense_optical_flow.process_grey_frame(frame_grey)
@@ -193,12 +192,10 @@ class GpuFrameProcessor(FrameProcessor):
         gpu_frame_grey.upload(frame_grey, stream=stream) 
 
         gpu_foreground_mask = background_subtractor.apply(gpu_frame_grey, learningRate=self.settings['background_subtractor_learning_rate'], stream=stream)
-        gpu_masked_background = cv2.cuda.bitwise_and(gpu_frame_grey, gpu_frame_grey, mask=gpu_foreground_mask, stream=stream)
 
         foreground_mask = gpu_foreground_mask.download()
-        masked_background = gpu_masked_background.download()
 
-        return foreground_mask, masked_background
+        return foreground_mask
 
     def process_optical_flow(self, dense_optical_flow, frame_grey, stream):
         # Overload this for a GPU specific implementation

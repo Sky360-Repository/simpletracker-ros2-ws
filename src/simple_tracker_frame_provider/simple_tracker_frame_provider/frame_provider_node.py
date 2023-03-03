@@ -12,7 +12,7 @@
 
 import traceback as tb
 import rclpy
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
@@ -32,8 +32,8 @@ class FrameProviderNode(ConfiguredNode):
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
     super().__init__('sky360_frame_provider')
 
-    # setup services, publishers and subscribers    
-    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, subscriber_qos_profile)
+    # setup services, publishers and subscribers
+    self.sub_camera = self.create_subscription(Image, 'sky360/camera/original', self.camera_callback, 5)
     self.sub_environment_day_night = self.create_subscription(ObserverDayNight, 'sky360/observer/day_night_classifier', 
       self.day_night_callback, subscriber_qos_profile)
 
@@ -138,8 +138,8 @@ def main(args=None):
 
   rclpy.init(args=args)
 
-  subscriber_qos_profile = qos_profile_sensor_data #get_topic_subscriber_qos_profile()
-  publisher_qos_profile = qos_profile_sensor_data #get_topic_publisher_qos_profile()
+  subscriber_qos_profile = get_topic_subscriber_qos_profile()
+  publisher_qos_profile = get_topic_publisher_qos_profile()
 
   node = FrameProviderNode(subscriber_qos_profile, publisher_qos_profile)
 

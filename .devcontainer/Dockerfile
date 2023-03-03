@@ -1,4 +1,4 @@
-FROM sky360/ros2-humble-dev:1.0.2
+FROM sky360/ros2-humble-dev:1.0.3
 #FROM sky360/ros2-humble-cuda-dev:1.0.1
 # ** [Optional] Uncomment this section to install additional packages. **
 
@@ -10,13 +10,14 @@ RUN apt-get update \
    && pip3 install setuptools==58.2.0 \
    && export PYTHONWARNINGS=ignore:::setuptools.command.install \
    && apt-get autoremove -y \
-   && apt-get clean -y \
+   && apt-get clean -y
    # && rm -rf /var/lib/apt/lists/*
-   # Move this into the container ASAP
-   && pip3 install ephem
+
+# RUN apt-get update && apt-get -y install vulcanexus-humble-base vulcanexus-humble-base
 
 ENV DEBIAN_FRONTEND=dialog
 
 # Set up auto-source of workspace for ros user
 ARG WORKSPACE
+RUN echo "if [ -f /opt/vulcanexus/humble/setup.bash ]; then source /opt/vulcanexus/humble/setup.bash; fi" >> /home/ros/.bashrc
 RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/ros/.bashrc

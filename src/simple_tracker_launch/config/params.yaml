@@ -38,9 +38,9 @@ configuration_service:
     camera_video_loop: True
 
     # Frame provider section
-    frame_provider_resize_frame: False
-    frame_provider_resize_dimension_h: 1440
-    frame_provider_resize_dimension_w: 1440
+    frame_provider_resize_frame: True
+    frame_provider_resize_dimension_h: 1040
+    frame_provider_resize_dimension_w: 1040
     frame_provider_blur: True
     frame_provider_blur_radius: 3
     frame_provider_cuda_enable: False

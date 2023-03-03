@@ -15,10 +15,11 @@ import rclpy
 from abc import abstractmethod
 from typing import List
 from rclpy.node import Node as BaseNode
-from rclpy.qos import QoSProfile, QoSPresetProfiles, qos_profile_services_default, qos_profile_sensor_data
+from rclpy.qos import QoSProfile, QoSPresetProfiles
 from simple_tracker_interfaces.msg import ConfigEntryUpdatedArray
 from simple_tracker_shared.config_entry_convertor import ConfigEntryConvertor
 from simple_tracker_shared.configurations_client_async import ConfigurationsClientAsync
+from simple_tracker_shared.qos_profiles import get_config_subscriber_qos_profile
 
 class ConfiguredNode(BaseNode):
 
@@ -29,7 +30,7 @@ class ConfiguredNode(BaseNode):
 
     self.configuration_svc = ConfigurationsClientAsync()
     self.sub_config_updated = self.create_subscription(ConfigEntryUpdatedArray, 'sky360/config/updated', 
-      self.config_updated_callback, qos_profile_sensor_data)
+      self.config_updated_callback, get_config_subscriber_qos_profile())
 
     self.configuration_loaded = self.load_and_validate_config(None)
 

@@ -65,6 +65,10 @@ If you are attempting to launch with a Windows host then above commands will not
 
 `ros2 topic echo /sky360/tracker/tracking_state`
 
+* To keep an eye on the camera frame excl. array data use the following echo command
+
+`ros2 topic echo  /sky360/camera/original --no-arr`
+
 ### View more windows
 
 * Uncomment some of the remappings in the "simple_tracker_launch/launch/simple_tracker_launch.py" visualiser node to enable additional windows like optical flow etc

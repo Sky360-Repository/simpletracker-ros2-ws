@@ -34,9 +34,6 @@ Message end point for the publishing the dense optical flow frame
 ### sky360/frames/foreground_mask - [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html)
 Message end point for the publishing of the foreground masked frame
 
-### sky360/frames/masked_background - [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html)
-Message end point for the publishing of the masked background frame
-
 ### sky360/frames/annotated - [sensor_msgs/Image](http://docs.ros.org/en/noetic/api/sensor_msgs/html/msg/Image.html)
 Message end point for the publishing the annotated frame i.e. the frame with status and tracks etc
 

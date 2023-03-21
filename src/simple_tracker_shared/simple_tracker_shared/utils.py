@@ -11,6 +11,7 @@
 # all copies or substantial portions of the Software.
 
 import cv2
+from vision_msgs.msg import BoundingBox2D
 
 ###########################################################################################################
 # This code file contains a selection of useful utility functions that are used throughout simple tracker #
@@ -249,3 +250,7 @@ def get_optimal_font_scale(text, width):
         if (new_width <= width):
             return scale/10
     return 1
+
+def decode_bbox_msg(bbox_msg: BoundingBox2D):
+    x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), int(bbox_msg.size_x), int(bbox_msg.size_y))
+    return (x, y, w, h)

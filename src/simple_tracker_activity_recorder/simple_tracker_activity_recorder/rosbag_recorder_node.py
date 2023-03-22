@@ -17,7 +17,7 @@ from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
-from vision_msgs.msg import Detection2DArray
+from vision_msgs.msg import Detection2DArray, Classification
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
@@ -34,22 +34,23 @@ class RosbagRecorderNode(ConfiguredNode):
     self.sub_tracker_detections = message_filters.Subscriber(self, Detection2DArray, 'sky360/tracker/detections', qos_profile=subscriber_qos_profile)
     self.sub_tracker_trajectory = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/trajectory', qos_profile=subscriber_qos_profile)
     self.sub_tracker_prediction = message_filters.Subscriber(self, TrackTrajectoryArray, 'sky360/tracker/prediction', qos_profile=subscriber_qos_profile)
+    self.sub_classification = message_filters.Subscriber(self, Classification, 'sky360/classification', qos_profile=subscriber_qos_profile)
 
     # setup the time synchronizer and register the subscriptions and callback
     self.time_synchronizer = message_filters.TimeSynchronizer([self.sub_masked_frame, self.sub_tracking_state, 
-      self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction], 10)
+      self.sub_tracker_detections, self.sub_tracker_trajectory, self.sub_tracker_prediction, self.sub_classification], 10)
     self.time_synchronizer.registerCallback(self.synced_callback)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
   def synced_callback(self, masked_frame:Image, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
-    msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray):
+    msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray, msg_classification:Classification):
 
     if masked_frame is not None and msg_tracking_state is not None and msg_detection_array is not None and msg_trajectory_array is not None:      
       if msg_tracking_state.trackable > 0:
 
         try:
-          self.recorder.record(masked_frame, msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array)
+          self.recorder.record(masked_frame, msg_tracking_state, msg_detection_array, msg_trajectory_array, msg_prediction_array, msg_classification)
         except Exception as e:
           self.get_logger().error(f"Exception during activity recorder. Error: {e}.")
           self.get_logger().error(tb.format_exc())

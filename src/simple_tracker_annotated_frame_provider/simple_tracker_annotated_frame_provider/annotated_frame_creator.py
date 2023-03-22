@@ -12,7 +12,7 @@
 import rclpy
 import rclpy.logging
 import cv2
-from vision_msgs.msg import BoundingBox2D, Detection2DArray
+from vision_msgs.msg import BoundingBox2D, Detection2DArray, Classification
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.utils import get_optimal_font_scale
 from simple_tracker_shared.enumerations import TrackingStateEnum
@@ -31,13 +31,14 @@ class AnnotatedFrameCreator():
     self.fontScale = 1
 
   def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
-    msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray):
+    msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray, msg_classification:Classification):
 
     cropped_track_counter = 0
     enable_cropped_tracks = self.settings['visualiser_show_cropped_tracks']
     zoom_factor = self.settings['visualiser_cropped_zoom_factor']
     detections = {}
     final_trajectory_points = {}
+    classifications = {}
 
     if enable_cropped_tracks:
       annotated_frame_clone = annotated_frame.copy()
@@ -51,6 +52,13 @@ class AnnotatedFrameCreator():
       self.fontScaleWidth = total_width
 
     cv2.putText(annotated_frame, status_message, (25, 50), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, self.font_colour, 2)
+
+    for hypotesis in msg_classification.results:      
+      class_arr = hypotesis.class_id.split("-")
+      id = class_arr[0]
+      class_id = class_arr[1]
+      score = hypotesis.score
+      classifications[id] = (class_id, score)   
 
     for detection in msg_detection_array.detections:
 
@@ -66,6 +74,11 @@ class AnnotatedFrameCreator():
       color = self._color(tracking_state)
       cv2.rectangle(annotated_frame, p1, p2, color, self.bbox_line_thickness, 1)
       cv2.putText(annotated_frame, id, (p1[0], p1[1] - 4), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, color, 2)
+
+      if id in classifications:
+        cls = self._class(int(classifications[id][0]))
+        score = int(classifications[id][1]*100)
+        cv2.putText(annotated_frame, f'{cls} - {score}%', (p1[0], p1[1] + 80), cv2.FONT_HERSHEY_SIMPLEX, self.fontScale, (10, 165, 255), 2)
 
       if enable_cropped_tracks and tracking_state == TrackingStateEnum.ActiveTarget:
         margin = 0 if cropped_track_counter == 0 else 10
@@ -128,3 +141,17 @@ class AnnotatedFrameCreator():
             TrackingStateEnum.ActiveTarget: (50, 170, 50),
             TrackingStateEnum.LostTarget: (50, 50, 225)
         }[tracking_state]
+
+  def _class(self, class_id):
+    return {
+            0: 'Plane',
+            1: '1',
+            2: '2',
+            3: '3',
+            4: '4',
+            5: '5',
+            6: '6',
+            7: '7',
+            8: '8',
+            9: '9',
+        }[class_id]        

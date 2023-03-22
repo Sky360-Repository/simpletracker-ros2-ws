@@ -105,3 +105,7 @@ configuration_service:
 
     observer_timer_interval: 3010
     observer_day_night_brightness_threshold: 95
+
+    # The name of the classification model file
+    #
+    classification_model: "cnn-mlp-05.keras"

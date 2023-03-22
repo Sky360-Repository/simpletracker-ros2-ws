@@ -82,7 +82,9 @@ class AppSettings():
                 ('dense_optical_cuda_enable', False),
 
                 ('observer_timer_interval', 30),
-                ('observer_day_night_brightness_threshold', 95)
+                ('observer_day_night_brightness_threshold', 95),
+
+                ('classification_model', ''),                
             ]
         )
 
@@ -158,5 +160,8 @@ class AppSettings():
         # Observer section
         app_settings['observer_timer_interval'] = node.get_parameter('observer_timer_interval').value
         app_settings['observer_day_night_brightness_threshold'] = node.get_parameter('observer_day_night_brightness_threshold').value
+
+        # classification section
+        app_settings['classification_model'] = node.get_parameter('classification_model').value
 
         return app_settings

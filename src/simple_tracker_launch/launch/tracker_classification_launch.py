@@ -36,4 +36,11 @@ def generate_launch_description():
             executable='tf_classification',
             name='tf_classification'
         ),
+
+        #Node(
+        #    package='simple_tracker_activity_recorder',
+        #    #namespace='sky360',
+        #    executable='rosbag_recorder',
+        #    name='rosbag_recorder'
+        #),
     ])

@@ -62,8 +62,9 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
         self.get_logger().error(tb.format_exc())
 
   def config_list(self) -> List[str]:
-    return ['visualiser_frame_source', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor',
-    'frame_provider_resize_dimension_h', 'frame_provider_resize_dimension_w']
+    return ['visualiser_frame_source', 'visualiser_bbox_line_thickness', 'visualiser_bbox_size', 'visualiser_show_trajectories', 
+            'visualiser_show_cropped_tracks', 'visualiser_cropped_zoom_factor', 'frame_provider_resize_dimension_h', 
+            'frame_provider_resize_dimension_w']
 
   def validate_config(self) -> bool:
     valid = True

@@ -53,7 +53,8 @@ configuration_service:
     visualiser_resize_frame: True
     visualiser_resize_dimension_h: 960
     visualiser_resize_dimension_w: 960
-    visualiser_show_cropped_tracks: False
+    visualiser_show_trajectories: False
+    visualiser_show_cropped_tracks: False    
     visualiser_cropped_zoom_factor: 2
 
     # Tracker Type

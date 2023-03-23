@@ -29,12 +29,12 @@ class AnnotatedFrameCreator():
     self.frame_type = self.settings['visualiser_frame_source']
     self.fontScaleWidth = 0
     self.fontScale = 1
-    self.draw_trajectories = False
 
   def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
     msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray, msg_classification:Classification):
 
     cropped_track_counter = 0
+    draw_trajectories = self.settings['visualiser_show_trajectories']
     enable_cropped_tracks = self.settings['visualiser_show_cropped_tracks']
     zoom_factor = self.settings['visualiser_cropped_zoom_factor']
     detections = {}
@@ -93,7 +93,7 @@ class AnnotatedFrameCreator():
           finally:
             cropped_track_counter += 1
 
-    if self.draw_trajectories:
+    if draw_trajectories:
       
       for trajectory in msg_trajectory_array.trajectories:
         trajectory_array = trajectory.trajectory
@@ -147,7 +147,7 @@ class AnnotatedFrameCreator():
 
   def _class(self, class_id):
     return {
-            0: 'Plane',
+            0: 'plane',
             1: '1',
             2: '2',
             3: '3',

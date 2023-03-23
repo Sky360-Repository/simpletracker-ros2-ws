@@ -50,15 +50,18 @@ class ClassificationNode(ConfiguredNode):
 
     def synced_callback(self, msg_masked_frame:Image, msg_detection_array:Detection2DArray):
 
-        if msg_masked_frame is not None and msg_detection_array is not None:
-
-            fixed_size = 64
+        if msg_masked_frame is not None and msg_detection_array is not None:            
 
             try:
                 masked_frame = self.br.imgmsg_to_cv2(msg_masked_frame)
 
-                predictions = []
+                classification_msg = Classification()
+                classification_msg.header = msg_masked_frame.header
+                classification_msg.results = []
+
                 for detection in msg_detection_array.detections:
+
+                    predictions = []
 
                     id_arr = detection.id.split("-")
 
@@ -68,9 +71,9 @@ class ClassificationNode(ConfiguredNode):
                     if tracking_state == TrackingStateEnum.ActiveTarget:
                         (x, y, w, h) = decode_bbox_msg(detection.bbox)
 
-                        if w <= fixed_size and h <= fixed_size:
+                        if w <= self.max_size and h <= self.max_size:
 
-                            (x1, y1, w1, h1) = (int(x+(w/2)) - int(fixed_size/2), int(y+(h/2)) - int(fixed_size/2), fixed_size, fixed_size)
+                            (x1, y1, w1, h1) = (int(x+(w/2)) - int(self.max_size/2), int(y+(h/2)) - int(self.max_size/2), self.max_size, self.max_size)
 
                             roi = np.ascontiguousarray(masked_frame[y1:y1+h1, x1:x1+w1], dtype=np.uint8)
 
@@ -84,16 +87,13 @@ class ClassificationNode(ConfiguredNode):
                             #elapsed_time_ms = elapsed_time.nanoseconds / 1000000
                             #self.get_logger().debug(f'Classification took: {elapsed_time_ms} milliseconds')
 
+                            #self.get_logger().info(f'Predictions - {predictions}, Length - {len(predictions)}')
 
-                classification_msg = Classification()
-                classification_msg.header = msg_masked_frame.header
-                classification_msg.results = []
-
-                for i in range(len(predictions)):
-                    hypotesis = ObjectHypothesis()
-                    hypotesis.class_id = f'{id}-{str(np.argmax(predictions[i]))}'
-                    hypotesis.score = float(np.max(predictions[i]))
-                    classification_msg.results.append(hypotesis)
+                            for i in range(len(predictions)):
+                                hypotesis = ObjectHypothesis()
+                                hypotesis.class_id = f'{id}-{str(np.argmax(predictions[i]))}'
+                                hypotesis.score = float(np.max(predictions[i]))
+                                classification_msg.results.append(hypotesis)
 
                 self.pub_classification.publish(classification_msg)
 
@@ -102,16 +102,12 @@ class ClassificationNode(ConfiguredNode):
                 self.get_logger().error(tb.format_exc())
 
     def classify(self, image_np):
-
-        predictions = []
         #convert the image to array
         img_array = tf.keras.preprocessing.image.img_to_array(image_np)
         #add a dimension to the array
         img_array = tf.expand_dims(img_array, 0)
         #predict the image
-        predictions.append(self.model.predict(img_array))
-
-        return predictions
+        return self.model.predict(img_array)
 
     def warmup(self):
 
@@ -142,10 +138,9 @@ class ClassificationNode(ConfiguredNode):
         if init:
             self.br = CvBridge()
             
-            self.model = tf.keras.models.load_model(self.model_path)
-            self.warmup()
-
-        self.counter = 0
+        self.model = tf.keras.models.load_model(self.model_path)
+        self.warmup()
+        self.max_size = 64
 
 def main(args=None):
 

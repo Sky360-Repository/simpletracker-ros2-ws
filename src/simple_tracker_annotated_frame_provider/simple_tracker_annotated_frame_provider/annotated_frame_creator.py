@@ -29,6 +29,7 @@ class AnnotatedFrameCreator():
     self.frame_type = self.settings['visualiser_frame_source']
     self.fontScaleWidth = 0
     self.fontScale = 1
+    self.draw_trajectories = False
 
   def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
     msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray, msg_classification:Classification):
@@ -92,30 +93,32 @@ class AnnotatedFrameCreator():
           finally:
             cropped_track_counter += 1
 
-    for trajectory in msg_trajectory_array.trajectories:
-      trajectory_array = trajectory.trajectory
-      previous_trajectory_point = None
-      for trajectory_point in trajectory_array:
-        if not previous_trajectory_point is None:
-          #if not self._is_point_contained_in_bbox(detections[trajectory.id], (trajectory_point.center.x, trajectory_point.center.y)):
-            cv2.line(annotated_frame, 
-              (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)), 
-              color = self._color(TrackingStateEnum(trajectory_point.tracking_state)), thickness = self.bbox_line_thickness)
-        previous_trajectory_point = trajectory_point
-        final_trajectory_points[trajectory.id] = previous_trajectory_point
-
-    for prediction in msg_prediction_array.trajectories:
-      prediction_array = prediction.trajectory
-      if prediction.id in final_trajectory_points:
-        previous_prediction_point = final_trajectory_points[prediction.id]
-        for prediction_point in prediction_array:
-          if not previous_prediction_point is None:
-            #if not self._is_point_contained_in_bbox(detections[trajectory.id], (prediction_point.center.x, prediction_point.center.y)):
+    if self.draw_trajectories:
+      
+      for trajectory in msg_trajectory_array.trajectories:
+        trajectory_array = trajectory.trajectory
+        previous_trajectory_point = None
+        for trajectory_point in trajectory_array:
+          if not previous_trajectory_point is None:
+            #if not self._is_point_contained_in_bbox(detections[trajectory.id], (trajectory_point.center.x, trajectory_point.center.y)):
               cv2.line(annotated_frame, 
-                (int(previous_prediction_point.center.x), int(previous_prediction_point.center.y)), (int(prediction_point.center.x), int(prediction_point.center.y)), 
-                color = self.prediction_colour, thickness = self.bbox_line_thickness)
+                (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)), 
+                color = self._color(TrackingStateEnum(trajectory_point.tracking_state)), thickness = self.bbox_line_thickness)
+          previous_trajectory_point = trajectory_point
+          final_trajectory_points[trajectory.id] = previous_trajectory_point
 
-          previous_prediction_point = prediction_point
+      for prediction in msg_prediction_array.trajectories:
+        prediction_array = prediction.trajectory
+        if prediction.id in final_trajectory_points:
+          previous_prediction_point = final_trajectory_points[prediction.id]
+          for prediction_point in prediction_array:
+            if not previous_prediction_point is None:
+              #if not self._is_point_contained_in_bbox(detections[trajectory.id], (prediction_point.center.x, prediction_point.center.y)):
+                cv2.line(annotated_frame, 
+                  (int(previous_prediction_point.center.x), int(previous_prediction_point.center.y)), (int(prediction_point.center.x), int(prediction_point.center.y)), 
+                  color = self.prediction_colour, thickness = self.bbox_line_thickness)
+
+            previous_prediction_point = prediction_point
 
     return annotated_frame
 

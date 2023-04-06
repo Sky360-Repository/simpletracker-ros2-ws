@@ -18,8 +18,6 @@ import tornado
 import tornado.ioloop
 import threading
 from rclpy.qos import QoSProfile, QoSPresetProfiles
-from std_msgs.msg import String
-from simple_tracker_interfaces.msg import TrackingState
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from simple_tracker_shared.node_runner import NodeRunner
 
@@ -34,9 +32,6 @@ class PrometheusNode(object):
     self.__class__.instance = self
 
     self.node = rclpy.create_node(node_name)
-
-    self.sub_status = self.node.create_subscription(TrackingState, 'sky360/tracker/tracking_state', self.state_callback, subscriber_qos_profile)
-    self.pub_tracking_state_json = self.node.create_publisher(String, 'sky360/tracker/tracking_state/json', publisher_qos_profile)
 
     self.metrics_server = MetricsServer(8082)
 
@@ -57,12 +52,6 @@ class PrometheusNode(object):
 
   def destroy_node(self):
     self.node.destroy_node()
-
-  def state_callback(self, msg_tracking_state:TrackingState):
-    PrometheusMetricsHandler.state = msg_tracking_state
-    string_msg = String()
-    string_msg.data = f"{{\"trackable\":{msg_tracking_state.trackable}, \"alive\":{msg_tracking_state.alive}, \"started\":{msg_tracking_state.started}, \"ended\":{msg_tracking_state.ended}}}"
-    self.pub_tracking_state_json.publish(string_msg)    
 
 def main(args=None):
 

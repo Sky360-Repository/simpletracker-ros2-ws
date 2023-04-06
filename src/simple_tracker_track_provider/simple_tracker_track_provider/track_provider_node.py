@@ -16,6 +16,7 @@ import message_filters
 from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from cv_bridge import CvBridge
+from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from vision_msgs.msg import BoundingBox2D, BoundingBox2DArray, Detection2D, Detection2DArray
 from simple_tracker_interfaces.msg import TrackingState, TrackPoint, TrackTrajectory, TrackTrajectoryArray
@@ -34,6 +35,7 @@ class TrackProviderNode(ConfiguredNode):
     self.sub_detector_bounding_boxes = message_filters.Subscriber(self, BoundingBox2DArray, 'sky360/detector/bgs/bounding_boxes', qos_profile=subscriber_qos_profile)
     
     self.pub_tracker_tracking_state = self.create_publisher(TrackingState, 'sky360/tracker/tracking_state', publisher_qos_profile)
+    self.pub_tracking_state_json = self.create_publisher(String, 'sky360/tracker/tracking_state/json', 10)
     self.pub_tracker_detects = self.create_publisher(Detection2DArray, 'sky360/tracker/detections', publisher_qos_profile)
     self.pub_tracker_trajectory = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/trajectory', publisher_qos_profile)
     self.pub_tracker_prediction = self.create_publisher(TrackTrajectoryArray, 'sky360/tracker/prediction', publisher_qos_profile)
@@ -74,10 +76,16 @@ class TrackProviderNode(ConfiguredNode):
         tracking_msg.started = self.video_tracker.total_trackers_started
         tracking_msg.ended = self.video_tracker.total_trackers_finished
 
+        # TODO: This json searialisation probably needs to be done properly
+        # MikeG: Also this was included here as a POC, ideally the html client will receive the normal message and format it
+        tracking_json_msg = String()
+        tracking_json_msg.data = f"{{\"trackable\":{tracking_msg.trackable}, \"alive\":{tracking_msg.alive}, \"started\":{tracking_msg.started}, \"ended\":{tracking_msg.ended}}}"
+
         self.pub_tracker_detects.publish(detect_array_msg)
         self.pub_tracker_trajectory.publish(trajectory_array_msg)
         self.pub_tracker_prediction.publish(prediction_array_msg)
         self.pub_tracker_tracking_state.publish(tracking_msg)
+        self.pub_tracking_state_json.publish(tracking_json_msg)        
       except Exception as e:
         self.get_logger().error(f"Exception during track provider. Error: {e}.")
         self.get_logger().error(tb.format_exc())

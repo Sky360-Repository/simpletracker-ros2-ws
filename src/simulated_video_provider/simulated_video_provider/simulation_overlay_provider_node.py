@@ -32,8 +32,8 @@ class SimulationOverlayProviderNode(ConfiguredNode):
     super().__init__('sky360_overlayed_video_provider')
 
     # setup services, publishers and subscribers
-    self.sub_camera = self.create_subscription(Image, 'sky360/simulation/input_frame', self.camera_callback, subscriber_qos_profile)
-    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation/output_frame', publisher_qos_profile)
+    self.sub_camera = self.create_subscription(Image, 'sky360/simulation/input_frame', self.camera_callback, 5)
+    self.pub_synthetic_frame = self.create_publisher(Image, 'sky360/simulation/output_frame', 5)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
 
@@ -71,9 +71,9 @@ class SimulationOverlayProviderNode(ConfiguredNode):
 
       self.test_case_runner = SimulationTestCaseRunner(
         [
-          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone'),
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone'),
           SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Plane'),
-          #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone & Plane'),
+          SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=3, loop=False), SimulationTest(PlaneSyntheticData(), target_object_diameter=3, loop=False)], (960, 960), simulation_name='Drone & Plane'),
 
           #SimulationTestCase(self, [SimulationTest(DroneSyntheticData(), target_object_diameter=5, loop=False)], (1440, 1440), simulation_name='Drone'),
           #SimulationTestCase(self, [SimulationTest(PlaneSyntheticData(), target_object_diameter=5, loop=True)], (1440, 1440), simulation_name='Plane'),

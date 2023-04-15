@@ -12,7 +12,8 @@ rosdep install --from-paths src --ignore-src -y
 cd /opt/Fast-DDS-statistics-backend/examples/cpp/ROS2Prometheus/build
 cmake .. && make
 
-sudo cp rosbridge_websocket.launch /opt/ros/humble/share/rosbridge_server
-
 
 cd /workspaces/simpletracker-ros2-ws/
+
+sudo cp rosbridge_websocket.launch /opt/ros/humble/share/rosbridge_server
+

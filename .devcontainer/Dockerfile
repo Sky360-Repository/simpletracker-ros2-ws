@@ -1,4 +1,4 @@
-FROM sky360/ros2-humble-dev:1.0.5
+FROM sky360/ros2-humble-dev:latest
 #FROM sky360/ros2-humble-cuda-dev:1.0.1
 # ** [Optional] Uncomment this section to install additional packages. **
 

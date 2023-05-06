@@ -8,7 +8,7 @@ Run the setup script to setup dev container
 
 #### Update web cam details
 
-**NOTE:** Update the params.yaml file in the sime_tracker_launch/config directory to change camera details
+**NOTE:** Update the params.yaml file in the simple_tracker_launch/config directory to change camera details
 
 #### Build
 

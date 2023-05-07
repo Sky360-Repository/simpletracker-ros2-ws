@@ -3,7 +3,7 @@
 <package format="3">
   <name>simple_tracker_mask_provider</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>The simple_tracker_mask_provider package provides a ROS2 node that allows for the retrieval and updating of mask images used in a tracking system. The package includes services for getting and updating the mask image, and uses OpenCV to process the mask image files. The package is designed to work with ROS2 and depends on the rclpy, image_transport, cv_bridge, sensor_msgs, std_msgs, and python3-opencv packages.</description>
   <maintainer email="michael.groenewald@gmail.com">ros</maintainer>
   <license>TODO: License declaration</license>
 

@@ -17,7 +17,7 @@ from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
-    
+
     #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'plane_flying_past2.mkv')
     video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'brad_drone_1.mp4')
     #video_file = os.path.join(get_package_share_directory('simple_tracker_launch'), 'videos', 'Test_Trimmed.mp4')
@@ -58,8 +58,8 @@ def generate_launch_description():
             parameters = [config],
             remappings=[('/camera/image', 'sky360/camera/original')],
             arguments=[
-                '--type', 'video', 
-                '--path', video_file, 
+                '--type', 'video',
+                '--path', video_file,
                 '--calibration_file', camera_info_file,
                 '--loop']
         ),
@@ -80,13 +80,13 @@ def generate_launch_description():
             #namespace='sky360',
             executable='cloud_estimator',
             name='cloud_estimator'
-        ),  
+        ),
         Node(
             package='simple_tracker_observer',
             #namespace='sky360',
             executable='day_night_classifier',
             name='day_night_classifier'
-        ),                
+        ),
         #Node(
         #    package='simple_tracker_dense_optical_flow_provider',
         #    #namespace='sky360',
@@ -117,13 +117,19 @@ def generate_launch_description():
             executable='annotated_frame_provider',
             name='annotated_frame_provider'
         ),
+          Node(
+            package='simple_tracker_single_frame_classifier',
+            #namespace='sky360',
+            executable='single_frame_classifier',
+            name='single_frame_classifier'
+        ),
         #Node(
         #    package='simple_tracker_activity_recorder',
         #    #namespace='sky360',
         #    executable='rosbag_recorder',
         #    name='rosbag_recorder'
-        #),        
-        Node(            
+        #),
+        Node(
             package='simple_tracker_visualisers',
             #namespace='sky360',
             executable='simple_visualiser',
@@ -136,7 +142,7 @@ def generate_launch_description():
                 #('sky360/visualiser/grey_frame', 'sky360/frames/grey'),
                 #('sky360/visualiser/dense_optical_flow_frame', 'sky360/frames/dense_optical_flow'),
                 #('sky360/visualiser/masked_background_frame', 'sky360/frames/masked_background'),
-                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask'),                
+                #('sky360/visualiser/foreground_mask_frame', 'sky360/frames/foreground_mask'),
             ]
         ),
     ])

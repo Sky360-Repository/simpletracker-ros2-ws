@@ -1,9 +1,15 @@
 #!/bin/bash
 set -e
 
-# MWG: Look into moving this into VSCode tasks versus this launch script, 
+# MWG: Look into moving this into VSCode tasks versus this launch script,
 # source build
 source install/setup.bash
 
 # run launch file
-ros2 launch simple_tracker_launch simple_tracker_launch.py
+ros2 launch simple_tracker_launch simple_tracker_launch.py &
+
+# wait for ros2 to start
+sleep 5
+
+# launch rosbridge_server
+ros2 launch rosbridge_server rosbridge_websocket.launch

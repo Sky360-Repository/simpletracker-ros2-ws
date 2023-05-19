@@ -15,6 +15,8 @@ RUN apt-get update \
    && apt-get clean -y
    # && rm -rf /var/lib/apt/lists/*
 
+RUN pip3 install tensorflow
+
 # RUN apt-get update && apt-get -y install vulcanexus-humble-base vulcanexus-humble-base
 
 ENV DEBIAN_FRONTEND=dialog

@@ -47,6 +47,7 @@ class AppSettings():
                 ('visualiser_resize_dimension_h', 960),
                 ('visualiser_resize_dimension_w', 960),
                 ('visualiser_show_cropped_tracks', True),
+                ('visualiser_show_trajectories', True),
                 ('visualiser_cropped_zoom_factor', 2),
 
                 ('tracker_type', 'CSRT'),
@@ -113,6 +114,7 @@ class AppSettings():
         app_settings['visualiser_resize_frame'] = node.get_parameter('visualiser_resize_frame').value
         app_settings['visualiser_resize_dimension_h'] = node.get_parameter('visualiser_resize_dimension_h').value
         app_settings['visualiser_resize_dimension_w'] = node.get_parameter('visualiser_resize_dimension_w').value
+        app_settings['visualiser_show_trajectories'] = node.get_parameter('visualiser_show_trajectories').value
         app_settings['visualiser_show_cropped_tracks'] = node.get_parameter('visualiser_show_cropped_tracks').value
         app_settings['visualiser_cropped_zoom_factor'] = node.get_parameter('visualiser_cropped_zoom_factor').value
 

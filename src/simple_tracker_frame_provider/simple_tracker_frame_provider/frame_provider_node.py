@@ -16,7 +16,7 @@ from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import Image, CompressedImage
 from simple_tracker_shared.configured_node import ConfiguredNode
 from simple_tracker_shared.node_runner import NodeRunner
 from simple_tracker_shared.frame_processor import FrameProcessor
@@ -26,7 +26,7 @@ from simple_tracker_interfaces.msg import ObserverDayNight
 from .mask import Mask
 from .astro_mask import AstroMask
 from .mask_client_async import MaskClientAsync
-
+from cv_bridge import  *
 class FrameProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
@@ -39,6 +39,7 @@ class FrameProviderNode(ConfiguredNode):
 
     self.pub_original_frame = self.create_publisher(Image, 'sky360/frames/original', publisher_qos_profile)
     self.pub_masked_frame = self.create_publisher(Image, 'sky360/frames/masked', publisher_qos_profile)
+    #self.pub_masked_frame_compressed = self.create_publisher(CompressedImage, 'sky360/frames/maskedcompressed', publisher_qos_profile)
     self.pub_grey_frame = self.create_publisher(Image, 'sky360/frames/grey', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
@@ -63,11 +64,15 @@ class FrameProviderNode(ConfiguredNode):
         frame_original_masked_msg = self.br.cv2_to_imgmsg(frame_masked, encoding=msg_image.encoding)
         frame_original_masked_msg.header = msg_image.header
 
+        #frame_original_masked_msg_compressed = self.br.cv2_to_compressed_imgmsg(frame_masked, dst_format='jpg')
+        #frame_original_masked_msg_compressed.header = msg_image.header
+
         frame_grey_msg = self.br.cv2_to_imgmsg(frame_grey, encoding="mono8")
         frame_grey_msg.header = msg_image.header
 
         self.pub_original_frame.publish(frame_original_msg)
         self.pub_masked_frame.publish(frame_original_masked_msg)
+        #self.pub_masked_frame_compressed.publish(frame_original_masked_msg_compressed)
         self.pub_grey_frame.publish(frame_grey_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during frame provider. Error: {e}.")

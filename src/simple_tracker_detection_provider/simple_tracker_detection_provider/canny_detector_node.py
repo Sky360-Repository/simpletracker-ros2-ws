@@ -30,19 +30,16 @@ class CannyDetectorNode(ConfiguredNode):
     super().__init__('sky360_canny_detector')
 
     # setup services, publishers and subscribers
-    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)    
-    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/canny/bounding_boxes/v1', 10)   
+    self.sub_grey_frame = self.create_subscription(Image, 'sky360/frames/grey/v1', self.grey_frame_callback, 10)
+    self.pub_bounding_boxes = self.create_publisher(BoundingBoxArray, 'sky360/detector/canny/bounding_boxes/v1', 10)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
-   
+
   def grey_frame_callback(self, data:Image):
 
     frame_grey = self.br.imgmsg_to_cv2(data)
 
     # TODO:
-   
-
-
 
   def config_list(self) -> List[str]:
     return ['tracker_detection_sensitivity']
@@ -53,13 +50,12 @@ class CannyDetectorNode(ConfiguredNode):
     if self.app_configuration['tracker_detection_sensitivity'] == None:
       self.get_logger().error('The tracker_detection_sensitivity config entry is null')
       valid = False
-      
+
     return valid
 
   def on_config_loaded(self, init: bool):
     if init:
-      self.br = CvBridge() 
-
+      self.br = CvBridge()
 
 def main(args=None):
 
@@ -68,7 +64,6 @@ def main(args=None):
 
   runner = NodeRunner(node)
   runner.run()
-
 
 if __name__ == '__main__':
   main()

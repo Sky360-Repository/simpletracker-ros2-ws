@@ -6,12 +6,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update \
    && apt-get -y install --no-install-recommends python3-numpy libboost-python-dev \
+   # Install colcon build tools
+   && apt-get install -y --no-install-recommends python3-colcon-common-extensions \
    # ROS2 build related stuff
    && pip3 install setuptools==58.2.0 \
    && export PYTHONWARNINGS=ignore:::setuptools.command.install \
    && apt-get autoremove -y \
    && apt-get clean -y
    # && rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install tensorflow
 
 # RUN apt-get update && apt-get -y install vulcanexus-humble-base vulcanexus-humble-base
 

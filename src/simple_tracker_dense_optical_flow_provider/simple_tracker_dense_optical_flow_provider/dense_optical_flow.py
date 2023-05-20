@@ -17,6 +17,9 @@ import numpy as np
 # This class provides a dense optical flow abstraction that is used in order to provide both a CPU and GPU implimentation #
 # Here is a link to the wikipedia article for optical flow: https://en.wikipedia.org/wiki/Optical_flow                    #
 ###########################################################################################################################
+
+# This package is focused on calculating dense optical flow from a sequence of greyscale images. This operation maps how every pixel in the image moves from one frame to the next. Optical flow is the pattern of apparent motion of image objects between two consecutive frames caused by the movement of the object or the camera.
+
 class DenseOpticalFlow():
 
     def __init__(self, width, height):
@@ -108,7 +111,7 @@ class GpuDenseOpticalFlow(DenseOpticalFlow):
 
     def __init__(self, width, height):
         super().__init__(width, height)
-        
+
         self.previous_gpu_frame = None
 
     def _resize(self, gpu_frame, stream):

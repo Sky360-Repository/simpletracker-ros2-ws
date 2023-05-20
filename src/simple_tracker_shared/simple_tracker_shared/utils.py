@@ -137,7 +137,6 @@ def is_bbox_being_tracked(live_trackers, bbox):
         else:
             if tracker.does_bbox_overlap(bbox):
                 return True
-
     return False
 
 # Utility function to deletrmine if a point overlaps a bouding box
@@ -151,24 +150,38 @@ def get_sized_bbox_from_tracker(tracker):
     return get_sized_bbox(tracker.get_bbox(), tracker.settings)
 
 # Utility function to get the sized bbox for display
-def get_sized_bbox(bbox, settings):
-    return_bbox = bbox
-    if settings['bbox_fixed_size']:
-        size = settings['bbox_size']
-        x1, y1, w, h = bbox
-        x1 = int(x1+(w/2)) - int(size/2)
-        y1 = int(y1+(h/2)) - int(size/2)
-        return_bbox = (x1, y1, size, size)
+# bbox_fixed_size is not defined in App settings yet
+# this function is not being used anywhere (similar method exists in the Annotated Frame Creator
+# I'm commenting the old function out for now and replacing it with a new one. The new one is still not used yet. -DL
+# def get_sized_bbox(bbox, settings):
+#     return_bbox = bbox
+#     if settings['bbox_fixed_size']:
+#         size = settings['visualiser_bbox_size']
+#         x1, y1, w, h = bbox
+#         x1 = int(x1+(w/2)) - int(size/2)
+#         y1 = int(y1+(h/2)) - int(size/2)
+#         return_bbox = (x1, y1, size, size)
+#     return return_bbox
 
+def get_sized_bbox(bbox, settings):
+    x1, y1, w, h = bbox
+    size_setting = settings.get('visualiser_bbox_size')  # This won't raise a KeyError if the key doesn't exist
+    if isinstance(size_setting, (int, float)):  # Check if the value is a number
+        size = max(w, h, size_setting)
+    else:
+        size = max(w, h)
+    x1 = int(x1 + (w / 2)) - int(size / 2)
+    y1 = int(y1 + (h / 2)) - int(size / 2)
+    return_bbox = (x1, y1, size, size)
     return return_bbox
 
 # Utility function to determine if a bbox is valid.
-# 
+#
 # I had problems and used this to debug it, its a useful function to have so don't want to delete
 # it, but equally I don't want the processing overhead so quick return out of it until we need it again.
 def is_valid_bbox(bbox, frame):
     #return True
-    # roi.x + roi.width <= m.cols 
+    # roi.x + roi.width <= m.cols
     # roi.y + roi.height <= m.rows
     valid = False
     x, y, w, h = bbox

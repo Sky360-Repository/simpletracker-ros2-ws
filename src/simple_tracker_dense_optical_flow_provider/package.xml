@@ -3,7 +3,7 @@
 <package format="3">
   <name>simple_tracker_dense_optical_flow_provider</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
+  <description>This package is focused on calculating dense optical flow from a sequence of greyscale images. This operation maps how every pixel in the image moves from one frame to the next. Optical flow is the pattern of apparent motion of image objects between two consecutive frames caused by the movement of the object or the camera.</description>
   <maintainer email="michael.groenewald@gmail.com">ros</maintainer>
   <license>TODO: License declaration</license>
 

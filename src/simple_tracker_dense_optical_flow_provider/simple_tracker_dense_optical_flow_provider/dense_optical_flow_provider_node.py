@@ -22,6 +22,8 @@ from simple_tracker_shared.frame_processor import FrameProcessor
 from simple_tracker_shared.qos_profiles import get_topic_publisher_qos_profile, get_topic_subscriber_qos_profile
 from .dense_optical_flow import DenseOpticalFlow
 
+# This package is focused on calculating dense optical flow from a sequence of greyscale images. This operation maps how every pixel in the image moves from one frame to the next. Optical flow is the pattern of apparent motion of image objects between two consecutive frames caused by the movement of the object or the camera.
+
 class DenseOpticalFlowProviderNode(ConfiguredNode):
 
   def __init__(self, subscriber_qos_profile: QoSProfile, publisher_qos_profile: QoSProfile):
@@ -32,7 +34,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
     self.pub_dense_optical_flow_frame = self.create_publisher(Image, 'sky360/frames/dense_optical_flow', publisher_qos_profile)
 
     self.get_logger().info(f'{self.get_name()} node is up and running.')
-   
+
   def grey_frame_callback(self, msg_frame:Image):
 
     if msg_frame != None:
@@ -41,7 +43,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
         frame_grey = self.br.imgmsg_to_cv2(msg_frame)
 
         optical_flow_frame = self.frame_processor.process_optical_flow(self.dense_optical_flow, frame_grey, None)
-      
+
         frame_optical_flow_msg = self.br.cv2_to_imgmsg(optical_flow_frame, encoding="bgr8")
         frame_optical_flow_msg.header = msg_frame.header
 
@@ -59,7 +61,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
     if self.app_configuration['dense_optical_flow_h'] == None:
       self.get_logger().error('The dense_optical_flow_h config entry is null')
       valid = False
-      
+
     if self.app_configuration['dense_optical_flow_w'] == None:
       self.get_logger().error('The dense_optical_flow_w config entry is null')
       valid = False
@@ -72,7 +74,7 @@ class DenseOpticalFlowProviderNode(ConfiguredNode):
 
     self.frame_processor = FrameProcessor.Select(self.app_configuration, 'dense_optical_cuda_enable')
     self.dense_optical_flow = DenseOpticalFlow.Select(self.app_configuration)
-    
+
 
 def main(args=None):
 

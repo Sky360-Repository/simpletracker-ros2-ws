@@ -30,7 +30,7 @@ class AnnotatedFrameCreator():
     self.fontScaleWidth = 0
     self.fontScale = 1
 
-  def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray, 
+  def create(self, annotated_frame, msg_tracking_state:TrackingState, msg_detection_array:Detection2DArray,
     msg_trajectory_array:TrackTrajectoryArray, msg_prediction_array:TrackTrajectoryArray):
 
     cropped_track_counter = 0
@@ -69,7 +69,7 @@ class AnnotatedFrameCreator():
 
       if enable_cropped_tracks and tracking_state == TrackingStateEnum.ActiveTarget:
         margin = 0 if cropped_track_counter == 0 else 10
-        zoom_w, zoom_h = w * zoom_factor, h * zoom_factor              
+        zoom_w, zoom_h = w * zoom_factor, h * zoom_factor
         cropped_image_x, cropped_image_y = (10+(cropped_track_counter*zoom_w)+margin), (total_height-(zoom_h+10))
         if cropped_image_x + zoom_w < total_width:
           try:
@@ -85,8 +85,8 @@ class AnnotatedFrameCreator():
       for trajectory_point in trajectory_array:
         if not previous_trajectory_point is None:
           #if not self._is_point_contained_in_bbox(detections[trajectory.id], (trajectory_point.center.x, trajectory_point.center.y)):
-            cv2.line(annotated_frame, 
-              (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)), 
+            cv2.line(annotated_frame,
+              (int(previous_trajectory_point.center.x), int(previous_trajectory_point.center.y)), (int(trajectory_point.center.x), int(trajectory_point.center.y)),
               color = self._color(TrackingStateEnum(trajectory_point.tracking_state)), thickness = self.bbox_line_thickness)
         previous_trajectory_point = trajectory_point
         final_trajectory_points[trajectory.id] = previous_trajectory_point
@@ -98,23 +98,43 @@ class AnnotatedFrameCreator():
         for prediction_point in prediction_array:
           if not previous_prediction_point is None:
             #if not self._is_point_contained_in_bbox(detections[trajectory.id], (prediction_point.center.x, prediction_point.center.y)):
-              cv2.line(annotated_frame, 
-                (int(previous_prediction_point.center.x), int(previous_prediction_point.center.y)), (int(prediction_point.center.x), int(prediction_point.center.y)), 
+              cv2.line(annotated_frame,
+                (int(previous_prediction_point.center.x), int(previous_prediction_point.center.y)), (int(prediction_point.center.x), int(prediction_point.center.y)),
                 color = self.prediction_colour, thickness = self.bbox_line_thickness)
 
           previous_prediction_point = prediction_point
 
     return annotated_frame
 
+# Old function (to be removed after testing the new version)
+#   def _get_sized_bbox(self, bbox_msg: BoundingBox2D):
+#     x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)),
+#                   int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)),
+#                   bbox_msg.size_x,
+#                   bbox_msg.size_y)
+#     bbox = (x, y, w, h)
+#     if self.settings['visualiser_bbox_size'] is not None:
+#         size = self.settings['visualiser_bbox_size']
+#         if w < size and h < size:
+#           x1 = int(x+(w/2)) - int(size/2)
+#           y1 = int(y+(h/2)) - int(size/2)
+#           bbox = (x1, y1, size, size)
+#     return bbox
+
   def _get_sized_bbox(self, bbox_msg: BoundingBox2D):
-    x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)), int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)), bbox_msg.size_x, bbox_msg.size_y)
+    x, y, w, h = (int(bbox_msg.center.position.x - (bbox_msg.size_x / 2)),
+                  int(bbox_msg.center.position.y - (bbox_msg.size_y / 2)),
+                  bbox_msg.size_x,
+                  bbox_msg.size_y)
     bbox = (x, y, w, h)
-    if self.settings['visualiser_bbox_size'] is not None:
-        size = self.settings['visualiser_bbox_size']
-        if w < size and h < size:
-          x1 = int(x+(w/2)) - int(size/2)
-          y1 = int(y+(h/2)) - int(size/2)
-          bbox = (x1, y1, size, size)
+    size_setting = self.settings.get('visualiser_bbox_size')  # This won't raise a KeyError if the key doesn't exist
+    if isinstance(size_setting, (int, float)):  # Check if visualiser_bbox_size is a number
+        size = max(w, h, size_setting)
+    else:
+        size = max(w, h)
+    x1 = int(x + (w / 2)) - int(size / 2)
+    y1 = int(y + (h / 2)) - int(size / 2)
+    bbox = (x1, y1, size, size)
     return bbox
 
   def _is_point_contained_in_bbox(self, bbox, point):

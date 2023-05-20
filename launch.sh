@@ -13,3 +13,8 @@ sleep 5
 
 # launch rosbridge_server
 ros2 launch rosbridge_server rosbridge_websocket.launch
+
+# wait for ros2 to start
+sleep 10
+
+ros2 run simple_tracker_single_frame_classifier single_frame_classifier

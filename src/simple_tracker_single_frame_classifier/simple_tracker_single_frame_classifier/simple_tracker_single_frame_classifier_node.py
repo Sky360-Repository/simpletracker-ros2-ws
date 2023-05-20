@@ -119,7 +119,7 @@ class SingleFrameClassifierNode(Node):
             predictions = self.model.predict(img_array)
 
             # Log the classification
-            self.get_logger().info('Model predictions: ' + str(predictions))
+            # self.get_logger().info('Model predictions: ' + str(predictions))
 
             # Now, let's create a dictionary to hold our data
             object_data = {

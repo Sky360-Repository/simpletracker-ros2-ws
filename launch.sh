@@ -12,7 +12,7 @@ ros2 launch simple_tracker_launch simple_tracker_launch.py &
 sleep 5
 
 # launch rosbridge_server
-ros2 launch rosbridge_server rosbridge_websocket.launch
+ros2 launch rosbridge_websocket.launch
 
 # wait for ros2 to start
 sleep 10

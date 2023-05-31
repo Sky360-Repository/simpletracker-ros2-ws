@@ -25,3 +25,6 @@ ENV DEBIAN_FRONTEND=dialog
 ARG WORKSPACE
 RUN echo "if [ -f /opt/vulcanexus/humble/setup.bash ]; then source /opt/vulcanexus/humble/setup.bash; fi" >> /home/ros/.bashrc
 RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/ros/.bashrc
+
+# ARG USERNAME=ros
+# RUN chown -R $USERNAME:$USERNAME /opt/Fast-DDS-statistics-backend

@@ -9,8 +9,8 @@ sudo apt install -y python3-natsort  # Installing natsort (is not in rosdep)
 rosdep update
 rosdep install --from-paths src --ignore-src -y
 
-cd /opt/Fast-DDS-statistics-backend/examples/cpp/ROS2Prometheus/build
-cmake .. && make
+# cd /opt/Fast-DDS-statistics-backend/examples/cpp/ROS2Prometheus/build
+# cmake .. && make
 
 
 cd /workspaces/simpletracker-ros2-ws/

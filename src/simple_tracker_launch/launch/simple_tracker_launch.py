@@ -118,17 +118,7 @@ def generate_launch_description():
             name='annotated_frame_provider'
         ),
 
-        # compressed image nodes
-        Node(
-            package='simple_tracker_frame_provider',
-            #namespace='sky360',
-            executable='compressed_frame_provider',
-            name='compressed_annotated_frame_provider',
-            remappings=[
-                ('sky360/compressed/source', 'sky360/frames/annotated'),
-                ('sky360/compressed/target', 'sky360/frames/annotated/compressed')
-            ]
-        ),
+        # begin compressed image nodes
         Node(
             package='simple_tracker_frame_provider',
             #namespace='sky360',
@@ -139,6 +129,18 @@ def generate_launch_description():
                 ('sky360/compressed/target', 'sky360/frames/masked/compressed')
             ]
         ),
+        Node(
+            package='simple_tracker_frame_provider',
+            #namespace='sky360',
+            executable='compressed_frame_provider',
+            name='compressed_annotated_frame_provider',
+            remappings=[
+                ('sky360/compressed/source', 'sky360/frames/annotated'),
+                ('sky360/compressed/target', 'sky360/frames/annotated/compressed')
+            ]
+        ),
+        # end compressed image nodes
+
         Node(
             package='simple_tracker_single_frame_classifier',
             #namespace='sky360',

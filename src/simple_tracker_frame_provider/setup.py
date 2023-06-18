@@ -20,7 +20,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'frame_provider = simple_tracker_frame_provider.frame_provider_node:main'
+            'frame_provider = simple_tracker_frame_provider.frame_provider_node:main',
+            'compressed_frame_provider = simple_tracker_frame_provider.compressed_image_node:main'
         ],
     },
 )

@@ -49,7 +49,7 @@ def generate_launch_description():
         ##    package='usb_cam',
         ##    executable='usb_cam_node_exe',
         ##    parameters = [config],
-        ##    remappings=[('image_raw', 'sky360/camera/original/v1')]
+        ##    remappings=[('image_raw', 'sky360/camera/original')]
         ##),
         Node(
             name='camera_simulator',

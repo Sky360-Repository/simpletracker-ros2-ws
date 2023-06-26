@@ -11,13 +11,12 @@
 # all copies or substantial portions of the Software.
 
 import traceback as tb
-import cv2
 import rclpy
 import message_filters
 from rclpy.qos import QoSProfile, QoSPresetProfiles
 from typing import List
 from cv_bridge import CvBridge
-from sensor_msgs.msg import Image, CompressedImage
+from sensor_msgs.msg import Image
 from vision_msgs.msg import ObjectHypothesis, Detection2DArray, Classification
 from simple_tracker_interfaces.msg import TrackingState, TrackTrajectoryArray
 from simple_tracker_shared.configured_node import ConfiguredNode
@@ -32,7 +31,6 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
 
     # setup services, publishers and subscribers
     self.pub_annotated_frame = self.create_publisher(Image, 'sky360/frames/annotated', publisher_qos_profile)
-    self.pub_annotated_frame_compressed = self.create_publisher(CompressedImage, 'sky360/frames/annotated/compressed', 10)
 
     self.sub_masked_frame = message_filters.Subscriber(self, Image, 'sky360/frames/masked', qos_profile=subscriber_qos_profile)
     self.sub_tracking_state = message_filters.Subscriber(self, TrackingState, 'sky360/tracker/tracking_state', qos_profile=subscriber_qos_profile)
@@ -60,11 +58,6 @@ class AnnotatedFrameProviderNode(ConfiguredNode):
         frame_annotated_msg.header = msg_masked_frame.header        
         self.pub_annotated_frame.publish(frame_annotated_msg)
 
-        frame_annotated_compressed_msg: CompressedImage = CompressedImage()
-        frame_annotated_compressed_msg.header = msg_masked_frame.header
-        frame_annotated_compressed_msg.format = 'jpeg'
-        frame_annotated_compressed_msg.data = cv2.imencode('.jpg', annotated_frame)[1].tobytes()
-        self.pub_annotated_frame_compressed.publish(frame_annotated_compressed_msg)
       except Exception as e:
         self.get_logger().error(f"Exception during the annotated frame provider. Error: {e}.")
         self.get_logger().error(tb.format_exc())
